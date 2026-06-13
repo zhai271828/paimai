@@ -1,0 +1,21 @@
+[Unit]
+Description=Auctioneer Laws Online friends game
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/auctioneer-laws-online
+ExecStart=/usr/bin/npm run start:prod
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+Environment=PORT=3001
+Environment=AUCTIONEER_ALLOWED_ORIGINS=http://YOUR_SERVER_IP:3001
+Environment=AUCTIONEER_REPOSITORY=sqlite
+Environment=AUCTIONEER_DATA_DIR=data/rooms
+Environment=AUCTIONEER_SQLITE_PATH=data/rooms/auctioneer.sqlite
+Environment=AUCTIONEER_STATIC_DIR=apps/web/dist
+
+[Install]
+WantedBy=multi-user.target

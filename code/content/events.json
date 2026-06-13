@@ -1,0 +1,632 @@
+[
+  {
+    "id": "N1",
+    "name": "神秘收购",
+    "category": "自然事件",
+    "timing": "后续 1 天",
+    "effectText": "下一个拍卖日结束后，从当天成交藏品中随机 1 件触发收购：持有者可选择以传闻最高价卖给系统；若拒绝，获得 1 声望。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:N1"
+      }
+    ],
+    "natural": true,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "N1"
+    }
+  },
+  {
+    "id": "N2",
+    "name": "经济回暖",
+    "category": "自然事件",
+    "timing": "后续 2 天",
+    "effectText": "后续 2 天内，所有玩家出售给银行的回收价提高至传闻最低值 x100%。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:N2"
+      }
+    ],
+    "natural": true,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "N2"
+    }
+  },
+  {
+    "id": "E01",
+    "name": "市场回暖",
+    "category": "市场波动",
+    "timing": "下一天；1 天",
+    "effectText": "从下一天开始，下一天所有成交藏品的终局价值 +10%。",
+    "effects": [
+      {
+        "type": "finalValueMultiplier",
+        "target": {
+          "kind": "global"
+        },
+        "multiplier": 1.1
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E01"
+    }
+  },
+  {
+    "id": "E02",
+    "name": "报纸头条",
+    "category": "信息浪潮",
+    "timing": "下一天预展",
+    "effectText": "下一天预展时，所有人额外看到第一件藏品的故事；不公开传闻区间和属性。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "global"
+        },
+        "scope": "private"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E02"
+    }
+  },
+  {
+    "id": "E03",
+    "name": "黑市打折",
+    "category": "黑市",
+    "timing": "下一个黑市日",
+    "effectText": "下一个黑市日，锦囊和事件卡价格各 -10 银元。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E03"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E03"
+    }
+  },
+  {
+    "id": "E04",
+    "name": "黑市查封",
+    "category": "黑市",
+    "timing": "下一个黑市日",
+    "effectText": "下一个黑市日，每人最多只能买 1 张；每位玩家立刻获得 20 银元补偿。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 20
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E04"
+    }
+  },
+  {
+    "id": "E05",
+    "name": "稀货流入",
+    "category": "黑市",
+    "timing": "下一个黑市日",
+    "effectText": "下一个黑市日，每人购买上限 +1；额外购买的第 3 张价格 +20 银元。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E05"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E05"
+    }
+  },
+  {
+    "id": "E06",
+    "name": "熟人门路",
+    "category": "黑市",
+    "timing": "下一次黑市",
+    "effectText": "下一次黑市中，每位玩家免费获得 1 张锦囊；该黑市日不能再购买锦囊，但仍可购买事件卡。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E06"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E06"
+    }
+  },
+  {
+    "id": "E07",
+    "name": "假货横行",
+    "category": "行业震荡",
+    "timing": "下一天；1 天",
+    "effectText": "下一天新出现藏品的赝品基础概率 +10%；若买到赝品，买家获得 30 银元补偿。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 30
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E07"
+    }
+  },
+  {
+    "id": "E08",
+    "name": "鉴定风潮",
+    "category": "行业震荡",
+    "timing": "下一天；1 天",
+    "effectText": "下一天新出现藏品的赝品基础概率 -10%；会查看赝品或属性的锦囊使用时需额外支付 10 银元，现金不足则不能使用。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "global"
+        },
+        "scope": "private"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E08"
+    }
+  },
+  {
+    "id": "E09",
+    "name": "收藏展邀约",
+    "category": "收藏",
+    "timing": "下一天结束时",
+    "effectText": "下一天结束时，每位拥有 3 种及以上类别藏品的玩家获得 30 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 30
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E09"
+    }
+  },
+  {
+    "id": "E10",
+    "name": "断舍离",
+    "category": "交易",
+    "timing": "下一天自由阶段",
+    "effectText": "下一天自由阶段，每位玩家第一次卖银行按传闻最低值 x100% 回收。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E10"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E10"
+    }
+  },
+  {
+    "id": "E11",
+    "name": "资金冻结",
+    "category": "经济政策",
+    "timing": "下一天；1 天",
+    "effectText": "下一天每位玩家不能贷款；下一天开始时现金低于 100 的玩家获得 40 银元补助。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 40
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E11"
+    }
+  },
+  {
+    "id": "E12",
+    "name": "量化宽松",
+    "category": "经济政策",
+    "timing": "后续 2 天",
+    "effectText": "后续 2 天的晨间收入阶段，所有玩家额外获得 10 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 10
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E12"
+    }
+  },
+  {
+    "id": "E13",
+    "name": "紧缩政策",
+    "category": "经济政策",
+    "timing": "下一天；1 天",
+    "effectText": "下一天新贷款改为借 100 还 130。已存在贷款不受影响。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E13"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E13"
+    }
+  },
+  {
+    "id": "E14",
+    "name": "银行惜售",
+    "category": "经济政策",
+    "timing": "下一天；1 天",
+    "effectText": "下一天出售给银行的回收价降至传闻最低值 x70%。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E14"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E14"
+    }
+  },
+  {
+    "id": "E15",
+    "name": "银行抢收",
+    "category": "经济政策",
+    "timing": "下一天；1 天",
+    "effectText": "下一天出售给银行的回收价提高至传闻最低值 x100%。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E15"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E15"
+    }
+  },
+  {
+    "id": "E16",
+    "name": "现金为王",
+    "category": "经济政策",
+    "timing": "终局结算",
+    "effectText": "终局结算时，现金每 40 银元兑换 1 声望；由本事件额外获得的声望最多 +5。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E16"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E16"
+    }
+  },
+  {
+    "id": "E17",
+    "name": "通胀来袭",
+    "category": "经济政策",
+    "timing": "下一天；1 天",
+    "effectText": "下一天黑市牌、易损保护费、贷款利息各 +10 银元；藏品成交价不受影响。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E17"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E17"
+    }
+  },
+  {
+    "id": "E18",
+    "name": "银根紧缩",
+    "category": "经济政策",
+    "timing": "下一天晨间",
+    "effectText": "下一天晨间每位玩家支付 30 银元给银行；现金不足者支付至 0，不触发强制清算。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E18"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E18"
+    }
+  },
+  {
+    "id": "E19",
+    "name": "透明市场",
+    "category": "信息浪潮",
+    "timing": "下一天预展",
+    "effectText": "下一天预展时，所有藏品的传闻区间对所有人公开；属性仍隐藏。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "global"
+        },
+        "scope": "private"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E19"
+    }
+  },
+  {
+    "id": "E20",
+    "name": "富豪入场",
+    "category": "环境变化",
+    "timing": "下一天；1 天",
+    "effectText": "下一天英式和打包拍卖的最低加价幅度变为 30 银元；荷兰式起拍价至少为传闻最高值 +30；暗标不受影响。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E20"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E20"
+    }
+  },
+  {
+    "id": "E21",
+    "name": "竞拍税",
+    "category": "环境变化",
+    "timing": "下一天；1 天",
+    "effectText": "下一天每位玩家第一次出价免费；之后每次加价额外支付 5 银元给银行，每人最多支付 20 银元。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E21"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E21"
+    }
+  },
+  {
+    "id": "E22",
+    "name": "古籍复兴",
+    "category": "市场波动",
+    "timing": "下一天；1 天",
+    "effectText": "下一天【古籍/遗物/绝笔】类藏品终局价值 +15%。",
+    "effects": [
+      {
+        "type": "finalValueMultiplier",
+        "target": {
+          "kind": "global"
+        },
+        "multiplier": 1.15
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E22"
+    }
+  },
+  {
+    "id": "E23",
+    "name": "材质危机",
+    "category": "市场波动",
+    "timing": "下一天；1 天",
+    "effectText": "下一天【青铜/瓷器/玉器】类藏品终局价值 -15%。",
+    "effects": [
+      {
+        "type": "finalValueMultiplier",
+        "target": {
+          "kind": "global"
+        },
+        "multiplier": 0.85
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E23"
+    }
+  },
+  {
+    "id": "E24",
+    "name": "海外热潮",
+    "category": "市场波动",
+    "timing": "下一天；1 天",
+    "effectText": "下一天【字画/珠宝/钱币】类藏品终局价值 +15%。",
+    "effects": [
+      {
+        "type": "finalValueMultiplier",
+        "target": {
+          "kind": "global"
+        },
+        "multiplier": 1.15
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E24"
+    }
+  },
+  {
+    "id": "E25",
+    "name": "灵异恐惧",
+    "category": "行业震荡",
+    "timing": "下一天；1 天",
+    "effectText": "下一天【灵器/邪物/奇物】类藏品持有者每件需支付 10 银元保护费；不支付则该件终局价值 -20%。",
+    "effects": [
+      {
+        "type": "finalValueMultiplier",
+        "target": {
+          "kind": "global"
+        },
+        "multiplier": 0.8
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E25"
+    }
+  },
+  {
+    "id": "E26",
+    "name": "文化禁令",
+    "category": "环境变化",
+    "timing": "下一天；1 天",
+    "effectText": "随机 1 个类别，下一天该类藏品禁止玩家交易和出售给银行；终局仍可计分。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E26"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E26"
+    }
+  },
+  {
+    "id": "E27",
+    "name": "学术突破",
+    "category": "行业震荡",
+    "timing": "下一天；1 天",
+    "effectText": "随机 1 个类别，下一天该类新出现藏品终局价值 +20%，且赝品基础概率降为 10%。",
+    "effects": [
+      {
+        "type": "finalValueMultiplier",
+        "target": {
+          "kind": "global"
+        },
+        "multiplier": 1.2
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E27"
+    }
+  },
+  {
+    "id": "E28",
+    "name": "丰收晨曦",
+    "category": "经济政策",
+    "timing": "下一天晨间",
+    "effectText": "下一天所有玩家晨间收入翻倍。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "global"
+        },
+        "resolver": "engine:E28"
+      }
+    ],
+    "natural": false,
+    "source": {
+      "doc": "事件卡.docx",
+      "row": "E28"
+    }
+  }
+]

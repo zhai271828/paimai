@@ -1,0 +1,6482 @@
+[
+  {
+    "id": "a01_01",
+    "name": "寒江独钓图",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "传为宋人马远真迹，历代藏家钤印十三方，唯左下角“天水郡”印泥色泛紫，与宋印朱砂不符",
+    "rumorMin": 180,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 1
+    }
+  },
+  {
+    "id": "a01_02",
+    "name": "兰亭修禊》明摹本",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "文徵明晚年临本，绢本设色，卷末有董其昌长跋，然跋文中避讳方式与董氏习惯有异",
+    "rumorMin": 140,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 2
+    }
+  },
+  {
+    "id": "a01_03",
+    "name": "八大山人《孤禽图",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "白眼向天，笔墨冷逸，画上题诗“墨点无多泪点多”，隐约讽世，民国年间流出王府",
+    "rumorMin": 160,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 3
+    }
+  },
+  {
+    "id": "a01_04",
+    "name": "溪山行旅》无款条屏",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "水墨淋漓，烟云变灭，笔法极似石涛，然无落款无印章，学界争论八十载未休",
+    "rumorMin": 100,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 4
+    }
+  },
+  {
+    "id": "a01_05",
+    "name": "敦煌写经残卷",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "唐比丘尼法藏抄《妙法莲华经》卷三，硬黄纸，朱砂点校，檀木轴头，存世稀少",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 5
+    }
+  },
+  {
+    "id": "a01_06",
+    "name": "郑板桥《竹石图",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "题诗“咬定青山不放松”，笔墨瘦劲，石用斧劈皴，为板桥晚年扬州卖画时期精品",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 6
+    }
+  },
+  {
+    "id": "a01_07",
+    "name": "百蝶图》团扇",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "清宫旧物，绢本设色，百蝶无一雷同，传为乾隆年间如意馆画师所制",
+    "rumorMin": 60,
+    "rumorMax": 110,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 7
+    }
+  },
+  {
+    "id": "a01_08",
+    "name": "金农《梅花图册",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "漆书题跋，墨梅疏影横斜，笔意古拙如金石，册页十开，有罗聘补笔",
+    "rumorMin": 90,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 8
+    }
+  },
+  {
+    "id": "a01_09",
+    "name": "赤壁赋》行书卷",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "无款，行笔清逸有苏意，纸面有火燎痕迹，传闻从火中抢出，略有残缺",
+    "rumorMin": 50,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 9
+    }
+  },
+  {
+    "id": "a01_10",
+    "name": "九龙图》粉本",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "墨线白描，龙形各异，传为南宋陈容画龙粉本，未经设色，笔势飞扬",
+    "rumorMin": 130,
+    "rumorMax": 210,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 10
+    }
+  },
+  {
+    "id": "a01_11",
+    "name": "宋徽宗《瑞鹤图》摹本",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "明中期宫廷画师临摹，二十只丹顶鹤盘旋于汴梁宣德门上，设色华丽，有“御制”伪印",
+    "rumorMin": 140,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 11
+    }
+  },
+  {
+    "id": "a01_12",
+    "name": "唐寅《秋风纨扇图",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "墨笔仕女执扇立于秋风，题诗“秋来纨扇合收藏”，笔墨疏朗，惜右下角水渍浸染",
+    "rumorMin": 120,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 12
+    }
+  },
+  {
+    "id": "a01_13",
+    "name": "徐渭《葡萄图》轴",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "泼墨写意，葡萄墨色淋漓如泪珠，自题“半生落魄已成翁”，笔势狂放不拘绳墨",
+    "rumorMin": 100,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 13
+    }
+  },
+  {
+    "id": "a01_14",
+    "name": "文徵明《拙政园图》册页",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "十二开，水墨淡彩绘拙政园十二景，对题诗文，为王献臣归隐苏州后所请",
+    "rumorMin": 130,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 14
+    }
+  },
+  {
+    "id": "a01_15",
+    "name": "石涛《黄山八胜图",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "写黄山奇峰怪松，笔墨恣肆，题跋自称“搜尽奇峰打草稿”，为石涛晚年精品",
+    "rumorMin": 150,
+    "rumorMax": 230,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 15
+    }
+  },
+  {
+    "id": "a01_16",
+    "name": "颜真卿《祭侄文稿》拓本",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "明拓，墨色浓淡如原迹，涂抹圈改处笔触可见，民国碑帖藏家旧藏，有虫蛀",
+    "rumorMin": 90,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 16
+    }
+  },
+  {
+    "id": "a01_17",
+    "name": "清明上河图》仇英摹",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "青绿设色，苏州城为蓝本，舟车人物千余，细节精丽，卷尾有仇英伪款",
+    "rumorMin": 110,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 17
+    }
+  },
+  {
+    "id": "a01_18",
+    "name": "傅山草书立轴",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "草书自作诗，笔走龙蛇，气势连绵，纸本，傅青主晚年晋中流寓时作",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 18
+    }
+  },
+  {
+    "id": "a01_19",
+    "name": "恽寿平《花卉册",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "没骨花卉十帧，设色淡雅如清风拂面，有“南田”小印，原为扬州盐商所藏",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 19
+    }
+  },
+  {
+    "id": "a01_20",
+    "name": "民国月份牌年画原稿",
+    "category": "calligraphy",
+    "categoryLabel": "字画",
+    "series": "字画",
+    "story": "杭穉英绘，旗袍仕女抱琵琶，擦笔水彩技法，月份牌收藏热中珍品",
+    "rumorMin": 50,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop03",
+      "prop04",
+      "prop05",
+      "prop06"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "字画",
+      "row": 20
+    }
+  },
+  {
+    "id": "a02_01",
+    "name": "西周饕餮纹方鼎",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "岐山周原出土，腹内铭文三十二字，记周公祭祀先祖事，红斑绿锈，铜质莹润",
+    "rumorMin": 220,
+    "rumorMax": 300,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 1
+    }
+  },
+  {
+    "id": "a02_02",
+    "name": "战国蟠螭纹铜鉴",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "水器，器身满饰蟠螭纹，间以云雷纹为地，红斑绿锈间泛水银光，品相完好",
+    "rumorMin": 180,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 2
+    }
+  },
+  {
+    "id": "a02_03",
+    "name": "汉错金银博山炉",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "山峦重叠，仙人瑞兽隐现，金银丝嵌出云气纹，燃香时烟从峰峦间袅出",
+    "rumorMin": 200,
+    "rumorMax": 280,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 3
+    }
+  },
+  {
+    "id": "a02_04",
+    "name": "商代鸮卣",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "猫头鹰形，双足粗壮，造型狞厉神秘，传殷墟妇好墓出，器盖有铭“帚好”",
+    "rumorMin": 240,
+    "rumorMax": 300,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 4
+    }
+  },
+  {
+    "id": "a02_05",
+    "name": "越王剑（存疑）",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "剑身菱形暗格纹，千年不锈，然剑格铭文“越王鸠浅”笔法与出土品有细微差异",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 5
+    }
+  },
+  {
+    "id": "a02_06",
+    "name": "西周编钟（单件）",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "甬钟一枚，枚柱分明，隧部有调音锉痕，叩之清越悠长，原为一套八件之一",
+    "rumorMin": 150,
+    "rumorMax": 230,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 6
+    }
+  },
+  {
+    "id": "a02_07",
+    "name": "汉代铜镜",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "连弧纹铭文镜，铭曰“见日之光天下大明”，镜面银光可鉴，镜缘略有锈蚀",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 7
+    }
+  },
+  {
+    "id": "a02_08",
+    "name": "春秋龙耳方壶",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "器型修长，龙耳衔环，腹部饰蟠虺纹，范线清晰，出土于郑国贵族墓",
+    "rumorMin": 160,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 8
+    }
+  },
+  {
+    "id": "a02_09",
+    "name": "战国虎符",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "青铜铸虎形，中分为二，虎身错金铭“右在君左在阳陵”，仅存右半",
+    "rumorMin": 100,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 9
+    }
+  },
+  {
+    "id": "a02_10",
+    "name": "西周青铜车马饰",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "一组七件，辖軎銮铃俱全，出自晋侯墓地车马坑，为礼制等级之证",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 10
+    }
+  },
+  {
+    "id": "a02_11",
+    "name": "西周簋",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "侈口兽耳，圈足下承方座，腹内底铭文四十字，记周王册命赏赐事，绿锈青翠",
+    "rumorMin": 180,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 11
+    }
+  },
+  {
+    "id": "a02_12",
+    "name": "春秋莲鹤方壶残件",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "仅存壶盖，双层莲瓣中立一鹤，展翅欲飞，郭沫若赞为“时代精神之象征”",
+    "rumorMin": 160,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 12
+    }
+  },
+  {
+    "id": "a02_13",
+    "name": "汉代铜灯",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "宫女跽坐持灯形，灯盘可转动调节光线，烟尘经手臂入体溶于水，设计精妙",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 13
+    }
+  },
+  {
+    "id": "a02_14",
+    "name": "商代青铜面具",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "纵目大耳，眉间有方孔，传说为古蜀国祭祀用，三星堆风格，斑驳绿锈",
+    "rumorMin": 200,
+    "rumorMax": 280,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 14
+    }
+  },
+  {
+    "id": "a02_15",
+    "name": "战国青铜带钩",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "错金银嵌绿松石，龙首形钩头，钩身饰云气纹，将军束甲之物",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 15
+    }
+  },
+  {
+    "id": "a02_16",
+    "name": "西周鸟尊",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "鸷鸟回首，背有捉手，通体羽纹细密，酒器，腹内铭“晋侯作旅彝”",
+    "rumorMin": 160,
+    "rumorMax": 230,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 16
+    }
+  },
+  {
+    "id": "a02_17",
+    "name": "秦代铜权",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "秦始皇二十六年诏版嵌于权身，小篆铭文四十字，统一度量衡之见证",
+    "rumorMin": 90,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 17
+    }
+  },
+  {
+    "id": "a02_18",
+    "name": "汉代铜奔马",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "马踏飞燕造型，三足腾空一足踏鸟，平衡力学极精，动态如飞",
+    "rumorMin": 140,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 18
+    }
+  },
+  {
+    "id": "a02_19",
+    "name": "战国青铜豆",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "盖器各半，合为球形，满饰蟠螭纹，子母口严丝合缝，品相完好",
+    "rumorMin": 100,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 19
+    }
+  },
+  {
+    "id": "a02_20",
+    "name": "商代爵",
+    "category": "bronze",
+    "categoryLabel": "青铜",
+    "series": "青铜",
+    "story": "三足尖底，菌形柱，鋬内有铭“父乙”，腹饰饕餮，铜质发青",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop05",
+      "prop06",
+      "prop07",
+      "prop08"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "青铜",
+      "row": 20
+    }
+  },
+  {
+    "id": "a03_01",
+    "name": "鸽血红宝石戒指",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "缅甸抹谷矿出，重3.2克拉，火光灼灼如鸽血滴落，原为缅甸王室私藏",
+    "rumorMin": 150,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 1
+    }
+  },
+  {
+    "id": "a03_02",
+    "name": "珍珠翡翠朝珠",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "清一品命妇礼服佩，珍珠一百零八颗，翡翠隔珠翠色欲流，原配檀木匣",
+    "rumorMin": 140,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 2
+    }
+  },
+  {
+    "id": "a03_03",
+    "name": "点翠凤冠",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "翠鸟羽贴成，百年仍色如新蓝，点翠工艺今已禁用，传为晚清某王妃嫁妆",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 3
+    }
+  },
+  {
+    "id": "a03_04",
+    "name": "祖母绿猫眼胸针",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "Art Deco风格，白金镶嵌，猫眼线清晰锐利，随光游移，1930年代巴黎定制",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 4
+    }
+  },
+  {
+    "id": "a03_05",
+    "name": "羊脂白玉如意",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "和田籽料整雕，白如截肪，触手温润，原为江南织造府进贡之物",
+    "rumorMin": 130,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 5
+    }
+  },
+  {
+    "id": "a03_06",
+    "name": "翡翠镯子一对",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "老坑玻璃种，满绿起胶，传为民国宋氏家族女眷旧物，有淡绺一道",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 6
+    }
+  },
+  {
+    "id": "a03_07",
+    "name": "蓝宝石项链",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "克什米尔矢车菊蓝，枕形切割，铂金链镶碎钻围绕，有GIA证书",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 7
+    }
+  },
+  {
+    "id": "a03_08",
+    "name": "蜜蜡朝珠",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "波罗的海老蜜蜡，蜡质饱满，百年盘玩包浆厚重，流苏已失",
+    "rumorMin": 60,
+    "rumorMax": 110,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 8
+    }
+  },
+  {
+    "id": "a03_09",
+    "name": "玳瑁嵌螺钿梳妆匣",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "清中期闽南工，匣面嵌螺钿花鸟，内置分隔可藏珠翠，局部有小裂",
+    "rumorMin": 50,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 9
+    }
+  },
+  {
+    "id": "a03_10",
+    "name": "珊瑚胸针",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "日本昭和时期，赤珊瑚雕牡丹花，银鎏金底座，匠人款“竹云”",
+    "rumorMin": 40,
+    "rumorMax": 80,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 10
+    }
+  },
+  {
+    "id": "a03_11",
+    "name": "缅甸翡翠珠链",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "三十三颗老坑帝王绿珠子，颗颗通透起荧，颗径均匀，原配白金搭扣",
+    "rumorMin": 160,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 11
+    }
+  },
+  {
+    "id": "a03_12",
+    "name": "卡地亚猎豹胸针",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "1940年代巴黎定制，铂金镶钻，豹眼为祖母绿，温莎公爵夫人同款",
+    "rumorMin": 130,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 12
+    }
+  },
+  {
+    "id": "a03_13",
+    "name": "清代累丝凤钗",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "金丝累成凤形，凤尾嵌红宝碧玺，点翠羽冠，诰命夫人礼服佩",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 13
+    }
+  },
+  {
+    "id": "a03_14",
+    "name": "蒂芙尼黄钻戒指",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "艳彩黄，枕形切，重5.02克拉，围镶碎钻两圈，附证书",
+    "rumorMin": 140,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 14
+    }
+  },
+  {
+    "id": "a03_15",
+    "name": "和田籽料手镯",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "羊脂白，油润细腻，素面无纹，圈口标准，传为三代的传家之物",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 15
+    }
+  },
+  {
+    "id": "a03_16",
+    "name": "宝格丽蛇形腕表",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "1960年代款，黄金蛇身表链，表盘藏于蛇首下，红宝石蛇眼",
+    "rumorMin": 120,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 16
+    }
+  },
+  {
+    "id": "a03_17",
+    "name": "沉香木嵌金手串",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "十八颗奇楠沉香珠，隔金片雕万字纹，百年包浆，清宫造办处所出",
+    "rumorMin": 90,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 17
+    }
+  },
+  {
+    "id": "a03_18",
+    "name": "海蓝宝石皇冠",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "主石约15克拉海蓝宝，铂金镶碎钻花叶环绕，原为俄国贵族流亡时携出",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 18
+    }
+  },
+  {
+    "id": "a03_19",
+    "name": "珊瑚朝珠",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "红珊瑚一百零八颗，青金石佛头，明黄绦带，晚清二品官员佩用",
+    "rumorMin": 70,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 19
+    }
+  },
+  {
+    "id": "a03_20",
+    "name": "银鎏金点翠簪",
+    "category": "jewelry",
+    "categoryLabel": "珠宝",
+    "series": "珠宝",
+    "story": "蝴蝶形，点翠蓝翅，触须缀米珠，民国新娘头面之一，工艺精美",
+    "rumorMin": 40,
+    "rumorMax": 80,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop07",
+      "prop08",
+      "prop09",
+      "prop10"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "珠宝",
+      "row": 20
+    }
+  },
+  {
+    "id": "a04_01",
+    "name": "明宣德青花缠枝莲盘",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "苏麻离青料，铁锈斑深入胎骨，盘心绘缠枝莲八朵，款识“大明宣德年制”",
+    "rumorMin": 200,
+    "rumorMax": 280,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 1
+    }
+  },
+  {
+    "id": "a04_02",
+    "name": "宋汝窑天青釉洗",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "天青色等烟雨，蟹爪纹开片如蝉翼，器底五支钉痕，芝麻大小，存世极少",
+    "rumorMin": 220,
+    "rumorMax": 280,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 2
+    }
+  },
+  {
+    "id": "a04_03",
+    "name": "清乾隆粉彩百鹿尊",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "器身绘百鹿图，姿态无一相同，黄地粉彩为底，双螭耳，纹饰满工",
+    "rumorMin": 160,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 3
+    }
+  },
+  {
+    "id": "a04_04",
+    "name": "元青花鬼谷子下山罐",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "故事取材战国，画工精绝，青花发色浓艳，惜罐口有冲线一道",
+    "rumorMin": 140,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 4
+    }
+  },
+  {
+    "id": "a04_05",
+    "name": "成化斗彩鸡缸杯（仿）",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "雍正年间官仿官精品，胎薄如纸，鸡纹灵动，几可乱真，唯款识笔法稍异",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 5
+    }
+  },
+  {
+    "id": "a04_06",
+    "name": "宋建窑兔毫盏",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "黑釉茶盏，兔毫纤细如发，盏底有窑变蓝斑，日本茶道回流品",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 6
+    }
+  },
+  {
+    "id": "a04_07",
+    "name": "明万历五彩鱼藻纹罐",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "红绿黄蓝交错，鱼藻鲜活，纹饰满密，为万历五彩典型器，底部有窑裂",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 7
+    }
+  },
+  {
+    "id": "a04_08",
+    "name": "清康熙豇豆红印盒",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "美人醉釉色，绿苔点散布，小巧可爱，文房雅器，盖面微有脱釉",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 8
+    }
+  },
+  {
+    "id": "a04_09",
+    "name": "唐三彩骆驼载乐俑",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "骆驼昂首嘶鸣，背上胡人乐师五人，釉色流淌自然，有修复痕迹",
+    "rumorMin": 90,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 9
+    }
+  },
+  {
+    "id": "a04_10",
+    "name": "民国粉彩山水笔筒",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "珠山八友汪野亭风格，墨彩山水，题诗“山高水长”，有小磕皮",
+    "rumorMin": 60,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 10
+    }
+  },
+  {
+    "id": "a04_11",
+    "name": "元青花鱼藻纹大罐",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "鱼藻纹四组，青花发色浓艳带铁锈斑，鱼纹生动如游，罐身有旧修",
+    "rumorMin": 180,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 11
+    }
+  },
+  {
+    "id": "a04_12",
+    "name": "清雍正珐琅彩雉鸡牡丹碗",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "瓷胎画珐琅，雉鸡牡丹配色雅丽，“雍正年制”蓝料款，为造办处珐琅作所制",
+    "rumorMin": 200,
+    "rumorMax": 280,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 12
+    }
+  },
+  {
+    "id": "a04_13",
+    "name": "北宋定窑白釉刻花盘",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "芒口覆烧，盘心刻莲花，釉白如象牙，泪痕隐现，定窑典型器",
+    "rumorMin": 120,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 13
+    }
+  },
+  {
+    "id": "a04_14",
+    "name": "明永乐甜白釉僧帽壶",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "釉如凝脂，器形仿藏式僧帽，景德镇御窑厂为永乐帝礼佛而烧",
+    "rumorMin": 150,
+    "rumorMax": 230,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 14
+    }
+  },
+  {
+    "id": "a04_15",
+    "name": "清道光慎德堂款粉彩瓶",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "道光帝御用“慎德堂”款，百子图粉彩，人物百余姿态各异，有小冲",
+    "rumorMin": 90,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 15
+    }
+  },
+  {
+    "id": "a04_16",
+    "name": "南宋龙泉窑梅子青鬲炉",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "釉色青翠如梅子，仿青铜鬲形，三足出筋，紫口铁足",
+    "rumorMin": 130,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 16
+    }
+  },
+  {
+    "id": "a04_17",
+    "name": "唐长沙窑诗文壶",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "瓜棱壶身，流下褐彩题“君生我未生，我生君已老”，为长沙窑典型器",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 17
+    }
+  },
+  {
+    "id": "a04_18",
+    "name": "金代磁州窑白地黑花枕",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "枕面绘童子戏莲，笔法粗犷率真，枕底有“张家造”戳记",
+    "rumorMin": 60,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 18
+    }
+  },
+  {
+    "id": "a04_19",
+    "name": "明嘉靖五彩鱼藻纹盖罐",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "矾红绘鲤鱼，青花绘水藻，色彩浓烈对比，嘉靖五彩之代表",
+    "rumorMin": 140,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 19
+    }
+  },
+  {
+    "id": "a04_20",
+    "name": "清同治大婚瓷碗",
+    "category": "porcelain",
+    "categoryLabel": "瓷器",
+    "series": "瓷器",
+    "story": "黄地粉彩喜字碗，同治帝大婚用瓷，百蝶纹，底书“同治年制”",
+    "rumorMin": 70,
+    "rumorMax": 110,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop09",
+      "prop10",
+      "prop11",
+      "prop12"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "瓷器",
+      "row": 20
+    }
+  },
+  {
+    "id": "a05_01",
+    "name": "西汉玉璧",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "谷纹璧，青玉质，沁色如秋梨，璧面有穿，原为贵族殓葬用",
+    "rumorMin": 180,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 1
+    }
+  },
+  {
+    "id": "a05_02",
+    "name": "清乾隆痕都斯坦玉碗",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "薄如纸，透如璃，浅浮雕番莲纹，碗壁嵌金丝，原为回部贡品",
+    "rumorMin": 160,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 2
+    }
+  },
+  {
+    "id": "a05_03",
+    "name": "红山文化玉猪龙",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "岫岩玉，C形蜷体，兽首似猪，通体磨光，刀工朴拙苍古",
+    "rumorMin": 150,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 3
+    }
+  },
+  {
+    "id": "a05_04",
+    "name": "明代玉带板",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "一套十六块，镂雕云龙纹，白玉质，原为三品以上官服用",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 4
+    }
+  },
+  {
+    "id": "a05_05",
+    "name": "翡翠扳指",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "老坑冰种飘花，圆润饱满，内壁刻“百步穿杨”，传为武官旧物",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 5
+    }
+  },
+  {
+    "id": "a05_06",
+    "name": "商代玉琮",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "外方内圆，四角刻神人兽面纹，纹饰简洁狞厉，天地沟通之器",
+    "rumorMin": 140,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 6
+    }
+  },
+  {
+    "id": "a05_07",
+    "name": "白玉子冈牌",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "正面刻高士图，背面行书诗一首，落子冈款，玉质莹白，牌头如意纹",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 7
+    }
+  },
+  {
+    "id": "a05_08",
+    "name": "汉代玉蝉",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "八刀蝉，青白玉，寥寥数刀神形兼备，口含之器，生坑有土沁",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 8
+    }
+  },
+  {
+    "id": "a05_09",
+    "name": "玛瑙俏色鼻烟壶",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "巧雕猴摘桃图，玛瑙天然红白分层，匠人依色雕成，俏色天成",
+    "rumorMin": 60,
+    "rumorMax": 110,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 9
+    }
+  },
+  {
+    "id": "a05_10",
+    "name": "岫玉平安扣",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "素面无纹，料大厚实，透光见絮状纹理，百姓传家之物，温润朴实",
+    "rumorMin": 50,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 10
+    }
+  },
+  {
+    "id": "a05_11",
+    "name": "汉代玉铺首",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "青白玉镂雕兽面铺首，双角盘曲，怒目衔环，为墓门或棺椁饰件",
+    "rumorMin": 140,
+    "rumorMax": 210,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 11
+    }
+  },
+  {
+    "id": "a05_12",
+    "name": "唐代玉飞天",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "白玉圆雕飞天形象，身姿曼妙飘带飞扬，胡跪持莲，盛唐风格",
+    "rumorMin": 130,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 12
+    }
+  },
+  {
+    "id": "a05_13",
+    "name": "战国玉剑珌",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "白玉质，梯形剑珌两面饰勾连云纹，下端刻兽面，工艺精绝",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 13
+    }
+  },
+  {
+    "id": "a05_14",
+    "name": "清代翡翠白菜摆件",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "白绿双色巧雕白菜，菜叶翻卷自然，叶上伏蝈蝈一只，寓意百财",
+    "rumorMin": 120,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 14
+    }
+  },
+  {
+    "id": "a05_15",
+    "name": "良渚文化玉琮",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "神人兽面纹简化，节数九节，射口规整，鸡骨白沁色，祭天礼器",
+    "rumorMin": 160,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 15
+    }
+  },
+  {
+    "id": "a05_16",
+    "name": "元代玉帽顶",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "镂雕春水图，海东青攫天鹅，白玉带皮巧用，原为游牧贵族帽饰",
+    "rumorMin": 90,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 16
+    }
+  },
+  {
+    "id": "a05_17",
+    "name": "明代玉笔洗",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "青白玉雕荷叶形，叶缘卷曲为壁，叶脉刻工精细，文房雅玩",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 17
+    }
+  },
+  {
+    "id": "a05_18",
+    "name": "清代痕都斯坦玉杯",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "薄胎透光，浅浮雕西番莲纹，杯耳为花苞形，嵌金丝，异域风情",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 18
+    }
+  },
+  {
+    "id": "a05_19",
+    "name": "商代玉戈",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "青玉质，援部宽长，内部有穿，刃无使用痕，礼器非实战兵器",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 19
+    }
+  },
+  {
+    "id": "a05_20",
+    "name": "和田玉观音牌",
+    "category": "jade",
+    "categoryLabel": "玉器",
+    "series": "玉器",
+    "story": "白玉子冈牌形，正面观音立像，背面《心经》全文，字小如蚁",
+    "rumorMin": 70,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop11",
+      "prop12",
+      "prop13",
+      "prop14"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "玉器",
+      "row": 20
+    }
+  },
+  {
+    "id": "a06_01",
+    "name": "宋版《昌黎先生集》残册",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "纸墨精良，欧体字如刀削，存卷三至卷五，钤“天禄琳琅”玺",
+    "rumorMin": 180,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 1
+    }
+  },
+  {
+    "id": "a06_02",
+    "name": "永乐大典》零本",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "嘉靖副本，包背装，朱丝栏，录“湖”字韵，清末从翰林院流出",
+    "rumorMin": 200,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 2
+    }
+  },
+  {
+    "id": "a06_03",
+    "name": "本草纲目》金陵初刻本",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "万历年间初版初印，纸白墨浓，附图精工，较后刻本多药方十余",
+    "rumorMin": 140,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 3
+    }
+  },
+  {
+    "id": "a06_04",
+    "name": "明代内府抄本《天文图说",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "彩绘星图三十六幅，金粉勾星，银粉描河，帝王观天之秘本",
+    "rumorMin": 160,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 4
+    }
+  },
+  {
+    "id": "a06_05",
+    "name": "日本刀剑谱《古今锻冶录",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "江户时代写本，录天下刀工百二十家，附刃纹拓片，纸本墨书",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 5
+    }
+  },
+  {
+    "id": "a06_06",
+    "name": "清宫膳单",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "乾隆某年除夕大宴菜单，共录一百零八品，朱笔圈点改动，宣纸写本",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 6
+    }
+  },
+  {
+    "id": "a06_07",
+    "name": "西藏贝叶经",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "梵文刻写于贝多罗叶上，上下夹木板，彩绘佛像三尊，入藏年代不详",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 7
+    }
+  },
+  {
+    "id": "a06_08",
+    "name": "芥子园画传》初集",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "康熙原版，套色精印，五色彩版，学画者圣经，略有虫蛀",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 8
+    }
+  },
+  {
+    "id": "a06_09",
+    "name": "风水手抄本《撼龙经",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "清代地师秘传，附手绘山形水势图百余幅，朱墨双色，字迹潦草",
+    "rumorMin": 50,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 9
+    }
+  },
+  {
+    "id": "a06_10",
+    "name": "民国武侠小说连载剪报",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "《蜀山剑侠传》初载于《大公报》之剪报合集，装订成册，纸黄脆",
+    "rumorMin": 40,
+    "rumorMax": 80,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 10
+    }
+  },
+  {
+    "id": "a06_11",
+    "name": "元刻本《资治通鉴》零卷",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "赵体字精刻，纸墨俱佳，存卷一百八十五唐纪一，有元人批注墨迹",
+    "rumorMin": 160,
+    "rumorMax": 230,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 11
+    }
+  },
+  {
+    "id": "a06_12",
+    "name": "天工开物》崇祯初刻本",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "宋应星著，图文并茂录百工技艺，初版流传极少，此本缺卷三",
+    "rumorMin": 140,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 12
+    }
+  },
+  {
+    "id": "a06_13",
+    "name": "清代殿试卷",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "光绪某科二甲进士殿试卷，朱丝栏，馆阁体工整，卷首朱批“第二甲第七名”",
+    "rumorMin": 90,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 13
+    }
+  },
+  {
+    "id": "a06_14",
+    "name": "几何原本》徐光启译本",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "万历三十五年初版，利玛窦口译徐光启笔述，中国首部西学数学译著",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 14
+    }
+  },
+  {
+    "id": "a06_15",
+    "name": "藏文大藏经散页",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "德格版甘珠尔零页，朱砂印于藏纸，佛像经版画精美，寺院流散",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 15
+    }
+  },
+  {
+    "id": "a06_16",
+    "name": "海国图志》道光古微堂本",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "魏源著，师夷长技以制夷，五十卷本，木活字排印，纸黄脆",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 16
+    }
+  },
+  {
+    "id": "a06_17",
+    "name": "明刻《牡丹亭",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "万历玉茗堂刊本，版画插图，汤显祖自序，有前人圈点，略有虫蛀",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 17
+    }
+  },
+  {
+    "id": "a06_18",
+    "name": "太平天国诏书",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "天王洪秀全颁行诏书，木刻大字，钤“太平天国”朱印，纸粗墨劣",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 18
+    }
+  },
+  {
+    "id": "a06_19",
+    "name": "营造法式》抄本",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "清代样式雷家族传抄，附工程做法批注，建筑术语详解，为建筑秘笈",
+    "rumorMin": 130,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 19
+    }
+  },
+  {
+    "id": "a06_20",
+    "name": "民国珂罗版画册",
+    "category": "book",
+    "categoryLabel": "古籍",
+    "series": "古籍",
+    "story": "《故宫书画集》全套四十五册，珂罗版精印，百年前故宫藏品影像",
+    "rumorMin": 50,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop13",
+      "prop14",
+      "prop15",
+      "prop16"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "古籍",
+      "row": 20
+    }
+  },
+  {
+    "id": "a07_01",
+    "name": "光绪元宝奉天癸卯一两",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "存世极罕，中国机制币大珍，龙图威猛，银光如霜，拍场传奇",
+    "rumorMin": 180,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 1
+    }
+  },
+  {
+    "id": "a07_02",
+    "name": "袁世凯像签字版银元",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "民国三年天津造币厂铸，L.GIORGI签字于肩章处，试铸样币未流通",
+    "rumorMin": 140,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 2
+    }
+  },
+  {
+    "id": "a07_03",
+    "name": "咸丰元宝宝泉当千",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "钱局鼓铸大钱以充军饷，当千大钱重百克，满文宝泉，黄铜质",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 3
+    }
+  },
+  {
+    "id": "a07_04",
+    "name": "王莽“一刀平五千”",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "错金刀，一刀二字阴刻填金，钱文悬针篆，托古改制之遗物",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 4
+    }
+  },
+  {
+    "id": "a07_05",
+    "name": "孙中山开国纪念币上五星",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "南京临时政府铸，背面五星方位与后铸不同，为初版试铸样",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 5
+    }
+  },
+  {
+    "id": "a07_06",
+    "name": "墨西哥鹰洋",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "1890年墨西哥城铸，成色90%，鹰衔蛇立仙人掌上，外贸流通之证",
+    "rumorMin": 60,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 6
+    }
+  },
+  {
+    "id": "a07_07",
+    "name": "日本龙洋",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "明治三十六年大阪造币局铸，龙图盘旋，银光温润，随军票流入中国",
+    "rumorMin": 50,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 7
+    }
+  },
+  {
+    "id": "a07_08",
+    "name": "满洲国双龙镍币",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "康德五年铸，双龙拱日，镍白色泽，伪满流通仅数载，存世量多",
+    "rumorMin": 30,
+    "rumorMax": 60,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 8
+    }
+  },
+  {
+    "id": "a07_09",
+    "name": "抗币江淮银行壹圆",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "木刻版油墨印刷，毛边纸，江淮银行1942年发行，敌后根据地流通",
+    "rumorMin": 40,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 9
+    }
+  },
+  {
+    "id": "a07_10",
+    "name": "北宋崇宁通宝",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "瘦金体御书钱文，铁画银钩，徽宗亲书，折十型，绿锈满身",
+    "rumorMin": 50,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 10
+    }
+  },
+  {
+    "id": "a07_11",
+    "name": "广东双龙寿字一两银币",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "光绪三十年铸，祝慈禧七旬寿，双龙环寿字，龙图精美，存世极少",
+    "rumorMin": 180,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 11
+    }
+  },
+  {
+    "id": "a07_12",
+    "name": "宣统三年大清银币长须龙",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "天津造币厂试铸样币，龙须特长，未正式发行，币面银光璀璨",
+    "rumorMin": 160,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 12
+    }
+  },
+  {
+    "id": "a07_13",
+    "name": "苏维埃川陕省造壹圆",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "红军在川陕根据地铸造，地球镰刀斧头图案，银质粗糙，革命文物",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 13
+    }
+  },
+  {
+    "id": "a07_14",
+    "name": "段祺瑞像执政纪念币",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "民国十三年天津造币厂铸，段祺瑞西装正面像，和平统一纪念",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 14
+    }
+  },
+  {
+    "id": "a07_15",
+    "name": "古罗马第纳尔银币",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "公元2世纪安东尼王朝铸，正面皇帝头像，背面胜利女神，出土于西域",
+    "rumorMin": 60,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 15
+    }
+  },
+  {
+    "id": "a07_16",
+    "name": "法属印支坐洋",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "1895年巴黎铸币厂，自由女神坐像，成色90%，东南亚流通百年",
+    "rumorMin": 40,
+    "rumorMax": 80,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 16
+    }
+  },
+  {
+    "id": "a07_17",
+    "name": "明代万历矿银钱",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "万历年间矿税所出，白银质，面文“万历矿银”，背“四钱”，存世稀少",
+    "rumorMin": 120,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 17
+    }
+  },
+  {
+    "id": "a07_18",
+    "name": "唐开元通宝背殷",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "会昌灭佛后铸，背铸“殷”字记地，青铜质，带绿锈",
+    "rumorMin": 30,
+    "rumorMax": 60,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 18
+    }
+  },
+  {
+    "id": "a07_19",
+    "name": "香港一仙铜币",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "1903年爱德华七世像，英占香港早期铸币，铜质红润，华人市井常用",
+    "rumorMin": 20,
+    "rumorMax": 50,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 19
+    }
+  },
+  {
+    "id": "a07_20",
+    "name": "咸丰重宝宝福一百",
+    "category": "coin",
+    "categoryLabel": "钱币",
+    "series": "钱币",
+    "story": "福建钱局铸大钱，面文“咸丰重宝”，背“当百”，个大厚重",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop15",
+      "prop16",
+      "prop17",
+      "prop18"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "钱币",
+      "row": 20
+    }
+  },
+  {
+    "id": "a08_01",
+    "name": "古埃及圣甲虫护符",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "青金石雕，刻亡灵书咒语，传说佩戴者免于横死，1922年尼罗河西岸出土",
+    "rumorMin": 80,
+    "rumorMax": 280,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 1
+    }
+  },
+  {
+    "id": "a08_02",
+    "name": "中世纪炼金术手稿",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "羊皮纸写，满绘炼金符号与蒸馏装置，边注拉丁文密语，修道院地窖发现",
+    "rumorMin": 100,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 2
+    }
+  },
+  {
+    "id": "a08_03",
+    "name": "水晶头骨（小型）",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "石英水晶雕成人头骨，工艺极精，传为玛雅祭司之物，然碳测有争议",
+    "rumorMin": 50,
+    "rumorMax": 300,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 3
+    }
+  },
+  {
+    "id": "a08_04",
+    "name": "维京罗盘石",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "冰洲石磨制，可于阴天定位太阳，北欧渔民千年航海秘器，仅存数块",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 4
+    }
+  },
+  {
+    "id": "a08_05",
+    "name": "非洲部落占卜骨",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "动物肩胛骨烧灼裂纹，巫师依纹占卜吉凶，附有殖民者笔记一册",
+    "rumorMin": 20,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 5
+    }
+  },
+  {
+    "id": "a08_06",
+    "name": "钟表匠的最后一作",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "无名匠人手工怀表，机芯有千余零件，拆解后无法复原，表背刻“给女儿”",
+    "rumorMin": 60,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 6
+    }
+  },
+  {
+    "id": "a08_07",
+    "name": "占星术天球仪",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "黄铜制，镌刻二十八宿与西方黄道十二宫，可旋转对应，中西合璧",
+    "rumorMin": 80,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 7
+    }
+  },
+  {
+    "id": "a08_08",
+    "name": "深海打捞的航海日志",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "19世纪捕鲸船日志，羊皮封，记有未知岛屿坐标，盐渍侵蚀字迹模糊",
+    "rumorMin": 30,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 8
+    }
+  },
+  {
+    "id": "a08_09",
+    "name": "驯兽师鞭子",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "皮编长鞭，柄镶狮牙，传为某欧洲马戏团驯狮人之物，鞭声如雷",
+    "rumorMin": 10,
+    "rumorMax": 80,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 9
+    }
+  },
+  {
+    "id": "a08_10",
+    "name": "陨石切片",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "铁镍陨石切面，维斯台登纹清晰，置磁铁于侧可悬浮，天外来客",
+    "rumorMin": 90,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 10
+    }
+  },
+  {
+    "id": "a08_11",
+    "name": "八音盒·机械夜莺",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "瑞士19世纪造，发条驱动，夜莺张嘴振翅鸣唱，黄金鸟笼造型",
+    "rumorMin": 100,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 11
+    }
+  },
+  {
+    "id": "a08_12",
+    "name": "瓶中船·胜利号",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "玻璃瓶内纳尔逊旗舰模型，船帆绳索俱全，如何放入成谜",
+    "rumorMin": 60,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 12
+    }
+  },
+  {
+    "id": "a08_13",
+    "name": "琥珀包裹的羽毛",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "白垩纪琥珀，内有完整鸟羽一根，距今一亿年，可辨羽枝结构",
+    "rumorMin": 80,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 13
+    }
+  },
+  {
+    "id": "a08_14",
+    "name": "印第安酋长烟斗",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "红石刻烟锅，鹰羽装饰，烟道穿空曲折，和平烟斗仪式用",
+    "rumorMin": 50,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 14
+    }
+  },
+  {
+    "id": "a08_15",
+    "name": "暹罗双头象标本",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "初生象犊双头连体，浸泡于玻璃罐中，19世纪暹罗王室收藏",
+    "rumorMin": 40,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 15
+    }
+  },
+  {
+    "id": "a08_16",
+    "name": "拿破仑的头发",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "滑铁卢战役后从圣赫勒拿岛流出，金棕色发丝一缕，封于水晶小盒",
+    "rumorMin": 70,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 16
+    }
+  },
+  {
+    "id": "a08_17",
+    "name": "藏宝图残片",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "羊皮纸，墨迹模糊，标有经纬度与×记号，据说指向某海盗宝藏",
+    "rumorMin": 30,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 17
+    }
+  },
+  {
+    "id": "a08_18",
+    "name": "催眠师的怀表",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "银壳怀表，表盘为螺旋纹，据说注视三十秒即入催眠状态",
+    "rumorMin": 50,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 18
+    }
+  },
+  {
+    "id": "a08_19",
+    "name": "独角鲸长牙",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "螺旋纹长牙逾两米，中世纪欧洲奉为独角兽角，帝王以之试毒",
+    "rumorMin": 90,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 19
+    }
+  },
+  {
+    "id": "a08_20",
+    "name": "火星陨石",
+    "category": "curio",
+    "categoryLabel": "奇物",
+    "series": "奇物",
+    "story": "ALH84001号陨石切片，据称含疑似微生物化石结构，来自红色星球",
+    "rumorMin": 110,
+    "rumorMax": 250,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop17",
+      "prop18",
+      "prop19",
+      "prop20"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "奇物",
+      "row": 20
+    }
+  },
+  {
+    "id": "a09_01",
+    "name": "西藏金刚杵",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "五股铜铸，中股刻咒，仁波切加持开光，传为元代萨迦派法器",
+    "rumorMin": 140,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 1
+    }
+  },
+  {
+    "id": "a09_02",
+    "name": "日本神道祭祀铃",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "青铜铸，铃身刻十六瓣菊纹，铃舌为玉，供奉于伊势神宫外宫",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 2
+    }
+  },
+  {
+    "id": "a09_03",
+    "name": "萨满铜镜",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "通古斯萨满服挂镜九面之一，镜背铸蛙纹与日纹，沟通三界之用",
+    "rumorMin": 80,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 3
+    }
+  },
+  {
+    "id": "a09_04",
+    "name": "泰国古曼童金身",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "镀金童子像，腹内藏符管与骨灰，龙婆开光，眼嵌黑玛瑙",
+    "rumorMin": 60,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 4
+    }
+  },
+  {
+    "id": "a09_05",
+    "name": "道教令牌",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "雷击枣木刻，正面敕令符，背面五雷号，阳刻朱填，掌心大小",
+    "rumorMin": 100,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 5
+    }
+  },
+  {
+    "id": "a09_06",
+    "name": "凯尔特祭祀匕首",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "铁刃铜柄，柄铸三面神像，刃有血槽，泥炭沼泽中出土，千年不锈",
+    "rumorMin": 150,
+    "rumorMax": 250,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 6
+    }
+  },
+  {
+    "id": "a09_07",
+    "name": "降神扶乩笔",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "桃木制Y形笔，乩盘附沙盘一方，清末扶乩盛行时所用，盘面有字痕",
+    "rumorMin": 40,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 7
+    }
+  },
+  {
+    "id": "a09_08",
+    "name": "南洋下降头针",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "七枚金针束以人发，针尖发黑，封于竹筒内，筒壁画符咒",
+    "rumorMin": 30,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 8
+    }
+  },
+  {
+    "id": "a09_09",
+    "name": "纳西族东巴经幡",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "布质彩绘，绘神路图局部，东巴文字书写祭天辞，悬于祭天场",
+    "rumorMin": 50,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 9
+    }
+  },
+  {
+    "id": "a09_10",
+    "name": "印第安捕梦网",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "柳枝弯月形，鹿筋织网，缀鹰羽与绿松石，原住民萨满所制",
+    "rumorMin": 30,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 10
+    }
+  },
+  {
+    "id": "a09_11",
+    "name": "喇嘛玛尼轮",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "铜鎏金转经筒，内装六字大明咒万遍，每转一圈如诵万经，藏地老活佛遗物",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 11
+    }
+  },
+  {
+    "id": "a09_12",
+    "name": "非洲巫医面具",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "木雕彩绘，羚羊角为饰，贝壳镶眼，部落成年礼所用，据说可见鬼神",
+    "rumorMin": 60,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 12
+    }
+  },
+  {
+    "id": "a09_13",
+    "name": "道教雷击木法尺",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "枣木被雷劈后取心制成，刻二十八宿，法官召将唤雷之法器",
+    "rumorMin": 90,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 13
+    }
+  },
+  {
+    "id": "a09_14",
+    "name": "日本修验道锡杖",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "铁制六环锡杖，摇动时六环齐鸣如雷，山伏入山修行护身之用",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 14
+    }
+  },
+  {
+    "id": "a09_15",
+    "name": "玛雅祭司水晶刀",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "黑曜石刃，刀柄雕刻羽蛇神，祭祀时取心之用，刃口仍锋利",
+    "rumorMin": 100,
+    "rumorMax": 230,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 15
+    }
+  },
+  {
+    "id": "a09_16",
+    "name": "印度苦行僧三叉戟",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "小型三叉戟法器，铜铸蛇纹，湿婆信仰象征，苦行僧云游随身",
+    "rumorMin": 50,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 16
+    }
+  },
+  {
+    "id": "a09_17",
+    "name": "萨满鼓",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "驯鹿皮蒙面，鼓面绘宇宙三界图，槌为熊皮裹木，通灵仪式之器",
+    "rumorMin": 70,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 17
+    }
+  },
+  {
+    "id": "a09_18",
+    "name": "天主教驱魔十字架",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "银质，雕刻拉丁驱魔经文，19世纪某神父驱魔专用，据说可压制邪灵",
+    "rumorMin": 80,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 18
+    }
+  },
+  {
+    "id": "a09_19",
+    "name": "阴阳师式神符纸",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "平安时代古写纸，朱书符文，晴明桔梗印，传说封印十二式神之一",
+    "rumorMin": 110,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 19
+    }
+  },
+  {
+    "id": "a09_20",
+    "name": "出马仙香炉",
+    "category": "relic",
+    "categoryLabel": "灵器",
+    "series": "灵器",
+    "story": "铜铸，炉耳为狐形，百年香火不断，关外某出马弟子家传三代",
+    "rumorMin": 40,
+    "rumorMax": 110,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop19",
+      "prop20",
+      "prop21",
+      "prop24"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "灵器",
+      "row": 20
+    }
+  },
+  {
+    "id": "a10_01",
+    "name": "江户时代封印人偶",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "和服华丽，发丝为真人头发，传闻封印少女怨念，原供奉于京都某神社",
+    "rumorMin": 80,
+    "rumorMax": 260,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 1
+    }
+  },
+  {
+    "id": "a10_02",
+    "name": "维多利亚降灵会灵摆",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "紫水晶坠，百年间用于百余场降灵仪式，据说至今仍会自行摆动",
+    "rumorMin": 60,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 2
+    }
+  },
+  {
+    "id": "a10_03",
+    "name": "吸血鬼猎杀套装",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "桃木桩、银弹、圣水瓶、大蒜串，19世纪东欧某伯爵委托订制",
+    "rumorMin": 100,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 3
+    }
+  },
+  {
+    "id": "a10_04",
+    "name": "诅咒肖像画",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "19世纪油画，画中贵妇眼神随观者移动，历任四主皆遭不幸",
+    "rumorMin": 50,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 4
+    }
+  },
+  {
+    "id": "a10_05",
+    "name": "人皮经文",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "某东南亚秘教抄本，经文刺于人皮之上，朱砂填色，封存于银盒",
+    "rumorMin": 40,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 5
+    }
+  },
+  {
+    "id": "a10_06",
+    "name": "凶宅门牌",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "铁铸数字“13”，从某著名凶宅门上拆下，经手三位古董商皆破产",
+    "rumorMin": 20,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 6
+    }
+  },
+  {
+    "id": "a10_07",
+    "name": "降头师的颅骨杯",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "以银镶人颅顶骨制成，内壁刻咒，传说用于饮用仇人之血",
+    "rumorMin": 30,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 7
+    }
+  },
+  {
+    "id": "a10_08",
+    "name": "诅咒之镜",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "银框手镜，镜面发乌，据说照过此镜三分钟以上者三日内必见血光",
+    "rumorMin": 30,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 8
+    }
+  },
+  {
+    "id": "a10_09",
+    "name": "巫毒娃娃",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "布制人形七枚，各扎针数根，附有人名纸条，新奥尔良巫毒店流出",
+    "rumorMin": 20,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 9
+    }
+  },
+  {
+    "id": "a10_10",
+    "name": "绞刑绳",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "19世纪英国监狱行刑绳，三股麻编，执刑人私藏流出，绳结尚在",
+    "rumorMin": 30,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 10
+    }
+  },
+  {
+    "id": "a10_11",
+    "name": "黑弥撒蜡烛",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "黑蜡铸成人形，掺入墓土与硫磺，某欧洲秘教举行黑弥撒时所用",
+    "rumorMin": 30,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 11
+    }
+  },
+  {
+    "id": "a10_12",
+    "name": "猫骨风铃",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "黑猫骨骼穿成风铃，悬于废弃神社鸟居，据说每响一声便召唤一只亡魂",
+    "rumorMin": 20,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 12
+    }
+  },
+  {
+    "id": "a10_13",
+    "name": "染血婚纱",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "1920年代上海某名媛婚礼当日失踪，三日后婚纱漂于黄浦江，血迹洗之不去",
+    "rumorMin": 40,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 13
+    }
+  },
+  {
+    "id": "a10_14",
+    "name": "恶魔契约书",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "羊皮纸以拉丁文书写，署名处以血画押，据说签约者可换七年荣华",
+    "rumorMin": 50,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 14
+    }
+  },
+  {
+    "id": "a10_15",
+    "name": "鬼娃娃罗伯特",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "布偶身穿水手服，纽扣眼，据说持有者皆遭不测，多次转手无人敢留",
+    "rumorMin": 20,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 15
+    }
+  },
+  {
+    "id": "a10_16",
+    "name": "开膛手杰克手术刀",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "1888年伦敦白教堂区凶案现场遗留，刀柄刻有模糊字母，伦敦警察厅流出",
+    "rumorMin": 70,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 16
+    }
+  },
+  {
+    "id": "a10_17",
+    "name": "凶宅保险单",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "1920年代上海某洋行出具，承保“凶宅内因鬼魂致死者”，从未理赔",
+    "rumorMin": 30,
+    "rumorMax": 100,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 17
+    }
+  },
+  {
+    "id": "a10_18",
+    "name": "被诅咒的小提琴",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "18世纪意大利制琴师造，琴漆掺入人血，据说演奏者皆于十年内发疯",
+    "rumorMin": 60,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 18
+    }
+  },
+  {
+    "id": "a10_19",
+    "name": "降神会留声机蜡筒",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "1920年代某降神会录音，蜡筒播放时可闻亡者低语，收藏者多精神恍惚",
+    "rumorMin": 40,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 19
+    }
+  },
+  {
+    "id": "a10_20",
+    "name": "食人魔厨刀",
+    "category": "evil",
+    "categoryLabel": "邪物",
+    "series": "邪物",
+    "story": "某连环杀手遗物，木柄包浆油亮，刃口有砍骨造成的卷刃，封于证物袋",
+    "rumorMin": 20,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop21",
+      "prop24",
+      "prop25",
+      "prop26"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "邪物",
+      "row": 20
+    }
+  },
+  {
+    "id": "a11_01",
+    "name": "梅兰芳《贵妃醉酒》戏服",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "金线盘绣牡丹，水钻缀饰云肩，1950年代演出所用，箱底压了半世纪",
+    "rumorMin": 140,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 1
+    }
+  },
+  {
+    "id": "a11_02",
+    "name": "鲁迅手稿《狂人日记》残页",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "毛笔小楷，涂改可见，纸边有先生烟灰烫出焦痕，字字如刀",
+    "rumorMin": 150,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 2
+    }
+  },
+  {
+    "id": "a11_03",
+    "name": "张学良赠赵四怀表",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "瑞士百达翡丽，背刻“执子之手”，西安事变后一度遗失",
+    "rumorMin": 130,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 3
+    }
+  },
+  {
+    "id": "a11_04",
+    "name": "林徽因测绘草图",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "佛光寺东大殿测绘图手稿，铅笔工整流利，附营造学社印章",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 4
+    }
+  },
+  {
+    "id": "a11_05",
+    "name": "徐志摩致陆小曼情书",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "信笺泛黄，字迹潦草深情，末句“爱是唯一的理性”力透纸背",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 5
+    }
+  },
+  {
+    "id": "a11_06",
+    "name": "弘一法师绝笔“悲欣交集”",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "四字如脱尽烟火气，书于圆寂前三日，写于旧报纸上",
+    "rumorMin": 140,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 6
+    }
+  },
+  {
+    "id": "a11_07",
+    "name": "李鸿章出使西洋怀表",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "英国定制，珐琅表盘绘大清龙旗与英国国旗交叉图案",
+    "rumorMin": 90,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 7
+    }
+  },
+  {
+    "id": "a11_08",
+    "name": "赛金花梳妆镜",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "铜框椭圆手镜，背刻牡丹缠枝纹，庚子年后流落民间",
+    "rumorMin": 60,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 8
+    }
+  },
+  {
+    "id": "a11_09",
+    "name": "老舍《茶馆》初稿笔记",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "钢笔蓝墨水，密密麻麻改满，夹有北京人艺排演通知单",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 9
+    }
+  },
+  {
+    "id": "a11_10",
+    "name": "秋瑾的短剑",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "女士随身短剑，鲨鱼皮鞘，剑身刻“鉴湖女侠”，就义后战友秘藏",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 10
+    }
+  },
+  {
+    "id": "a11_11",
+    "name": "张大千临敦煌壁画稿",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1941-1943年大千敦煌面壁期间所绘粉本，矿物颜料，画稿上有批注",
+    "rumorMin": 130,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 11
+    }
+  },
+  {
+    "id": "a11_12",
+    "name": "胡适日记原本一册",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1930年代留学日记，钢笔蓝墨，记读书札记与社交应酬，可见思想轨迹",
+    "rumorMin": 100,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 12
+    }
+  },
+  {
+    "id": "a11_13",
+    "name": "齐白石润格单",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "老人亲笔所书润例：“画不卖与官”，钤“白石”印，纸泛黄",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 13
+    }
+  },
+  {
+    "id": "a11_14",
+    "name": "宋美龄百蝶旗袍",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1943年访美演讲时所穿，黑丝绒底绣百蝶，上海鸿翔公司定制",
+    "rumorMin": 140,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 14
+    }
+  },
+  {
+    "id": "a11_15",
+    "name": "金庸《射雕》连载剪报",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1957年《香港商报》初载剪报，有金庸钢笔修改批注",
+    "rumorMin": 90,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 15
+    }
+  },
+  {
+    "id": "a11_16",
+    "name": "邓丽君签名唱片",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1984年《淡淡幽情》黑胶，亲笔签名于封套，字迹娟秀",
+    "rumorMin": 60,
+    "rumorMax": 120,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 16
+    }
+  },
+  {
+    "id": "a11_17",
+    "name": "顾城手稿《一代人",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "两行诗“黑夜给了我黑色的眼睛”，铅笔写于烟盒纸背面",
+    "rumorMin": 80,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 17
+    }
+  },
+  {
+    "id": "a11_18",
+    "name": "钱学森留美笔记",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1936年MIT空气动力学课堂笔记，英文书写，公式与草图满纸",
+    "rumorMin": 110,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 18
+    }
+  },
+  {
+    "id": "a11_19",
+    "name": "周璇《夜上海》歌谱",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "原版简谱，陈歌辛作曲，周璇亲笔标注换气与强弱记号",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 19
+    }
+  },
+  {
+    "id": "a11_20",
+    "name": "傅雷家书原件",
+    "category": "legacy",
+    "categoryLabel": "遗物",
+    "series": "遗物",
+    "story": "1950年代傅雷致傅聪家书一封，毛笔行楷，谈艺论道，纸墨俱佳",
+    "rumorMin": 120,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop25",
+      "prop26",
+      "prop27",
+      "prop29"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "遗物",
+      "row": 20
+    }
+  },
+  {
+    "id": "a12_01",
+    "name": "莫高窟最后一个画工的画稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "宋初画工于封洞前留下未完成菩萨像，线条未完人已去",
+    "rumorMin": 120,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 1
+    }
+  },
+  {
+    "id": "a12_02",
+    "name": "王国维自沉前手稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "《人间词话》未刊稿七页，1911-1924年间断续写就，自沉前数日仍在修改",
+    "rumorMin": 160,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 2
+    }
+  },
+  {
+    "id": "a12_03",
+    "name": "川端康成诺贝尔奖谢辞原稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "和纸毛笔，题为《美しい日本の私》，1968年12月斯德哥尔摩宣读",
+    "rumorMin": 140,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 3
+    }
+  },
+  {
+    "id": "a12_04",
+    "name": "梵高最后书信（复制件）",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "1890年7月奥维尔致提奥，未寄出，口袋中发现，墨迹有泪洇痕迹",
+    "rumorMin": 110,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 4
+    }
+  },
+  {
+    "id": "a12_05",
+    "name": "三毛《滚滚红尘》手稿末页",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "1990年剧本手稿最后一页，铅笔修改，页角有水渍",
+    "rumorMin": 90,
+    "rumorMax": 160,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 5
+    }
+  },
+  {
+    "id": "a12_06",
+    "name": "张爱玲遗稿《小团圆》提纲",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "晚年洛杉矶公寓中所拟章节大纲，英文与中文夹杂书写",
+    "rumorMin": 100,
+    "rumorMax": 170,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 6
+    }
+  },
+  {
+    "id": "a12_07",
+    "name": "贝多芬《第九交响曲》手稿残页",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "第四乐章合唱部分草稿，墨笔五线谱，修改痕迹密如蛛网",
+    "rumorMin": 150,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 7
+    }
+  },
+  {
+    "id": "a12_08",
+    "name": "一个不署名者的绝命书",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "民国年间无名氏遗书，小楷端丽，述生平时局与绝望，末句“来世不为人”",
+    "rumorMin": 60,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 8
+    }
+  },
+  {
+    "id": "a12_09",
+    "name": "抗日志士狱中血书",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "破布一方，咬破指尖写“还我河山”，1942年从上海提篮桥监狱夹带而出",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 9
+    }
+  },
+  {
+    "id": "a12_10",
+    "name": "无名的诗稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "1989年某诗人之手稿，20首诗，字迹由工整至潦草至狂草，最后一首仅有两行",
+    "rumorMin": 70,
+    "rumorMax": 130,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 10
+    }
+  },
+  {
+    "id": "a12_11",
+    "name": "屈原《怀沙》竹简摹本",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "汉代简书风格，录《九章·怀沙》全文，传为屈原投江前绝命辞",
+    "rumorMin": 100,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 11
+    }
+  },
+  {
+    "id": "a12_12",
+    "name": "嵇康《广陵散》减字谱",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "明代琴谱传抄，据传为嵇康临刑前所弹绝响，减字谱勾剔抹挑",
+    "rumorMin": 130,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 12
+    }
+  },
+  {
+    "id": "a12_13",
+    "name": "项羽《垓下歌》残碑拓",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "力拔山兮气盖世，墨拓漫漶，传说碑为乌江亭长所立，仅存上阕",
+    "rumorMin": 80,
+    "rumorMax": 150,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 13
+    }
+  },
+  {
+    "id": "a12_14",
+    "name": "文天祥《正气歌》手书卷",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "囚于元大都狱中所书，字迹如铁画银钩，浩然正气跃然纸上",
+    "rumorMin": 150,
+    "rumorMax": 240,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 14
+    }
+  },
+  {
+    "id": "a12_15",
+    "name": "谭嗣同狱中题壁诗",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "“我自横刀向天笑”原诗墨迹，写于狱壁又拓下，墨淡如血",
+    "rumorMin": 120,
+    "rumorMax": 190,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 15
+    }
+  },
+  {
+    "id": "a12_16",
+    "name": "芥川龙之介遗书",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "1927年服毒前写就，题为《给旧友的信》，和纸毛笔墨书",
+    "rumorMin": 110,
+    "rumorMax": 180,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 16
+    }
+  },
+  {
+    "id": "a12_17",
+    "name": "海明威《老人与海》末页手稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "1952年手稿最后一页，打字机敲出“老人正梦见狮子”，铅笔修改",
+    "rumorMin": 140,
+    "rumorMax": 220,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 17
+    }
+  },
+  {
+    "id": "a12_18",
+    "name": "古龙《剑花烟雨江南》残稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "未完成武侠遗作，仅存前七章，钢笔字迹潦草，酒后所写",
+    "rumorMin": 70,
+    "rumorMax": 140,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 18
+    }
+  },
+  {
+    "id": "a12_19",
+    "name": "太宰治《人间失格》原稿",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "1948年完稿，钢笔和纸，涂抹极多，交稿后即投水自尽",
+    "rumorMin": 130,
+    "rumorMax": 200,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 19
+    }
+  },
+  {
+    "id": "a12_20",
+    "name": "某无名诗人的绝命诗",
+    "category": "lastword",
+    "categoryLabel": "绝笔",
+    "series": "绝笔",
+    "story": "当代，打印纸一行诗：“我来过，像一颗被风遗忘的种子”，无署名",
+    "rumorMin": 30,
+    "rumorMax": 90,
+    "propertyPool": [
+      "fake",
+      "treasure",
+      "heirloom",
+      "fragile",
+      "curse",
+      "anonymous",
+      "prop27",
+      "prop29",
+      "prop30",
+      "prop31"
+    ],
+    "source": {
+      "doc": "藏品卡.docx",
+      "category": "绝笔",
+      "row": 20
+    }
+  }
+]

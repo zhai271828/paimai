@@ -1,0 +1,678 @@
+[
+  {
+    "id": "W01",
+    "name": "收藏大家",
+    "route": "收藏",
+    "description": "终局时持有藏品数量 ≥ 4",
+    "condition": "final_items_count >= 4",
+    "reputation": 8,
+    "note": "基础收藏目标",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W01"
+    }
+  },
+  {
+    "id": "W02",
+    "name": "少而精",
+    "route": "收藏",
+    "description": "终局时持有藏品 ≤ 2，且至少 1 件终局价值 ≥ 180",
+    "condition": "final_items_count <= 2; max(owned_item.final_value) >= 180",
+    "reputation": 10,
+    "note": "精品路线",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W02"
+    }
+  },
+  {
+    "id": "W03",
+    "name": "博物志",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 5 个不同类别的藏品",
+    "condition": "count_distinct(owned_item.category) >= 5",
+    "reputation": 10,
+    "note": "跨类收藏家",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W03"
+    }
+  },
+  {
+    "id": "W04",
+    "name": "专精一道",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 4 件同类别藏品",
+    "condition": "max(count_by_category(owned_item)) >= 4",
+    "reputation": 10,
+    "note": "专注单一类别",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W04"
+    }
+  },
+  {
+    "id": "W05",
+    "name": "孤品猎人",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件全场仅你一人持有的类别藏品",
+    "condition": "count_exclusive_category_items(owned_item) >= 3",
+    "reputation": 9,
+    "note": "抢占稀有类别",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W05"
+    }
+  },
+  {
+    "id": "W06",
+    "name": "赝品收藏家",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件赝品",
+    "condition": "fake_count >= 3",
+    "reputation": 8,
+    "note": "风险路线补偿",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W06"
+    }
+  },
+  {
+    "id": "W07",
+    "name": "洁癖藏家",
+    "route": "收藏",
+    "description": "终局时所有藏品均为非赝品",
+    "condition": "fake_count == 0",
+    "reputation": 10,
+    "note": "稳健高奖励",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W07"
+    }
+  },
+  {
+    "id": "W08",
+    "name": "数量为王",
+    "route": "收藏",
+    "description": "终局时拥有全场最多的藏品件数（可并列）",
+    "condition": "final_items_count == max(all_players.final_items_count)",
+    "reputation": 9,
+    "note": "比拼数量",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W08"
+    }
+  },
+  {
+    "id": "W41",
+    "name": "字画收藏家",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件字画类藏品",
+    "condition": "count_by_category(owned_item, '字画') >= 3",
+    "reputation": 8,
+    "note": "专注于字画类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W41"
+    }
+  },
+  {
+    "id": "W42",
+    "name": "青铜守护者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件青铜类藏品",
+    "condition": "count_by_category(owned_item, '青铜') >= 3",
+    "reputation": 8,
+    "note": "专注于青铜类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W42"
+    }
+  },
+  {
+    "id": "W43",
+    "name": "珠宝鉴赏家",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件珠宝类藏品",
+    "condition": "count_by_category(owned_item, '珠宝') >= 3",
+    "reputation": 8,
+    "note": "专注于珠宝类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W43"
+    }
+  },
+  {
+    "id": "W44",
+    "name": "瓷器藏家",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件瓷器类藏品",
+    "condition": "count_by_category(owned_item, '瓷器') >= 3",
+    "reputation": 8,
+    "note": "专注于瓷器类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W44"
+    }
+  },
+  {
+    "id": "W45",
+    "name": "玉器爱好者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件玉器类藏品",
+    "condition": "count_by_category(owned_item, '玉器') >= 3",
+    "reputation": 8,
+    "note": "专注于玉器类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W45"
+    }
+  },
+  {
+    "id": "W46",
+    "name": "古籍善本迷",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件古籍类藏品",
+    "condition": "count_by_category(owned_item, '古籍') >= 3",
+    "reputation": 8,
+    "note": "专注于古籍类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W46"
+    }
+  },
+  {
+    "id": "W47",
+    "name": "钱币猎人",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件钱币类藏品",
+    "condition": "count_by_category(owned_item, '钱币') >= 3",
+    "reputation": 8,
+    "note": "专注于钱币类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W47"
+    }
+  },
+  {
+    "id": "W48",
+    "name": "奇物收集者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件奇物类藏品",
+    "condition": "count_by_category(owned_item, '奇物') >= 3",
+    "reputation": 8,
+    "note": "专注于奇物类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W48"
+    }
+  },
+  {
+    "id": "W49",
+    "name": "灵器追寻者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件灵器类藏品",
+    "condition": "count_by_category(owned_item, '灵器') >= 3",
+    "reputation": 8,
+    "note": "专注于灵器类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W49"
+    }
+  },
+  {
+    "id": "W50",
+    "name": "邪物收藏者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件邪物类藏品",
+    "condition": "count_by_category(owned_item, '邪物') >= 3",
+    "reputation": 8,
+    "note": "专注于邪物类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W50"
+    }
+  },
+  {
+    "id": "W51",
+    "name": "遗物保管者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件遗物类藏品",
+    "condition": "count_by_category(owned_item, '遗物') >= 3",
+    "reputation": 8,
+    "note": "专注于遗物类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W51"
+    }
+  },
+  {
+    "id": "W52",
+    "name": "绝笔守望者",
+    "route": "收藏",
+    "description": "终局时拥有 ≥ 3 件绝笔类藏品",
+    "condition": "count_by_category(owned_item, '绝笔') >= 3",
+    "reputation": 8,
+    "note": "专注于绝笔类别的收藏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W52"
+    }
+  },
+  {
+    "id": "W09",
+    "name": "财大气粗",
+    "route": "经济",
+    "description": "终局时剩余现金 ≥ 300 银元",
+    "condition": "final_cash >= 300",
+    "reputation": 8,
+    "note": "现金为王",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W09"
+    }
+  },
+  {
+    "id": "W10",
+    "name": "借力打力",
+    "route": "经济",
+    "description": "整局使用过 ≥ 3 次贷款且全部还清",
+    "condition": "loans_taken >= 3; unpaid_loans == 0",
+    "reputation": 9,
+    "note": "杠杆操作",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W10"
+    }
+  },
+  {
+    "id": "W11",
+    "name": "散财童子",
+    "route": "经济",
+    "description": "终局时剩余现金 ≤ 30 银元",
+    "condition": "final_cash <= 30",
+    "reputation": 8,
+    "note": "全部花光",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W11"
+    }
+  },
+  {
+    "id": "W12",
+    "name": "勤俭持家",
+    "route": "经济",
+    "description": "终局时拥有 ≥ 5 件藏品，且总竞拍支出 ≤ 400 银元",
+    "condition": "final_items_count >= 5; total_auction_spend <= 400",
+    "reputation": 10,
+    "note": "精打细算",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W12"
+    }
+  },
+  {
+    "id": "W13",
+    "name": "交易达人",
+    "route": "经济",
+    "description": "整局与其他玩家交易 ≥ 3 次",
+    "condition": "player_trade_count >= 3",
+    "reputation": 9,
+    "note": "社交达人",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W13"
+    }
+  },
+  {
+    "id": "W14",
+    "name": "倒手生财",
+    "route": "经济",
+    "description": "至少 1 件藏品经你买入后再卖出，且卖出价 > 买入价",
+    "condition": "flipped_item_profit_count >= 1",
+    "reputation": 11,
+    "note": "低买高卖",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W14"
+    }
+  },
+  {
+    "id": "W15",
+    "name": "黑市常客",
+    "route": "经济",
+    "description": "整局在黑市购买牌总数 ≥ 3",
+    "condition": "black_market_cards_bought >= 3",
+    "reputation": 8,
+    "note": "黑市资源",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W15"
+    }
+  },
+  {
+    "id": "W16",
+    "name": "囤牌人",
+    "route": "经济",
+    "description": "终局时手牌（锦囊+事件）≥ 4",
+    "condition": "final_hand_cards_count >= 4",
+    "reputation": 8,
+    "note": "保留资源",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W16"
+    }
+  },
+  {
+    "id": "W17",
+    "name": "捡漏王",
+    "route": "拍卖",
+    "description": "终局时拥有 ≥ 3 件以低于传闻最低值成交的藏品",
+    "condition": "count_below_rumor_min >= 3",
+    "reputation": 10,
+    "note": "低价淘宝",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W17"
+    }
+  },
+  {
+    "id": "W18",
+    "name": "一掷千金",
+    "route": "拍卖",
+    "description": "曾单次出价 ≥ 200 银元并成功拍下",
+    "condition": "any(auction_win_bid >= 200)",
+    "reputation": 8,
+    "note": "大额出手",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W18"
+    }
+  },
+  {
+    "id": "W19",
+    "name": "暗标高手",
+    "route": "拍卖",
+    "description": "通过暗标拍卖成功拍下 ≥ 2 件藏品",
+    "condition": "auction_wins_by_mode(\"sealed_bid\") >= 2",
+    "reputation": 9,
+    "note": "暗标专精",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W19"
+    }
+  },
+  {
+    "id": "W20",
+    "name": "首次必中",
+    "route": "拍卖",
+    "description": "第一次出价就成功拍下的藏品 ≥ 3 件",
+    "condition": "first_bid_wins >= 3",
+    "reputation": 10,
+    "note": "出手即中",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W20"
+    }
+  },
+  {
+    "id": "W21",
+    "name": "险胜专家",
+    "route": "拍卖",
+    "description": "至少 2 次以不超过第二高价 20 银元的差额赢得拍品",
+    "condition": "close_win_count(diff_to_second <= 20) >= 2",
+    "reputation": 11,
+    "note": "惊险竞价",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W21"
+    }
+  },
+  {
+    "id": "W22",
+    "name": "后发制人",
+    "route": "拍卖",
+    "description": "第 7 天及以后通过竞拍获得藏品 ≥ 2 件",
+    "condition": "auction_wins_on_day(day >= 7) >= 2",
+    "reputation": 9,
+    "note": "冲刺期发力",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W22"
+    }
+  },
+  {
+    "id": "W23",
+    "name": "以少胜多",
+    "route": "拍卖",
+    "description": "终局持有藏品 ≤ 3，且平均终局价值 ≥ 130",
+    "condition": "final_items_count <= 3; avg(owned_item.final_value) >= 130",
+    "reputation": 10,
+    "note": "精品路线",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W23"
+    }
+  },
+  {
+    "id": "W24",
+    "name": "竞价达人",
+    "route": "拍卖",
+    "description": "整局赢得竞拍次数 ≥ 3",
+    "condition": "auction_win_count >= 3",
+    "reputation": 8,
+    "note": "竞拍常胜",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W24"
+    }
+  },
+  {
+    "id": "W25",
+    "name": "明察秋毫",
+    "route": "信息",
+    "description": "整局使用过 ≥ 5 张信息类锦囊",
+    "condition": "info_trick_used >= 5",
+    "reputation": 9,
+    "note": "信息大师",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W25"
+    }
+  },
+  {
+    "id": "W26",
+    "name": "盲拍赌徒",
+    "route": "信息",
+    "description": "终局时拥有 ≥ 3 件从未被探查过的藏品，且总价值 ≥ 200",
+    "condition": "count_unpeeked_items >= 3; sum_unpeeked_value >= 200",
+    "reputation": 10,
+    "note": "保守秘密",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W26"
+    }
+  },
+  {
+    "id": "W27",
+    "name": "知己知彼",
+    "route": "信息",
+    "description": "终局时查看过 ≥ 3 名不同对手的秘密委托",
+    "condition": "peeked_opponent_commission_count >= 3",
+    "reputation": 9,
+    "note": "情报专家",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W27"
+    }
+  },
+  {
+    "id": "W28",
+    "name": "真伪皆收",
+    "route": "信息",
+    "description": "终局时同时拥有真品和赝品，且各自 ≥ 2 件",
+    "condition": "fake_count >= 2; (final_items_count-fake_count) >= 2",
+    "reputation": 8,
+    "note": "通吃路线",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W28"
+    }
+  },
+  {
+    "id": "W29",
+    "name": "秘密守护者",
+    "route": "信息",
+    "description": "终局时没有任何对手查看过你的委托",
+    "condition": "my_commission_peeked_count == 0",
+    "reputation": 8,
+    "note": "信息安全",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W29"
+    }
+  },
+  {
+    "id": "W30",
+    "name": "风暴推手",
+    "route": "信息",
+    "description": "整局主动使用事件卡 ≥ 2 张",
+    "condition": "event_cards_played >= 2",
+    "reputation": 10,
+    "note": "搅动局势",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W30"
+    }
+  },
+  {
+    "id": "W31",
+    "name": "探查成瘾",
+    "route": "信息",
+    "description": "整局使用过信息类或探查类锦囊 ≥ 3 次",
+    "condition": "info_actions_total >= 3",
+    "reputation": 8,
+    "note": "情报收集",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W31"
+    }
+  },
+  {
+    "id": "W32",
+    "name": "局内人",
+    "route": "信息",
+    "description": "整局通过技能或锦囊查看过他人委托 ≥ 1 次",
+    "condition": "peeked_opponent_commission_count >= 1",
+    "reputation": 8,
+    "note": "刺探情报",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W32"
+    }
+  },
+  {
+    "id": "W33",
+    "name": "佣金猎手",
+    "route": "主持",
+    "description": "整局通过主持人佣金累计获得 ≥ 100 银元",
+    "condition": "total_commission_earned >= 100",
+    "reputation": 9,
+    "note": "靠主持赚钱",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W33"
+    }
+  },
+  {
+    "id": "W34",
+    "name": "话术大师",
+    "route": "主持",
+    "description": "你主持的场次中，成交价 ≥ 传闻上限的藏品 ≥ 2 件",
+    "condition": "hosted_above_ceiling_count >= 2",
+    "reputation": 10,
+    "note": "卖到高价",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W34"
+    }
+  },
+  {
+    "id": "W35",
+    "name": "低调主持",
+    "route": "主持",
+    "description": "你主持的场次中，成交价 ≤ 传闻下限的藏品 ≥ 2 件",
+    "condition": "hosted_below_floor_count >= 2",
+    "reputation": 8,
+    "note": "让竞拍者捡漏",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W35"
+    }
+  },
+  {
+    "id": "W36",
+    "name": "主持之王",
+    "route": "主持",
+    "description": "你主持的场次累计总成交额全场最高",
+    "condition": "my_hosted_total_sales == max(all_players.hosted_total_sales)",
+    "reputation": 10,
+    "note": "最佳主持人",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W36"
+    }
+  },
+  {
+    "id": "W37",
+    "name": "自吞专家",
+    "route": "主持",
+    "description": "你通过流拍自吞获得的藏品 ≥ 2 件",
+    "condition": "self_bought_pass_in_count >= 2",
+    "reputation": 8,
+    "note": "自吞路线",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W37"
+    }
+  },
+  {
+    "id": "W38",
+    "name": "零流拍",
+    "route": "主持",
+    "description": "你主持的所有场次全部成交，无一流拍",
+    "condition": "hosted_pass_in_count == 0",
+    "reputation": 10,
+    "note": "完美记录",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W38"
+    }
+  },
+  {
+    "id": "W39",
+    "name": "拍卖师荣誉",
+    "route": "主持",
+    "description": "你主持时单场成交价超过 200 银元 ≥ 1 次",
+    "condition": "any(hosted_sold_price >= 200)",
+    "reputation": 9,
+    "note": "高价值专场",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W39"
+    }
+  },
+  {
+    "id": "W40",
+    "name": "中场核心",
+    "route": "主持",
+    "description": "你主持的场次平均成交价 ≥ 120 银元",
+    "condition": "avg(hosted_sold_prices) >= 120",
+    "reputation": 9,
+    "note": "稳定高质量主持",
+    "source": {
+      "doc": "委托.docx",
+      "row": "W40"
+    }
+  }
+]

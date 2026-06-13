@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "contentVersion": "c006a7e300793187",
+  "counts": {
+    "artifacts": 240,
+    "properties": 31,
+    "tricks": 43,
+    "events": 30,
+    "missions": 52,
+    "roles": 9
+  },
+  "errors": [],
+  "warnings": []
+}

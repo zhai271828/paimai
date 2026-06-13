@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>玩家单日策略决策树</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #eceff3;
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif;
+    color: #17202a;
+  }
+  .board {
+    position: relative;
+    width: 2500px;
+    height: 1850px;
+    background:
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      #ffffff;
+    background-size: 40px 40px;
+    overflow: hidden;
+  }
+  .title {
+    position: absolute;
+    left: 58px;
+    top: 34px;
+    right: 58px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+  .subtitle {
+    position: absolute;
+    left: 60px;
+    top: 88px;
+    right: 60px;
+    color: #566274;
+    font-size: 22px;
+  }
+  .group {
+    position: absolute;
+    border: 2px dashed var(--group-color);
+    background: var(--group-bg);
+    border-radius: 20px;
+    z-index: 0;
+  }
+  .group-title {
+    position: absolute;
+    left: 18px;
+    top: -18px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid var(--group-color);
+    font-size: 19px;
+    font-weight: 750;
+  }
+  .edges {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2500px;
+    height: 1850px;
+    z-index: 1;
+    overflow: visible;
+  }
+  .edge {
+    fill: none;
+    stroke: var(--edge);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    marker-end: url(#arrow);
+    opacity: 0.9;
+  }
+  .edge-label {
+    font-size: 18px;
+    fill: #334155;
+    font-weight: 720;
+    paint-order: stroke;
+    stroke: white;
+    stroke-width: 7px;
+    stroke-linejoin: round;
+  }
+  .node {
+    position: absolute;
+    z-index: 2;
+    border: 3px solid var(--border);
+    background: var(--bg);
+    border-radius: 18px;
+    padding: 16px 18px 13px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+  }
+  .node::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 9px;
+    background: var(--accent);
+  }
+  .node-title {
+    font-size: 25px;
+    line-height: 1.18;
+    font-weight: 850;
+    margin-left: 4px;
+    margin-bottom: 9px;
+    letter-spacing: 0;
+  }
+  .node-body {
+    font-size: 20px;
+    line-height: 1.32;
+    color: #273444;
+    margin-left: 4px;
+  }
+  .node-body div + div { margin-top: 3px; }
+  .node.compact .node-title { font-size: 22px; margin-bottom: 6px; }
+  .node.compact .node-body { font-size: 18px; line-height: 1.26; }
+  .node.decision {
+    border-radius: 26px;
+    border-style: dashed;
+  }
+  .meta {
+    position: absolute;
+    right: 12px;
+    bottom: 9px;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .note {
+    position: absolute;
+    z-index: 3;
+    color: #475569;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+</style>
+</head>
+<body>
+  <main class="board">
+    <div class="title">玩家单日策略决策树</div>
+    <div class="subtitle">同一套规则从玩家视角会变成预算、信息、委托、套装、主持收益之间的连续取舍</div>
+    <div class="group" style="left:60px;top:135px;width:2380px;height:330px;--group-color:#64748b;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">日初判断</div>
+  </div>
+<div class="group" style="left:60px;top:520px;width:2380px;height:390px;--group-color:#d46a3a;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">预展阶段决策</div>
+  </div>
+<div class="group" style="left:60px;top:965px;width:2380px;height:420px;--group-color:#188b91;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">竞拍阶段决策</div>
+  </div>
+<div class="group" style="left:60px;top:1440px;width:2380px;height:340px;--group-color:#5a9f33;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">成交后调整</div>
+  </div>
+    <svg class="edges" viewBox="0 0 2500 1850" aria-hidden="true">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"></path>
+        </marker>
+      </defs>
+      <path d="M 530 287.5 L 575 287.5 L 575 287.5 L 620 287.5" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 1030 287.5 L 1075 287.5 L 1075 287.5 L 1120 287.5" class="edge" style="--edge:#7a52c7"></path>
+<path d="M 1530 287.5 L 1575 287.5 L 1575 282.5 L 1620 282.5" class="edge" style="--edge:#6e7781"></path>
+<path d="M 1960 282.5 L 1995 282.5 L 1995 287.5 L 2030 287.5" class="edge" style="--edge:#7a52c7"></path><text class="edge-label" x="1995" y="277.5">是</text>
+<path d="M 1790 365 L 1790 500 L 320 500 L 320 600" class="edge" style="--edge:#d46a3a"></path><text class="edge-label" x="320" y="490">否/共同进入预展</text>
+<path d="M 2195 360 L 2195 500 L 320 500 L 320 600" class="edge" style="--edge:#7a52c7"></path>
+<path d="M 520 675 L 560 675 L 560 675 L 600 675" class="edge" style="--edge:#d46a3a"></path>
+<path d="M 1000 675 L 1040 675 L 1040 675 L 1080 675" class="edge" style="--edge:#3e64b5"></path><text class="edge-label" x="1040" y="665">值得</text>
+<path d="M 1510 675 L 1550 675 L 1550 675 L 1590 675" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 2020 675 L 2045 675 L 2045 675 L 2070 675" class="edge" style="--edge:#6e7781"></path>
+<path d="M 2225 750 L 2225 940 L 315 940 L 315 1045" class="edge" style="--edge:#188b91"></path>
+<path d="M 510 1125 L 550 1125 L 550 1125 L 590 1125" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 980 1125 L 1020 1125 L 1020 1125 L 1060 1125" class="edge" style="--edge:#6e7781"></path>
+<path d="M 1450 1125 L 1490 1125 L 1490 1115 L 1530 1115" class="edge" style="--edge:#188b91"></path>
+<path d="M 1870 1115 L 1910 1115 L 1910 1125 L 1950 1125" class="edge" style="--edge:#c94c3d"></path><text class="edge-label" x="1910" y="1115">赢</text>
+<path d="M 2145 1205 L 2145 1420 L 390 1420 L 390 1515" class="edge" style="--edge:#d46a3a"></path>
+<path d="M 1700 1205 L 1700 1420 L 950 1420 L 950 1515" class="edge" style="--edge:#6e7781"></path><text class="edge-label" x="950" y="1410">没赢</text>
+<path d="M 620 1587.5 L 950 1587.5 L 950 1587.5 L 1280 1587.5" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 1180 1587.5 L 1230 1587.5 L 1230 1587.5 L 1280 1587.5" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 1740 1587.5 L 1790 1587.5 L 1790 1587.5 L 1840 1587.5" class="edge" style="--edge:#64748b"></path>
+<path d="M 2070 1660 L 2070 1800 L 80 1800 L 80 285 L 325 215" class="edge" style="--edge:#64748b"></path>
+    </svg>
+    <div class="node compact" style="left:120px;top:215px;width:410px;height:145px;--bg:#f0fbec;--border:#5a9f33;--accent:#5a9f33">
+    <div class="node-title">确认今日预算</div>
+    <div class="node-body"><div>现金 + 晨间收入</div><div>已用贷款次数</div><div>可卖银行/交易资产</div><div>黑市是否需要留钱</div></div>
+    
+  </div>
+<div class="node compact" style="left:620px;top:215px;width:410px;height:145px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">读取角色技能</div>
+    <div class="node-body"><div>今天是否可用主动技能</div><div>被动技能是否影响黑市/竞价/终局</div><div>技能次数是否已耗尽</div></div>
+    
+  </div>
+<div class="node compact" style="left:1120px;top:215px;width:410px;height:145px;--bg:#f7f1e5;--border:#a56a1b;--accent:#a56a1b">
+    <div class="node-title">检查秘密委托</div>
+    <div class="node-body"><div>需要什么类别/套装/现金/主持收益</div><div>是否应隐藏意图</div><div>是否防对手黑料</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:1620px;top:200px;width:340px;height:165px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">今天我是主持人？</div>
+    <div class="node-body"><div>是：经营成交价</div><div>否：寻找信息优势</div></div>
+    
+  </div>
+<div class="node compact" style="left:2030px;top:215px;width:330px;height:145px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">主持人执行计划</div>
+    <div class="node-body"><div>读取今日随机模式</div><div>定起拍/降幅/讲述节奏</div><div>判断赚佣金还是诱导流拍</div></div>
+    
+  </div>
+<div class="node compact" style="left:120px;top:600px;width:400px;height:150px;--bg:#fff4f0;--border:#d46a3a;--accent:#d46a3a">
+    <div class="node-title">阅读公开信息</div>
+    <div class="node-body"><div>名称 + 类别</div><div>无主持人日还可见故事</div><div>对照套装与委托需求</div></div>
+    
+  </div>
+<div class="node compact" style="left:600px;top:600px;width:400px;height:150px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">值得投入信息吗？</div>
+    <div class="node-body"><div>高价值/关键类别/对手明显想要</div><div>才考虑锦囊或技能探查</div></div>
+    
+  </div>
+<div class="node compact" style="left:1080px;top:580px;width:430px;height:190px;--bg:#f3f7ff;--border:#3e64b5;--accent:#3e64b5">
+    <div class="node-title">信息投入</div>
+    <div class="node-body"><div>信息类锦囊：探传闻或属性方向</div><div>技能：预展/竞拍触发</div><div>也可用交易谈判换信息</div></div>
+    
+  </div>
+<div class="node compact" style="left:1590px;top:580px;width:430px;height:190px;--bg:#f3f7ff;--border:#3e64b5;--accent:#3e64b5">
+    <div class="node-title">锦囊时机</div>
+    <div class="node-body"><div>竞拍前最多用 2 张锦囊</div><div>部分锦囊可在竞拍中即时使用</div><div>事件留到竞拍后窗口，不影响当天已结算结果</div></div>
+    
+  </div>
+<div class="node compact" style="left:2070px;top:600px;width:310px;height:150px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">确定目标</div>
+    <div class="node-body"><div>强抢</div><div>抬价</div><div>放弃</div><div>诱导别人买</div></div>
+    
+  </div>
+<div class="node compact" style="left:120px;top:1045px;width:390px;height:160px;--bg:#eef8f8;--border:#188b91;--accent:#188b91">
+    <div class="node-title">竞拍开始</div>
+    <div class="node-body"><div>根据今日随机模式调整策略</div><div>英式看资金；荷兰比耐心；暗标猜心理；打包重估总价</div></div>
+    
+  </div>
+<div class="node compact" style="left:590px;top:1045px;width:390px;height:160px;--bg:#f0fbec;--border:#5a9f33;--accent:#5a9f33">
+    <div class="node-title">设心理上限</div>
+    <div class="node-body"><div>成交成本上限</div><div>含贷款风险与现金声望</div><div>不要只看传闻上限</div></div>
+    
+  </div>
+<div class="node compact" style="left:1060px;top:1045px;width:390px;height:160px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">是否抬价/诈唬？</div>
+    <div class="node-body"><div>抬对手价格</div><div>迫使其贷款</div><div>但自己也可能被套住</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:1530px;top:1025px;width:340px;height:180px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">我赢了吗？</div>
+    <div class="node-body"><div>赢：检查支付</div><div>输：看是否拿赏金/信息</div><div>主持人看佣金</div></div>
+    
+  </div>
+<div class="node compact" style="left:1950px;top:1045px;width:390px;height:160px;--bg:#fff0ee;--border:#c94c3d;--accent:#c94c3d">
+    <div class="node-title">支付风险</div>
+    <div class="node-body"><div>现金不足先补足</div><div>贷款、卖银行、交易、锦囊</div><div>仍不足则可能让第二高价接手</div></div>
+    
+  </div>
+<div class="node compact" style="left:160px;top:1515px;width:460px;height:145px;--bg:#fff4f0;--border:#d46a3a;--accent:#d46a3a">
+    <div class="node-title">若买下藏品</div>
+    <div class="node-body"><div>只自己看到结算价与属性</div><div>更新委托/套装判断</div><div>判断持有、出售或交易</div></div>
+    
+  </div>
+<div class="node compact" style="left:720px;top:1515px;width:460px;height:145px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">若没买到</div>
+    <div class="node-body"><div>记录对手可能目标</div><div>准备交易/干扰/下一轮抬价</div><div>保留现金优势</div></div>
+    
+  </div>
+<div class="node compact" style="left:1280px;top:1515px;width:460px;height:145px;--bg:#f0fbec;--border:#5a9f33;--accent:#5a9f33">
+    <div class="node-title">自由阶段调整</div>
+    <div class="node-body"><div>卖银行回血</div><div>玩家交易换套装/现金</div><div>贷款或提前还款</div></div>
+    
+  </div>
+<div class="node compact" style="left:1840px;top:1515px;width:460px;height:145px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">更新明日计划</div>
+    <div class="node-body"><div>竞拍后事件是否改写后续局势</div><div>黑市日是否采购</div><div>主持轮次与终局路径</div></div>
+    
+  </div>
+    
+  </main>
+</body>
+</html>

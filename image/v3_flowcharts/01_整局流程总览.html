@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>拍卖师法则 v3 整局流程总览</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #eceff3;
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif;
+    color: #17202a;
+  }
+  .board {
+    position: relative;
+    width: 2600px;
+    height: 1750px;
+    background:
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      #ffffff;
+    background-size: 40px 40px;
+    overflow: hidden;
+  }
+  .title {
+    position: absolute;
+    left: 58px;
+    top: 34px;
+    right: 58px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+  .subtitle {
+    position: absolute;
+    left: 60px;
+    top: 88px;
+    right: 60px;
+    color: #566274;
+    font-size: 22px;
+  }
+  .group {
+    position: absolute;
+    border: 2px dashed var(--group-color);
+    background: var(--group-bg);
+    border-radius: 20px;
+    z-index: 0;
+  }
+  .group-title {
+    position: absolute;
+    left: 18px;
+    top: -18px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid var(--group-color);
+    font-size: 19px;
+    font-weight: 750;
+  }
+  .edges {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2600px;
+    height: 1750px;
+    z-index: 1;
+    overflow: visible;
+  }
+  .edge {
+    fill: none;
+    stroke: var(--edge);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    marker-end: url(#arrow);
+    opacity: 0.9;
+  }
+  .edge-label {
+    font-size: 18px;
+    fill: #334155;
+    font-weight: 720;
+    paint-order: stroke;
+    stroke: white;
+    stroke-width: 7px;
+    stroke-linejoin: round;
+  }
+  .node {
+    position: absolute;
+    z-index: 2;
+    border: 3px solid var(--border);
+    background: var(--bg);
+    border-radius: 18px;
+    padding: 16px 18px 13px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+  }
+  .node::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 9px;
+    background: var(--accent);
+  }
+  .node-title {
+    font-size: 25px;
+    line-height: 1.18;
+    font-weight: 850;
+    margin-left: 4px;
+    margin-bottom: 9px;
+    letter-spacing: 0;
+  }
+  .node-body {
+    font-size: 20px;
+    line-height: 1.32;
+    color: #273444;
+    margin-left: 4px;
+  }
+  .node-body div + div { margin-top: 3px; }
+  .node.compact .node-title { font-size: 22px; margin-bottom: 6px; }
+  .node.compact .node-body { font-size: 18px; line-height: 1.26; }
+  .node.decision {
+    border-radius: 26px;
+    border-style: dashed;
+  }
+  .meta {
+    position: absolute;
+    right: 12px;
+    bottom: 9px;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .note {
+    position: absolute;
+    z-index: 3;
+    color: #475569;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+</style>
+</head>
+<body>
+  <main class="board">
+    <div class="title">拍卖师法则 v3 整局流程总览</div>
+    <div class="subtitle">10 个拍卖日被第 3/6/9 天黑市切成三段；第 10 天拍卖后进入终局声望结算</div>
+    <div class="group" style="left:60px;top:138px;width:2480px;height:270px;--group-color:#2f6fed;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">开局配置</div>
+  </div>
+<div class="group" style="left:60px;top:470px;width:2480px;height:520px;--group-color:#2f9d59;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">10 天主循环</div>
+  </div>
+<div class="group" style="left:60px;top:1060px;width:2480px;height:540px;--group-color:#a56a1b;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">结算与策略骨架</div>
+  </div>
+    <svg class="edges" viewBox="0 0 2600 1750" aria-hidden="true">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"></path>
+        </marker>
+      </defs>
+      <path d="M 440 277.5 L 470 277.5 L 470 277.5 L 500 277.5" class="edge" style="--edge:#2f6fed"></path>
+<path d="M 850 277.5 L 880 277.5 L 880 277.5 L 910 277.5" class="edge" style="--edge:#2f6fed"></path>
+<path d="M 1260 277.5 L 1290 277.5 L 1290 277.5 L 1320 277.5" class="edge" style="--edge:#2f6fed"></path>
+<path d="M 1670 277.5 L 1700 277.5 L 1700 277.5 L 1730 277.5" class="edge" style="--edge:#2f6fed"></path>
+<path d="M 2080 277.5 L 2110 277.5 L 2110 277.5 L 2140 277.5" class="edge" style="--edge:#2f6fed"></path>
+<path d="M 305 665 L 320 665 L 320 665 L 335 665" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 545 665 L 560 665 L 560 665 L 575 665" class="edge" style="--edge:#d18a00"></path>
+<path d="M 785 665 L 800 665 L 800 665 L 815 665" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 1025 665 L 1040 665 L 1040 665 L 1055 665" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 1265 665 L 1280 665 L 1280 665 L 1295 665" class="edge" style="--edge:#d18a00"></path>
+<path d="M 1505 665 L 1520 665 L 1520 665 L 1535 665" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 1745 665 L 1760 665 L 1760 665 L 1775 665" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 1985 665 L 2000 665 L 2000 665 L 2015 665" class="edge" style="--edge:#d18a00"></path>
+<path d="M 2225 665 L 2240 665 L 2240 665 L 2255 665" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 200 740 L 200 770 L 475 770 L 475 800" class="edge" style="--edge:#2f9d59"></path><text class="edge-label" x="475" y="760">普通日</text>
+<path d="M 680 740 L 680 770 L 1165 770 L 1165 800" class="edge" style="--edge:#d18a00"></path><text class="edge-label" x="1165" y="760">黑市补货</text>
+<path d="M 2120 740 L 2120 770 L 1940 770 L 1940 800" class="edge" style="--edge:#7a52c7"></path><text class="edge-label" x="1940" y="760">人数相关</text>
+<path d="M 475 920 L 475 1028 L 390 1028 L 390 1135" class="edge" style="--edge:#2f9d59"></path>
+<path d="M 1165 920 L 1165 1028 L 390 1028 L 390 1135" class="edge" style="--edge:#d18a00"></path>
+<path d="M 1940 920 L 1940 1028 L 970 1028 L 970 1135" class="edge" style="--edge:#7a52c7"></path>
+<path d="M 650 1290 L 970 1290 L 970 1290 L 1290 1290" class="edge" style="--edge:#6e7781"></path>
+<path d="M 1780 1290 L 1810 1290 L 1810 1290 L 1840 1290" class="edge" style="--edge:#a56a1b"></path>
+<path d="M 2360 740 L 2360 938 L 2140 938 L 2140 1135" class="edge" style="--edge:#a56a1b"></path><text class="edge-label" x="2140" y="928">拍卖后</text>
+    </svg>
+    <div class="node" style="left:120px;top:205px;width:320px;height:145px;--bg:#eef6ff;--border:#2f6fed;--accent:#2f6fed">
+    <div class="node-title">选择模式</div>
+    <div class="node-body"><div>桌游 / 本地多人</div><div>数字版人机 / 联机房间</div><div>人数 3-5 人</div></div>
+    
+  </div>
+<div class="node" style="left:500px;top:205px;width:350px;height:145px;--bg:#eef6ff;--border:#2f6fed;--accent:#2f6fed">
+    <div class="node-title">初始资源</div>
+    <div class="node-body"><div>每人 500 银元</div><div>锦囊 2 张；事件 1 张</div><div>事件持有上限 3 张</div></div>
+    
+  </div>
+<div class="node" style="left:910px;top:205px;width:350px;height:145px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">角色与技能</div>
+    <div class="node-body"><div>角色抽 2 选 1</div><div>主动 / 被动技能</div><div>锚定预展、竞拍、黑市、终局</div></div>
+    
+  </div>
+<div class="node" style="left:1320px;top:205px;width:350px;height:145px;--bg:#f7f1e5;--border:#a56a1b;--accent:#a56a1b">
+    <div class="node-title">秘密委托</div>
+    <div class="node-body"><div>委托抽 2 选 1</div><div>自己隐藏至终局</div><div>完成得 8-15 声望</div></div>
+    
+  </div>
+<div class="node" style="left:1730px;top:205px;width:350px;height:145px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">主持人起点</div>
+    <div class="node-body"><div>第 1 天抽签 / 随机</div><div>之后顺时针轮换</div><div>无主持人日不打断顺延</div></div>
+    
+  </div>
+<div class="node" style="left:2140px;top:205px;width:330px;height:145px;--bg:#fff4f0;--border:#d46a3a;--accent:#d46a3a">
+    <div class="node-title">牌库准备</div>
+    <div class="node-body"><div>藏品、锦囊、事件、委托</div><div>藏品出现即生成赝品/属性</div><div>信息按层级隐藏</div></div>
+    
+  </div>
+<div class="node compact" style="left:95px;top:590px;width:210px;height:150px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">第 1 天</div>
+    <div class="node-body"><div>普通拍卖日</div><div>开荒期</div><div>试探性竞拍</div></div>
+    
+  </div>
+<div class="node compact" style="left:335px;top:590px;width:210px;height:150px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">第 2 天</div>
+    <div class="node-body"><div>普通拍卖日</div><div>资金仍充裕</div><div>初步看路线</div></div>
+    
+  </div>
+<div class="node compact" style="left:575px;top:590px;width:210px;height:150px;--bg:#fff5db;--border:#d18a00;--accent:#d18a00">
+    <div class="node-title">第 3 天</div>
+    <div class="node-body"><div>黑市日 1</div><div>先购物再预展</div><div>中期资源补充</div></div>
+    
+  </div>
+<div class="node compact" style="left:815px;top:590px;width:210px;height:150px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">第 4 天</div>
+    <div class="node-body"><div>普通拍卖日</div><div>缠斗期</div><div>信息开始流动</div></div>
+    
+  </div>
+<div class="node compact" style="left:1055px;top:590px;width:210px;height:150px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">第 5 天</div>
+    <div class="node-body"><div>普通拍卖日</div><div>锦囊发力</div><div>事件预埋后续</div></div>
+    
+  </div>
+<div class="node compact" style="left:1295px;top:590px;width:210px;height:150px;--bg:#fff5db;--border:#d18a00;--accent:#d18a00">
+    <div class="node-title">第 6 天</div>
+    <div class="node-body"><div>黑市日 2</div><div>调整战术路线</div><div>补反制/信息</div></div>
+    
+  </div>
+<div class="node compact" style="left:1535px;top:590px;width:210px;height:150px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">第 7 天</div>
+    <div class="node-body"><div>普通拍卖日</div><div>冲刺期</div><div>套装/委托抢点</div></div>
+    
+  </div>
+<div class="node compact" style="left:1775px;top:590px;width:210px;height:150px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">第 8 天</div>
+    <div class="node-body"><div>普通拍卖日</div><div>现金吃紧</div><div>终局布局</div></div>
+    
+  </div>
+<div class="node compact" style="left:2015px;top:590px;width:210px;height:150px;--bg:#fff5db;--border:#d18a00;--accent:#d18a00">
+    <div class="node-title">第 9 天</div>
+    <div class="node-body"><div>黑市日 3</div><div>最后补给</div><div>4 人局无主持</div></div>
+    
+  </div>
+<div class="node compact" style="left:2255px;top:590px;width:210px;height:150px;--bg:#f7f1e5;--border:#a56a1b;--accent:#a56a1b">
+    <div class="node-title">第 10 天</div>
+    <div class="node-body"><div>最后拍卖</div><div>3/4 人局无主持</div><div>拍后终局结算</div></div>
+    
+  </div>
+<div class="node compact" style="left:180px;top:800px;width:590px;height:120px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">普通日通用循环</div>
+    <div class="node-body"><div>晨间收入 -&gt; 预展 -&gt; 锦囊 -&gt; 竞拍/成交 -&gt; 事件 -&gt; 自由阶段</div></div>
+    
+  </div>
+<div class="node compact" style="left:870px;top:800px;width:590px;height:120px;--bg:#fff5db;--border:#d18a00;--accent:#d18a00">
+    <div class="node-title">黑市日插入点</div>
+    <div class="node-body"><div>晨间收入之后、预展之前：每人最多买 2 张，锦囊 30，事件 50</div></div>
+    
+  </div>
+<div class="node compact" style="left:1560px;top:800px;width:760px;height:120px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">无主持人日</div>
+    <div class="node-body"><div>系统 0 起拍、英式每次 +10；公开名称+类别+故事；无佣金，流拍弃置</div></div>
+    
+  </div>
+<div class="node" style="left:130px;top:1135px;width:520px;height:310px;--bg:#f2fbf5;--border:#2f9d59;--accent:#2f9d59">
+    <div class="node-title">每日核心产出</div>
+    <div class="node-body"><div>现金变化：收入、出价、佣金、交易、贷款</div><div>信息变化：传闻、故事、属性探查、后续事件公开</div><div>藏品变化：成交、流拍自吞/弃置、交易转移</div><div>局势变化：竞拍后事件影响后续、套装争夺、委托暴露风险</div></div>
+    
+  </div>
+<div class="node" style="left:710px;top:1135px;width:520px;height:310px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">主持人轮换</div>
+    <div class="node-body"><div>3 人局：每人 3 次，第 10 天无主持</div><div>4 人局：每人 2 次，第 9/10 天无主持</div><div>5 人局：每人 2 次，无无主持人日</div><div>主持人不能竞拍自己主持的藏品</div></div>
+    
+  </div>
+<div class="node" style="left:1290px;top:1135px;width:490px;height:310px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">三种获胜路线</div>
+    <div class="node-body"><div>稳健路线：低买高卖、套装与委托</div><div>信息路线：锦囊探价、事件扰动套利</div><div>主持人路线：推高成交赚佣金，判断流拍自吞</div></div>
+    
+  </div>
+<div class="node" style="left:1840px;top:1135px;width:600px;height:310px;--bg:#f7f1e5;--border:#a56a1b;--accent:#a56a1b">
+    <div class="node-title">终局声望</div>
+    <div class="node-body"><div>现金：每 50 银元 = 1 声望</div><div>藏品：终局价值合计 ÷ 50 向下取整</div><div>套装：2/3/4 件 = +4/+10/+18</div><div>秘密委托：完成得标注声望</div><div>属性与贷款：增减值、诅咒、强制清算</div></div>
+    
+  </div>
+    
+  </main>
+</body>
+</html>

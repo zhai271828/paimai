@@ -1,0 +1,551 @@
+[
+  {
+    "id": "role01",
+    "name": "鉴宝大师",
+    "skills": [
+      {
+        "id": "role01_skill01",
+        "name": "慧眼",
+        "kind": "主动",
+        "timing": "竞拍阶段，本局限 3 次",
+        "effectText": "查看一件拍品的传闻区间或者属性二选一",
+        "effects": [
+          {
+            "type": "revealInfo",
+            "target": {
+              "kind": "artifact"
+            },
+            "scope": "private"
+          }
+        ],
+        "charges": 3
+      },
+      {
+        "id": "role01_skill02",
+        "name": "妙笔",
+        "kind": "主动",
+        "timing": "黑市日",
+        "effectText": "你可以指定你的藏品多获得一个随机属性",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role01_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role01_skill03",
+        "name": "点石成金",
+        "kind": "被动",
+        "timing": "终局结算",
+        "effectText": "你持有的“赝品”属性藏品可以按原价结算，但依然不计入类别收藏奖励",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role01_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 0
+    }
+  },
+  {
+    "id": "role02",
+    "name": "黑市商人",
+    "skills": [
+      {
+        "id": "role02_skill01",
+        "name": "门路",
+        "kind": "被动",
+        "timing": "黑市日",
+        "effectText": "黑市购买上限 +1（最多买 3 张）",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role02_skill01"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role02_skill02",
+        "name": "走私",
+        "kind": "被动",
+        "timing": "黑市购买",
+        "effectText": "锦囊和事件卡价格降低 10 银元",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role02_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role02_skill03",
+        "name": "销赃",
+        "kind": "被动",
+        "timing": "自由阶段",
+        "effectText": "出售藏品给银行时按传闻最低值 × 100% 结算（而非 80%）",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role02_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 1
+    }
+  },
+  {
+    "id": "role03",
+    "name": "收藏家",
+    "skills": [
+      {
+        "id": "role03_skill01",
+        "name": "镇馆之宝",
+        "kind": "主动",
+        "timing": "终局结算",
+        "effectText": "任选一件藏品价值加30%",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role03_skill01"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role03_skill02",
+        "name": "藏品",
+        "kind": "被动",
+        "timing": "终局结算",
+        "effectText": "你的类别收藏奖励总额 +50%，向下取整",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role03_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role03_skill03",
+        "name": "收藏大师",
+        "kind": "被动",
+        "timing": "终局结算",
+        "effectText": "你的委托奖励 +30%",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role03_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 2
+    }
+  },
+  {
+    "id": "role04",
+    "name": "神秘富豪",
+    "skills": [
+      {
+        "id": "role04_skill01",
+        "name": "千金",
+        "kind": "被动",
+        "timing": "开局阶段",
+        "effectText": "开局额外获得150银元",
+        "effects": [
+          {
+            "type": "modifyCash",
+            "target": {
+              "kind": "self"
+            },
+            "amount": 150
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role04_skill02",
+        "name": "金库",
+        "kind": "被动",
+        "timing": "贷款阶段",
+        "effectText": "你每天可额外贷款 1 次（每日上限 +1）",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role04_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role04_skill03",
+        "name": "资本",
+        "kind": "被动",
+        "timing": "成交结算",
+        "effectText": "当你参与竞拍却未拍得时。拍得者获得1点【仇恨】。达到3点时：该玩家终局-2声望。",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role04_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 3
+    }
+  },
+  {
+    "id": "role05",
+    "name": "赌徒",
+    "skills": [
+      {
+        "id": "role05_skill01",
+        "name": "孤注一掷",
+        "kind": "主动",
+        "timing": "晨间收入，每天限 1 次",
+        "effectText": "可重掷骰子 1 次，取较高值",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role05_skill01"
+          }
+        ],
+        "charges": 1
+      },
+      {
+        "id": "role05_skill02",
+        "name": "千术",
+        "kind": "被动",
+        "timing": "暗标拍卖时",
+        "effectText": "暗标拍卖时,你可以看到所有人的出价并可修改自己的出价一次",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role05_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role05_skill03",
+        "name": "绝境",
+        "kind": "被动",
+        "timing": "晨间收入",
+        "effectText": "当你的现金 < 50 银元时，日收入骰子点数 × 15（而非 ×10）",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role05_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 4
+    }
+  },
+  {
+    "id": "role06",
+    "name": "情报贩子",
+    "skills": [
+      {
+        "id": "role06_skill01",
+        "name": "窃听",
+        "kind": "主动",
+        "timing": "黑市日",
+        "effectText": "查看一位对手的全部手牌（锦囊 + 事件卡）",
+        "effects": [
+          {
+            "type": "revealInfo",
+            "target": {
+              "kind": "artifact"
+            },
+            "scope": "private"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role06_skill02",
+        "name": "密报",
+        "kind": "被动",
+        "timing": "事件触发",
+        "effectText": "当任意玩家使用事件卡或发生自然事件时，获得一张锦囊",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role06_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role06_skill03",
+        "name": "黑料",
+        "kind": "主动",
+        "timing": "终局结算前",
+        "effectText": "支付 30 银元，查看一位对手的 1 张秘密委托；可选择公开使其作废，或继续隐藏。",
+        "effects": [
+          {
+            "type": "revealInfo",
+            "target": {
+              "kind": "artifact"
+            },
+            "scope": "private"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 5
+    }
+  },
+  {
+    "id": "role07",
+    "name": "考古学者",
+    "skills": [
+      {
+        "id": "role07_skill01",
+        "name": "发掘",
+        "kind": "主动",
+        "timing": "预展阶段，每天限 1 次",
+        "effectText": "查看一件待拍藏品的完整信息（名称 + 类别 + 故事 + 传闻区间）",
+        "effects": [
+          {
+            "type": "revealInfo",
+            "target": {
+              "kind": "artifact"
+            },
+            "scope": "private"
+          }
+        ],
+        "charges": 1
+      },
+      {
+        "id": "role07_skill02",
+        "name": "博识",
+        "kind": "被动",
+        "timing": "终局结算",
+        "effectText": "你持有的藏品中每有 3 种不同类别，终局声望 +1",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role07_skill02"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role07_skill03",
+        "name": "保护",
+        "kind": "被动",
+        "timing": "所有时间",
+        "effectText": "你的藏品免疫事件的负面影响；终局时可选择 1 件赝品视为普通藏品结算，但仍不计入类别收藏奖励。",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role07_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 6
+    }
+  },
+  {
+    "id": "role08",
+    "name": "投机商人",
+    "skills": [
+      {
+        "id": "role08_skill01",
+        "name": "奇货",
+        "kind": "主动",
+        "timing": "成交结算，每天限 1 次",
+        "effectText": "当你以低于传闻最低值的价格拍得藏品时，获得20银元",
+        "effects": [
+          {
+            "type": "modifyCash",
+            "target": {
+              "kind": "self"
+            },
+            "amount": 20
+          }
+        ],
+        "charges": 1
+      },
+      {
+        "id": "role08_skill02",
+        "name": "转手",
+        "kind": "被动",
+        "timing": "自由阶段",
+        "effectText": "你与玩家交易藏品时，额外获得10银元（由银行支付）",
+        "effects": [
+          {
+            "type": "modifyCash",
+            "target": {
+              "kind": "self"
+            },
+            "amount": 10
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role08_skill03",
+        "name": "嗅觉",
+        "kind": "被动",
+        "timing": "锦囊/事件阶段，每天限1次",
+        "effectText": "你使用锦囊时，有50%概率额外触发一个随机锦囊（从牌库顶翻一张锦囊执行）",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role08_skill03"
+          }
+        ],
+        "charges": 1
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 7
+    }
+  },
+  {
+    "id": "role09",
+    "name": "拍卖师",
+    "skills": [
+      {
+        "id": "role09_skill01",
+        "name": "煽动",
+        "kind": "被动",
+        "timing": "主持阶段",
+        "effectText": "你担任主持人时，佣金比例从20%提升至30%",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role09_skill01"
+          }
+        ],
+        "charges": null
+      },
+      {
+        "id": "role09_skill02",
+        "name": "包装",
+        "kind": "主动",
+        "timing": "预展阶段，每天限 1 次",
+        "effectText": "你主持时，选择一件当日拍品，若成交价超过100银元，额外获得10银元奖金",
+        "effects": [
+          {
+            "type": "modifyCash",
+            "target": {
+              "kind": "self"
+            },
+            "amount": 10
+          }
+        ],
+        "charges": 1
+      },
+      {
+        "id": "role09_skill03",
+        "name": "暗箱操作",
+        "kind": "主动",
+        "timing": "竞拍阶段，整局1次",
+        "effectText": "选择 1 件正在进行英式或打包拍卖的藏品使其强行流拍，你以传闻最低价 x50% 自吞；荷兰式和暗标不可使用。",
+        "effects": [
+          {
+            "type": "custom",
+            "target": {
+              "kind": "self"
+            },
+            "resolver": "engine:role09_skill03"
+          }
+        ],
+        "charges": null
+      }
+    ],
+    "source": {
+      "doc": "角色.docx",
+      "table": 8
+    }
+  }
+]

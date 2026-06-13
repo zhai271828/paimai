@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>竞拍、支付不足与流拍处理</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #eceff3;
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif;
+    color: #17202a;
+  }
+  .board {
+    position: relative;
+    width: 2500px;
+    height: 1900px;
+    background:
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      #ffffff;
+    background-size: 40px 40px;
+    overflow: hidden;
+  }
+  .title {
+    position: absolute;
+    left: 58px;
+    top: 34px;
+    right: 58px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+  .subtitle {
+    position: absolute;
+    left: 60px;
+    top: 88px;
+    right: 60px;
+    color: #566274;
+    font-size: 22px;
+  }
+  .group {
+    position: absolute;
+    border: 2px dashed var(--group-color);
+    background: var(--group-bg);
+    border-radius: 20px;
+    z-index: 0;
+  }
+  .group-title {
+    position: absolute;
+    left: 18px;
+    top: -18px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid var(--group-color);
+    font-size: 19px;
+    font-weight: 750;
+  }
+  .edges {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2500px;
+    height: 1900px;
+    z-index: 1;
+    overflow: visible;
+  }
+  .edge {
+    fill: none;
+    stroke: var(--edge);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    marker-end: url(#arrow);
+    opacity: 0.9;
+  }
+  .edge-label {
+    font-size: 18px;
+    fill: #334155;
+    font-weight: 720;
+    paint-order: stroke;
+    stroke: white;
+    stroke-width: 7px;
+    stroke-linejoin: round;
+  }
+  .node {
+    position: absolute;
+    z-index: 2;
+    border: 3px solid var(--border);
+    background: var(--bg);
+    border-radius: 18px;
+    padding: 16px 18px 13px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+  }
+  .node::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 9px;
+    background: var(--accent);
+  }
+  .node-title {
+    font-size: 25px;
+    line-height: 1.18;
+    font-weight: 850;
+    margin-left: 4px;
+    margin-bottom: 9px;
+    letter-spacing: 0;
+  }
+  .node-body {
+    font-size: 20px;
+    line-height: 1.32;
+    color: #273444;
+    margin-left: 4px;
+  }
+  .node-body div + div { margin-top: 3px; }
+  .node.compact .node-title { font-size: 22px; margin-bottom: 6px; }
+  .node.compact .node-body { font-size: 18px; line-height: 1.26; }
+  .node.decision {
+    border-radius: 26px;
+    border-style: dashed;
+  }
+  .meta {
+    position: absolute;
+    right: 12px;
+    bottom: 9px;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .note {
+    position: absolute;
+    z-index: 3;
+    color: #475569;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+</style>
+</head>
+<body>
+  <main class="board">
+    <div class="title">竞拍、支付不足与流拍处理</div>
+    <div class="subtitle">赢家必须完成付款；不足时先尝试补足，仍不足则由第二高价接手或按流拍处理</div>
+    <div class="group" style="left:60px;top:135px;width:2380px;height:470px;--group-color:#188b91;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">确定赢家</div>
+  </div>
+<div class="group" style="left:60px;top:660px;width:2380px;height:560px;--group-color:#5a9f33;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">支付校验</div>
+  </div>
+<div class="group" style="left:60px;top:1275px;width:2380px;height:300px;--group-color:#c94c3d;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">异常与回退</div>
+  </div>
+<div class="group" style="left:60px;top:1630px;width:2380px;height:210px;--group-color:#a56a1b;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">成交后处理</div>
+  </div>
+    <svg class="edges" viewBox="0 0 2500 1900" aria-hidden="true">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"></path>
+        </marker>
+      </defs>
+      <path d="M 490 285 L 525 285 L 525 285 L 560 285" class="edge" style="--edge:#188b91"></path>
+<path d="M 930 285 L 970 285 L 970 277.5 L 1010 277.5" class="edge" style="--edge:#188b91"></path>
+<path d="M 1340 277.5 L 1385 277.5 L 1385 285 L 1430 285" class="edge" style="--edge:#188b91"></path><text class="edge-label" x="1385" y="275">是</text>
+<path d="M 1340 277.5 L 1400 440 L 1870 440 L 1870 285" class="edge" style="--edge:#c94c3d"></path><text class="edge-label" x="1870" y="430">否</text>
+<path d="M 1615 355 L 1615 630 L 430 630 L 430 735" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 640 810 L 688 810 L 688 805 L 735 805" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 905 890 L 905 950 L 430 950 L 430 1010" class="edge" style="--edge:#5a9f33"></path><text class="edge-label" x="430" y="940">足够</text>
+<path d="M 1075 805 L 1120 805 L 1120 805 L 1165 805" class="edge" style="--edge:#5a9f33"></path><text class="edge-label" x="1120" y="795">不足</text>
+<path d="M 1665 805 L 1713 805 L 1713 805 L 1760 805" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 1930 890 L 1930 960 L 430 960 L 430 1010" class="edge" style="--edge:#5a9f33"></path><text class="edge-label" x="430" y="950">能</text>
+<path d="M 1930 890 L 1930 1250 L 435 1250 L 435 1345" class="edge" style="--edge:#c94c3d"></path><text class="edge-label" x="435" y="1240">不能</text>
+<path d="M 640 1080 L 688 1080 L 688 1080 L 735 1080" class="edge" style="--edge:#7a52c7"></path>
+<path d="M 660 1420 L 710 1420 L 710 1415 L 760 1415" class="edge" style="--edge:#c94c3d"></path>
+<path d="M 1100 1415 L 1150 1415 L 1150 1420 L 1200 1420" class="edge" style="--edge:#188b91"></path><text class="edge-label" x="1150" y="1410">有</text>
+<path d="M 1100 1415 L 1150 1570 L 1750 1570 L 1750 1420" class="edge" style="--edge:#c94c3d"></path><text class="edge-label" x="1750" y="1560">无</text>
+<path d="M 1425 1495 L 1425 1260 L 430 1260 L 430 735 L 430 735" class="edge" style="--edge:#188b91"></path>
+<path d="M 2085 355 L 2085 620 L 2000 620 L 2000 1345" class="edge" style="--edge:#c94c3d"></path>
+<path d="M 945 1150 L 945 1240 L 440 1240 L 440 1675 L 440 1675" class="edge" style="--edge:#d46a3a"></path>
+<path d="M 700 1732.5 L 760 1732.5 L 760 1732.5 L 820 1732.5" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 1340 1732.5 L 1400 1732.5 L 1400 1732.5 L 1460 1732.5" class="edge" style="--edge:#64748b"></path>
+<path d="M 2000 1495 L 2000 1610 L 1720 1610 L 1720 1675" class="edge" style="--edge:#64748b"></path>
+    </svg>
+    <div class="node compact" style="left:120px;top:215px;width:370px;height:140px;--bg:#fff4f0;--border:#d46a3a;--accent:#d46a3a">
+    <div class="node-title">开始处理一件拍品</div>
+    <div class="node-body"><div>或打包拍卖的一组拍品</div><div>读取主持人、天数、事件状态</div></div>
+    
+  </div>
+<div class="node compact" style="left:560px;top:215px;width:370px;height:140px;--bg:#eef8f8;--border:#188b91;--accent:#188b91">
+    <div class="node-title">按拍卖方式收集出价</div>
+    <div class="node-body"><div>英式：公开加价</div><div>荷兰：第一个喊停</div><div>暗标：同时开标</div><div>打包：整体英式</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:1010px;top:195px;width:330px;height:165px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">存在有效赢家？</div>
+    <div class="node-body"><div>至少一个合法出价</div><div>主持人不能出价</div><div>暗标平局抽签</div></div>
+    
+  </div>
+<div class="node compact" style="left:1430px;top:215px;width:370px;height:140px;--bg:#eef8f8;--border:#188b91;--accent:#188b91">
+    <div class="node-title">锁定赢家与成交价</div>
+    <div class="node-body"><div>成交价 = 赢家报价</div><div>记录第二高价者</div><div>等待支付校验</div></div>
+    
+  </div>
+<div class="node compact" style="left:1870px;top:215px;width:430px;height:140px;--bg:#fff0ee;--border:#c94c3d;--accent:#c94c3d">
+    <div class="node-title">无人有效出价</div>
+    <div class="node-body"><div>进入流拍分支</div><div>普通主持人可最低值 ×50% 自吞</div><div>无主持 / 荷兰限制按规则弃置</div></div>
+    
+  </div>
+<div class="node compact" style="left:220px;top:735px;width:420px;height:150px;--bg:#f0fbec;--border:#5a9f33;--accent:#5a9f33">
+    <div class="node-title">检查现金</div>
+    <div class="node-body"><div>现金是否足以支付成交价？</div><div>成交价只影响现金流</div><div>不等于藏品结算价</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:735px;top:720px;width:340px;height:170px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">现金足够？</div>
+    <div class="node-body"><div>足够：立即付款</div><div>不足：进入补足选项</div></div>
+    
+  </div>
+<div class="node compact" style="left:1165px;top:700px;width:500px;height:210px;--bg:#f0fbec;--border:#5a9f33;--accent:#5a9f33">
+    <div class="node-title">补足手段</div>
+    <div class="node-body"><div>贷款：每日最多 1 次，借 100</div><div>出售给银行：最低值 ×80%</div><div>玩家交易：双方协商</div><div>现金类锦囊 / 角色技能</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:1760px;top:720px;width:340px;height:170px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">仍能补足？</div>
+    <div class="node-body"><div>能：继续成交</div><div>不能：付款失败</div></div>
+    
+  </div>
+<div class="node compact" style="left:220px;top:1010px;width:420px;height:140px;--bg:#eef8f8;--border:#188b91;--accent:#188b91">
+    <div class="node-title">付款成功</div>
+    <div class="node-body"><div>赢家银元扣除成交价</div><div>藏品所有权转移给赢家</div><div>玩家交易不产生佣金</div></div>
+    
+  </div>
+<div class="node compact" style="left:735px;top:1010px;width:420px;height:140px;--bg:#f5efff;--border:#7a52c7;--accent:#7a52c7">
+    <div class="node-title">主持人佣金</div>
+    <div class="node-body"><div>成功拍卖即时获得</div><div>佣金 = 最终实际成交价 ×20%</div><div>无主持人日没有佣金</div></div>
+    
+  </div>
+<div class="node compact" style="left:210px;top:1345px;width:450px;height:150px;--bg:#fff0ee;--border:#c94c3d;--accent:#c94c3d">
+    <div class="node-title">付款失败</div>
+    <div class="node-body"><div>该藏品按流拍逻辑处理</div><div>先检查是否存在第二高价者</div><div>主持人佣金按最终实际成交价计算</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:760px;top:1330px;width:340px;height:170px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">第二高价者接手？</div>
+    <div class="node-body"><div>若有第二高价者</div><div>以其出价接手</div><div>否则进入弃置/自吞</div></div>
+    
+  </div>
+<div class="node compact" style="left:1200px;top:1345px;width:450px;height:150px;--bg:#eef8f8;--border:#188b91;--accent:#188b91">
+    <div class="node-title">第二高价成交</div>
+    <div class="node-body"><div>重新执行支付校验</div><div>成交价改为第二高价</div><div>佣金按新成交价</div></div>
+    
+  </div>
+<div class="node compact" style="left:1750px;top:1345px;width:500px;height:150px;--bg:#fff0ee;--border:#c94c3d;--accent:#c94c3d">
+    <div class="node-title">最终流拍</div>
+    <div class="node-body"><div>普通主持人：传闻最低值 ×50% 自吞</div><div>无主持人日：弃置</div><div>荷兰式：主持人不得因流拍获得</div></div>
+    
+  </div>
+<div class="node compact" style="left:180px;top:1675px;width:520px;height:115px;--bg:#fff4f0;--border:#d46a3a;--accent:#d46a3a">
+    <div class="node-title">买家专享揭晓</div>
+    <div class="node-body"><div>random(传闻下限, 上限) 得基准结算价；揭晓属性/赝品</div></div>
+    
+  </div>
+<div class="node compact" style="left:820px;top:1675px;width:520px;height:115px;--bg:#fff0f5;--border:#c94d7c;--accent:#c94d7c">
+    <div class="node-title">触发效果</div>
+    <div class="node-body"><div>已生效事件乘数、角色技能、委托记录、属性即时效果</div></div>
+    
+  </div>
+<div class="node compact" style="left:1460px;top:1675px;width:520px;height:115px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">继续日流程</div>
+    <div class="node-body"><div>下一件拍品 / 打包结束 / 自由阶段</div></div>
+    
+  </div>
+    
+  </main>
+</body>
+</html>

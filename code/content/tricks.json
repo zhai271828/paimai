@@ -1,0 +1,1256 @@
+[
+  {
+    "id": "I01",
+    "name": "价格直觉",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件待拍藏品"
+    },
+    "effectText": "查看该藏品传闻上限是否大于等于 200。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 1
+    }
+  },
+  {
+    "id": "I02",
+    "name": "传闻抄本",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件待拍藏品"
+    },
+    "effectText": "查看该藏品传闻区间的上限或下限，二选一。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 2
+    }
+  },
+  {
+    "id": "I03",
+    "name": "类别嗅觉",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "当天 2 件藏品"
+    },
+    "effectText": "查看当天 2 件藏品是否同类别，或是否属于同一事件类别组。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 3
+    }
+  },
+  {
+    "id": "I04",
+    "name": "委托风声",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "player",
+      "text": "1 名玩家"
+    },
+    "effectText": "查看该玩家 1 张秘密委托的路线，不查看具体条件。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 4
+    }
+  },
+  {
+    "id": "I05",
+    "name": "密信截获",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "1 名对手"
+    },
+    "effectText": "查看该对手 1 张秘密委托的完整内容。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 5
+    }
+  },
+  {
+    "id": "I06",
+    "name": "属性罗盘",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件待拍藏品"
+    },
+    "effectText": "查看该藏品属性倾向：增益 / 负面 / 特殊 / 无属性；不揭晓具体属性名。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 6
+    }
+  },
+  {
+    "id": "I07",
+    "name": "开棺验尸",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "成交后或自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件已成交藏品"
+    },
+    "effectText": "查看一件已成交但属性未公开的藏品的完整属性。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 7
+    }
+  },
+  {
+    "id": "I08",
+    "name": "暗标读心",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "暗标拍卖写价前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "所有对手"
+    },
+    "effectText": "查看本次暗标有几名玩家准备出价，但不看金额。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 8
+    }
+  },
+  {
+    "id": "I09",
+    "name": "未卜先知",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "竞拍后事件窗口 / 日末"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "下一天预展藏品"
+    },
+    "effectText": "查看下一天预展将会出现的2件藏品的名称和类别。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 9
+    }
+  },
+  {
+    "id": "I10",
+    "name": "火眼金睛",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件在拍藏品"
+    },
+    "effectText": "查看本日一件在拍藏品的完整属性。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 10
+    }
+  },
+  {
+    "id": "I11",
+    "name": "照妖镜",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件在拍藏品"
+    },
+    "effectText": "查看本日一件在拍藏品是否为赝品。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 11
+    }
+  },
+  {
+    "id": "I12",
+    "name": "眼观六路",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "player",
+      "text": "全场玩家"
+    },
+    "effectText": "查看当前全场玩家的现金总数排名（不显示具体金额）。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 12
+    }
+  },
+  {
+    "id": "I13",
+    "name": "窥探",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件待拍藏品"
+    },
+    "effectText": "查看该藏品的传闻价值区间。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 13
+    }
+  },
+  {
+    "id": "I14",
+    "name": "鉴定",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件待拍藏品"
+    },
+    "effectText": "查看该藏品是否为赝品；不查看其他属性。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 14
+    }
+  },
+  {
+    "id": "I15",
+    "name": "隔墙有耳",
+    "category": "信息类",
+    "type": "info",
+    "timings": [
+      "预展后，竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件在拍藏品"
+    },
+    "effectText": "查看本日一件在拍藏品的传闻价值区间。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 15
+    }
+  },
+  {
+    "id": "B01",
+    "name": "保守出价",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "你第一次出价时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "本次出价若未赢得拍品，返还 10 银元；若赢得拍品，无额外效果。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:B01"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 16
+    }
+  },
+  {
+    "id": "B02",
+    "name": "坐地分赃",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 件本日拍品"
+    },
+    "effectText": "若该藏品今日成交，你从银行获得成交价 10% 的银元；主持人佣金不受影响。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:B02"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 17
+    }
+  },
+  {
+    "id": "B03",
+    "name": "打包估价",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "打包拍卖开始前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "打包拍品"
+    },
+    "effectText": "查看包内任意 1 件藏品的传闻区间。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 18
+    }
+  },
+  {
+    "id": "B04",
+    "name": "搅局流拍",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "成交前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "当前拍品"
+    },
+    "effectText": "宣布当前拍品流拍并弃置，主持人不可自吞；主持人不可使用；你不可再对当前拍品出价。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:B04"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 19
+    }
+  },
+  {
+    "id": "B05",
+    "name": "暗标加封",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "暗标开标前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己的暗标"
+    },
+    "effectText": "你可以给自己的暗标出价额外 +10；这 10 银元只有赢得拍品时才支付。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:B05"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 20
+    }
+  },
+  {
+    "id": "B06",
+    "name": "最后一口",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "当前最高价产生后"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "你可以立刻加价 +20；若因此成为最高价，当前拍品其他玩家仍可继续加价。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:B06"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 21
+    }
+  },
+  {
+    "id": "B07",
+    "name": "退场有奖",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "你退出竞拍时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "若该拍品最终成交价比你的最后报价高 40 以上，你获得 15 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 15
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 22
+    }
+  },
+  {
+    "id": "B08",
+    "name": "雁过拔毛",
+    "category": "竞价类",
+    "type": "bid",
+    "timings": [
+      "竞拍开始前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "1 名对手"
+    },
+    "effectText": "若该对手本日成功拍下藏品，他必须支付你 10 银元；现金不足则支付至 0。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:B08"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 23
+    }
+  },
+  {
+    "id": "C01",
+    "name": "典当券",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "自己 1 件藏品"
+    },
+    "effectText": "本次卖银行按传闻最低值 x100% 回收，而非 x80%。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:C01"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 24
+    }
+  },
+  {
+    "id": "C02",
+    "name": "压箱钱",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "若你现金低于 100，获得 40 银元；否则获得 15 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 40
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 25
+    }
+  },
+  {
+    "id": "C03",
+    "name": "回购凭证",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "卖银行时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "自己 1 件藏品"
+    },
+    "effectText": "你卖给银行的 1 件藏品可在下一天自由阶段以回收价 +20 买回；无人买回则移出游戏。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:C03"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 26
+    }
+  },
+  {
+    "id": "C04",
+    "name": "寄售单",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "自己 1 件藏品"
+    },
+    "effectText": "公开挂售 1 件藏品；若本阶段被其他玩家买走，卖方额外获得 20 银元。",
+    "effects": [
+      {
+        "type": "revealInfo",
+        "target": {
+          "kind": "artifact"
+        },
+        "scope": "private"
+      },
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 20
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 27
+    }
+  },
+  {
+    "id": "C05",
+    "name": "小额周转",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "任意自己的行动窗口"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "立刻获得 30 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 30
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 28
+    }
+  },
+  {
+    "id": "C06",
+    "name": "找零",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "你赢得竞拍后"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "若成交价至少比第二高价高 30，你从银行获得 20 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 20
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 29
+    }
+  },
+  {
+    "id": "C07",
+    "name": "护宝符",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "需要支付保护费时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "免除 1 次易损保护费；若你没有易损费用，改为获得 10 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 10
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 30
+    }
+  },
+  {
+    "id": "C08",
+    "name": "牵线人",
+    "category": "现金类",
+    "type": "cash",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "player",
+      "text": "两名自愿交易玩家"
+    },
+    "effectText": "本阶段下一次玩家间交易成功后，买卖双方各获得 10 银元。",
+    "effects": [
+      {
+        "type": "modifyCash",
+        "target": {
+          "kind": "self"
+        },
+        "amount": 10
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 31
+    }
+  },
+  {
+    "id": "D01",
+    "name": "封口",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "锦囊/事件阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "player",
+      "text": "1 名玩家"
+    },
+    "effectText": "该玩家本日不能使用任何锦囊；已打出的锦囊不受影响。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D01"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 32
+    }
+  },
+  {
+    "id": "D02",
+    "name": "巧取豪夺",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "对手的 1 件藏品"
+    },
+    "effectText": "你提出以银行回收价 +20 收购该藏品；对方可接受，若拒绝则必须支付你 20 银元或向你展示该藏品属性。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D02"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 33
+    }
+  },
+  {
+    "id": "D03",
+    "name": "搜身",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "1 名对手"
+    },
+    "effectText": "该对手必须向你展示其所有锦囊卡",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D03"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 34
+    }
+  },
+  {
+    "id": "D04",
+    "name": "断其粮草",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "1 名对手"
+    },
+    "effectText": "该对手必须随机弃掉 1 张锦囊；若没有锦囊，展示手牌证明。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D04"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 35
+    }
+  },
+  {
+    "id": "D05",
+    "name": "画地为牢",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "1 名对手"
+    },
+    "effectText": "该对手本日不能出售藏品给银行，也不能进行玩家间交易",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D05"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 36
+    }
+  },
+  {
+    "id": "D06",
+    "name": "破财消灾",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "自由阶段"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "1 名对手"
+    },
+    "effectText": "对手弃置 10 银元；现金不足则展示手牌证明无现金，无其他损失。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D06"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 37
+    }
+  },
+  {
+    "id": "D07",
+    "name": "逐客令",
+    "category": "干扰类",
+    "type": "control",
+    "timings": [
+      "竞拍前"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "artifact",
+      "text": "1 名对手 + 1 件藏品"
+    },
+    "effectText": "该对手本日对你的指定藏品不能出价",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:D07"
+      }
+    ],
+    "counterable": true,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 38
+    }
+  },
+  {
+    "id": "R01",
+    "name": "封存",
+    "category": "反制类",
+    "type": "control",
+    "timings": [
+      "任意锦囊刚打出时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "该锦囊"
+    },
+    "effectText": "令该锦囊延迟到当前拍品结束后结算；若届时目标已不存在，则该锦囊弃置。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:R01"
+      }
+    ],
+    "counterable": false,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 39
+    }
+  },
+  {
+    "id": "R02",
+    "name": "无懈可击",
+    "category": "反制类",
+    "type": "control",
+    "timings": [
+      "他人使用锦囊/事件时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "该锦囊/事件"
+    },
+    "effectText": "立即无效化该效果（对方费用不退还）",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:R02"
+      }
+    ],
+    "counterable": false,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 40
+    }
+  },
+  {
+    "id": "R03",
+    "name": "来日方长",
+    "category": "反制类",
+    "type": "control",
+    "timings": [
+      "他人使用锦囊/事件时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "该效果"
+    },
+    "effectText": "将该效果推迟到下一件拍品成交结算后；若届时目标已不存在则无效。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:R03"
+      }
+    ],
+    "counterable": false,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 41
+    }
+  },
+  {
+    "id": "R04",
+    "name": "水银",
+    "category": "反制类",
+    "type": "control",
+    "timings": [
+      "你成为干扰类锦囊目标时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "self",
+      "text": "自己"
+    },
+    "effectText": "取消该干扰类锦囊对你的效果。",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:R04"
+      }
+    ],
+    "counterable": false,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 42
+    }
+  },
+  {
+    "id": "R05",
+    "name": "祸水东引",
+    "category": "反制类",
+    "type": "control",
+    "timings": [
+      "成为干扰类目标时"
+    ],
+    "cost": 0,
+    "target": {
+      "kind": "player",
+      "text": "另 1 名玩家"
+    },
+    "effectText": "将干扰类锦囊转移给你指定的另一名玩家",
+    "effects": [
+      {
+        "type": "custom",
+        "target": {
+          "kind": "self"
+        },
+        "resolver": "engine:R05"
+      }
+    ],
+    "counterable": false,
+    "source": {
+      "doc": "锦囊.docx",
+      "row": 43
+    }
+  }
+]

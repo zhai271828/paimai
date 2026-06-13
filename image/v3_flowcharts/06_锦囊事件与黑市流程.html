@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>锦囊、事件与三次黑市流程</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #eceff3;
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif;
+    color: #17202a;
+  }
+  .board {
+    position: relative;
+    width: 2550px;
+    height: 1950px;
+    background:
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      #ffffff;
+    background-size: 40px 40px;
+    overflow: hidden;
+  }
+  .title {
+    position: absolute;
+    left: 58px;
+    top: 34px;
+    right: 58px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+  .subtitle {
+    position: absolute;
+    left: 60px;
+    top: 88px;
+    right: 60px;
+    color: #566274;
+    font-size: 22px;
+  }
+  .group {
+    position: absolute;
+    border: 2px dashed var(--group-color);
+    background: var(--group-bg);
+    border-radius: 20px;
+    z-index: 0;
+  }
+  .group-title {
+    position: absolute;
+    left: 18px;
+    top: -18px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid var(--group-color);
+    font-size: 19px;
+    font-weight: 750;
+  }
+  .edges {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2550px;
+    height: 1950px;
+    z-index: 1;
+    overflow: visible;
+  }
+  .edge {
+    fill: none;
+    stroke: var(--edge);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    marker-end: url(#arrow);
+    opacity: 0.9;
+  }
+  .edge-label {
+    font-size: 18px;
+    fill: #334155;
+    font-weight: 720;
+    paint-order: stroke;
+    stroke: white;
+    stroke-width: 7px;
+    stroke-linejoin: round;
+  }
+  .node {
+    position: absolute;
+    z-index: 2;
+    border: 3px solid var(--border);
+    background: var(--bg);
+    border-radius: 18px;
+    padding: 16px 18px 13px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+  }
+  .node::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 9px;
+    background: var(--accent);
+  }
+  .node-title {
+    font-size: 25px;
+    line-height: 1.18;
+    font-weight: 850;
+    margin-left: 4px;
+    margin-bottom: 9px;
+    letter-spacing: 0;
+  }
+  .node-body {
+    font-size: 20px;
+    line-height: 1.32;
+    color: #273444;
+    margin-left: 4px;
+  }
+  .node-body div + div { margin-top: 3px; }
+  .node.compact .node-title { font-size: 22px; margin-bottom: 6px; }
+  .node.compact .node-body { font-size: 18px; line-height: 1.26; }
+  .node.decision {
+    border-radius: 26px;
+    border-style: dashed;
+  }
+  .meta {
+    position: absolute;
+    right: 12px;
+    bottom: 9px;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .note {
+    position: absolute;
+    z-index: 3;
+    color: #475569;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+</style>
+</head>
+<body>
+  <main class="board">
+    <div class="title">锦囊、事件与三次黑市流程</div>
+    <div class="subtitle">黑市提供战术补给；锦囊负责局部扭转，事件负责全局且持续的环境变化</div>
+    <div class="group" style="left:60px;top:135px;width:2430px;height:430px;--group-color:#d18a00;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">黑市补给</div>
+  </div>
+<div class="group" style="left:60px;top:625px;width:1190px;height:1050px;--group-color:#3e64b5;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">锦囊使用</div>
+  </div>
+<div class="group" style="left:1300px;top:625px;width:1190px;height:1050px;--group-color:#c94d7c;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">竞拍后事件触发</div>
+  </div>
+<div class="group" style="left:60px;top:1735px;width:2430px;height:160px;--group-color:#64748b;--group-bg:rgba(248, 250, 252, 0.72)">
+    <div class="group-title">回到拍卖日</div>
+  </div>
+    <svg class="edges" viewBox="0 0 2550 1950" aria-hidden="true">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"></path>
+        </marker>
+      </defs>
+      <path d="M 510 282.5 L 555 282.5 L 555 282.5 L 600 282.5" class="edge" style="--edge:#d18a00"></path>
+<path d="M 990 282.5 L 1035 282.5 L 1035 282.5 L 1080 282.5" class="edge" style="--edge:#d18a00"></path>
+<path d="M 1470 282.5 L 1515 282.5 L 1515 282.5 L 1560 282.5" class="edge" style="--edge:#5a9f33"></path>
+<path d="M 1950 282.5 L 1995 282.5 L 1995 282.5 L 2040 282.5" class="edge" style="--edge:#64748b"></path>
+<path d="M 2215 355 L 2215 590 L 340 590 L 340 705" class="edge" style="--edge:#3e64b5"></path>
+<path d="M 560 777.5 L 605 777.5 L 605 777.5 L 650 777.5" class="edge" style="--edge:#3e64b5"></path>
+<path d="M 870 850 L 870 900 L 605 900 L 605 925" class="edge" style="--edge:#3e64b5"></path>
+<path d="M 605 1115 L 605 1158 L 340 1158 L 340 1200" class="edge" style="--edge:#3e64b5"></path>
+<path d="M 560 1280 L 605 1280 L 605 1280 L 650 1280" class="edge" style="--edge:#3e64b5"></path>
+<path d="M 870 1360 L 870 1405 L 600 1405 L 600 1450" class="edge" style="--edge:#6e7781"></path>
+<path d="M 870 1360 L 870 1568 L 685 1568 L 685 1775" class="edge" style="--edge:#64748b"></path>
+<path d="M 2215 355 L 2215 590 L 1590 590 L 1590 705" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 1810 777.5 L 1855 777.5 L 1855 777.5 L 1900 777.5" class="edge" style="--edge:#c94d7c"></path><text class="edge-label" x="1855" y="767.5">无人用？</text>
+<path d="M 2120 850 L 2120 888 L 2120 888 L 2120 925" class="edge" style="--edge:#c94d7c"></path><text class="edge-label" x="2120" y="878">是</text>
+<path d="M 1590 850 L 1590 888 L 1590 888 L 1590 925" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 2120 1085 L 2120 1125 L 2120 1125 L 2120 1165" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 1590 1225 L 1590 1268 L 1590 1268 L 1590 1310" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 1900 1245 L 1855 1245 L 1855 1390 L 1810 1390" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 2120 1325 L 2120 1373 L 2120 1373 L 2120 1420" class="edge" style="--edge:#c94d7c"></path>
+<path d="M 1590 1470 L 1590 1623 L 685 1623 L 685 1775" class="edge" style="--edge:#64748b"></path>
+<path d="M 1010 1820 L 1085 1820 L 1085 1820 L 1160 1820" class="edge" style="--edge:#64748b"></path>
+    </svg>
+    <div class="node compact" style="left:120px;top:210px;width:390px;height:145px;--bg:#f3f7ff;--border:#3e64b5;--accent:#3e64b5">
+    <div class="node-title">开局手牌</div>
+    <div class="node-body"><div>锦囊 2 张</div><div>事件 1 张</div><div>锦囊无手牌上限，事件最多 3 张</div></div>
+    
+  </div>
+<div class="node compact" style="left:600px;top:210px;width:390px;height:145px;--bg:#fff5db;--border:#d18a00;--accent:#d18a00">
+    <div class="node-title">三次黑市日</div>
+    <div class="node-body"><div>第 3 天：中期策略资源</div><div>第 6 天：调整战术路线</div><div>第 9 天：终局前最后补给</div></div>
+    
+  </div>
+<div class="node compact" style="left:1080px;top:210px;width:390px;height:145px;--bg:#fff5db;--border:#d18a00;--accent:#d18a00">
+    <div class="node-title">购买限制</div>
+    <div class="node-body"><div>每人最多购买 2 张</div><div>锦囊 + 事件合计</div><div>晨间收入后、预展前执行</div></div>
+    
+  </div>
+<div class="node compact" style="left:1560px;top:210px;width:390px;height:145px;--bg:#f0fbec;--border:#5a9f33;--accent:#5a9f33">
+    <div class="node-title">价格</div>
+    <div class="node-body"><div>锦囊 30 银元 / 张</div><div>事件 50 银元 / 张</div><div>事件超过上限时不能继续买</div></div>
+    
+  </div>
+<div class="node compact" style="left:2040px;top:210px;width:350px;height:145px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">更新手牌</div>
+    <div class="node-body"><div>加入手牌</div><div>记录事件上限</div><div>进入预展</div></div>
+    
+  </div>
+<div class="node compact" style="left:120px;top:705px;width:440px;height:145px;--bg:#f3f7ff;--border:#3e64b5;--accent:#3e64b5">
+    <div class="node-title">锦囊使用时机</div>
+    <div class="node-body"><div>竞拍前锦囊阶段为主</div><div>部分锦囊可在竞拍中即时使用</div><div>一次性消耗，使用后弃置</div></div>
+    
+  </div>
+<div class="node compact" style="left:650px;top:705px;width:440px;height:145px;--bg:#f3f7ff;--border:#3e64b5;--accent:#3e64b5">
+    <div class="node-title">每日限制</div>
+    <div class="node-body"><div>每天最多使用 2 张锦囊</div><div>同阶段多人使用时按顺序结算</div><div>从当前主持人开始顺时针</div></div>
+    
+  </div>
+<div class="node compact" style="left:120px;top:925px;width:970px;height:190px;--bg:#f3f7ff;--border:#3e64b5;--accent:#3e64b5">
+    <div class="node-title">锦囊类型</div>
+    <div class="node-body"><div>信息类：查看传闻区间、判断属性好坏、挖掘隐藏信息</div><div>竞价类：改起拍价、重新加入竞价、改变竞拍节奏</div><div>现金类：影响资金流、银行回收、免保护费</div><div>干扰/反制类：限制对手、取消锦囊或事件效果</div></div>
+    
+  </div>
+<div class="node compact" style="left:120px;top:1200px;width:440px;height:160px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">结算目标</div>
+    <div class="node-body"><div>拍品</div><div>玩家</div><div>当前拍卖过程</div><div>现金/交易状态</div></div>
+    
+  </div>
+<div class="node compact" style="left:650px;top:1200px;width:440px;height:160px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">结算后记录</div>
+    <div class="node-body"><div>弃置已用锦囊</div><div>更新可见信息、出价权限或现金</div><div>继续处理事件或进入竞拍</div></div>
+    
+  </div>
+<div class="node compact" style="left:220px;top:1450px;width:760px;height:135px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">设计目标</div>
+    <div class="node-body"><div>锦囊应制造情境反转与信息惊喜，而不是只有简单数值加减</div></div>
+    
+  </div>
+<div class="node compact" style="left:1370px;top:705px;width:440px;height:145px;--bg:#fff0f5;--border:#c94d7c;--accent:#c94d7c">
+    <div class="node-title">竞拍后事件窗口</div>
+    <div class="node-body"><div>当天全部竞拍/成交结算后</div><div>每天最多触发 1 个事件</div><div>不影响当天已结算结果</div></div>
+    
+  </div>
+<div class="node decision compact" style="left:1900px;top:705px;width:440px;height:145px;--bg:#f7f7f7;--border:#6e7781;--accent:#6e7781">
+    <div class="node-title">无人使用事件？</div>
+    <div class="node-body"><div>竞拍后若无人打事件卡</div><div>进行自然事件判定</div><div>若有人使用则跳过自然事件</div></div>
+    
+  </div>
+<div class="node compact" style="left:1900px;top:925px;width:440px;height:160px;--bg:#fff0f5;--border:#c94d7c;--accent:#c94d7c">
+    <div class="node-title">自然事件</div>
+    <div class="node-body"><div>20% 概率触发</div><div>从自然事件池抽 1 张</div><div>作为后续局势生效</div></div>
+    
+  </div>
+<div class="node compact" style="left:1370px;top:925px;width:440px;height:300px;--bg:#fff0f5;--border:#c94d7c;--accent:#c94d7c">
+    <div class="node-title">事件类型</div>
+    <div class="node-body"><div>市场波动：结算价 ±10% / ±20%</div><div>环境变化：拍卖规则变更</div><div>信息浪潮：全局信息公开</div><div>经济政策：影响黑市/银行/现金</div><div>行业震荡：属性或概率规则变化</div></div>
+    
+  </div>
+<div class="node compact" style="left:1900px;top:1165px;width:440px;height:160px;--bg:#fff0f5;--border:#c94d7c;--accent:#c94d7c">
+    <div class="node-title">持续时间</div>
+    <div class="node-body"><div>从后续指定时点开始</div><div>持续到结算或指定时限</div><div>记录影响范围和到期日</div></div>
+    
+  </div>
+<div class="node compact" style="left:1370px;top:1310px;width:440px;height:160px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">写入后续生效状态</div>
+    <div class="node-body"><div>影响未来藏品终局价值</div><div>影响下一天/后续拍卖规则</div><div>影响后续信息公开与现金规则</div></div>
+    
+  </div>
+<div class="node compact" style="left:1900px;top:1420px;width:440px;height:190px;--bg:#fff0f5;--border:#c94d7c;--accent:#c94d7c">
+    <div class="node-title">自然事件示例</div>
+    <div class="node-body"><div>市场繁荣 / 经济萧条</div><div>古玩热 / 海关抽查</div><div>富豪入场 / 谣言四起</div><div>黑市打折 / 同乡会</div></div>
+    
+  </div>
+<div class="node compact" style="left:360px;top:1775px;width:650px;height:90px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">回到当天收尾</div>
+    <div class="node-body"><div>事件不会回溯当天竞拍结果，只作为后续局势进入记录</div></div>
+    
+  </div>
+<div class="node compact" style="left:1160px;top:1775px;width:850px;height:90px;--bg:#f5f7fa;--border:#64748b;--accent:#64748b">
+    <div class="node-title">需要记录的状态</div>
+    <div class="node-body"><div>每日锦囊使用数、今日是否已触发事件、活跃事件、事件生效起点、事件到期、玩家手牌与上限</div></div>
+    
+  </div>
+    
+  </main>
+</body>
+</html>
