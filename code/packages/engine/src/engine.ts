@@ -19,6 +19,7 @@ import {
   type BundleInnerMode,
   type ActiveEffect,
   type CardId,
+  type ChoiceResolution,
   type DelayedCardEffect,
   type EventCard,
   type FinalScore,
@@ -62,6 +63,65 @@ const DEFAULT_PHASE_TIMEOUTS: PhaseTimeouts = {
   eventWindow: 90_000,
   freeTrade: 180_000
 };
+
+function roundToTen(value: number): number {
+  return Math.max(0, Math.round(value / 10) * 10);
+}
+
+function ceilToTen(value: number): number {
+  return Math.max(0, Math.ceil(value / 10) * 10);
+}
+
+function randomTenInRange(min: number, max: number, rng: () => number): number {
+  const low = ceilToTen(min);
+  const high = Math.max(0, Math.floor(max / 10) * 10);
+  if (low > high) return roundToTen((min + max) / 2);
+  const steps = Math.floor((high - low) / 10) + 1;
+  return low + Math.floor(rng() * steps) * 10;
+}
+
+function isFakeArtifactTemplate(artifact: ArtifactInstance): boolean {
+  return artifact.properties.includes("fake") || artifact.tag === "fake";
+}
+
+function artifactSettlementValueForPlayer(state: GameState, player: PlayerState, artifact: ArtifactInstance, acquiredDay?: number): number {
+  const originalDayAcquired = artifact.dayAcquired;
+  if (acquiredDay !== undefined) artifact.dayAcquired = acquiredDay;
+  const value = roundToTen(adjustedArtifactValueForPlayer(state, player, artifact, state.activeEffects));
+  artifact.dayAcquired = originalDayAcquired;
+  return value;
+}
+
+function lockArtifactSettlementValue(state: MutableGame, artifact: ArtifactInstance, owner: PlayerState, acquiredDay?: number): void {
+  artifact.lockedSettlementValue = artifactSettlementValueForPlayer(state, owner, artifact, acquiredDay);
+}
+
+function assignArtifactToPlayer(
+  state: MutableGame,
+  owner: PlayerState,
+  artifact: ArtifactInstance,
+  options: {
+    purchasePrice?: number;
+    acquiredByMode?: AuctionMode;
+    packageId?: string;
+    dayAcquired?: number;
+  } = {}
+): void {
+  if (!owner.artifacts.includes(artifact.id)) owner.artifacts.push(artifact.id);
+  artifact.ownerId = owner.id;
+  artifact.dayAcquired = options.dayAcquired ?? state.day;
+  if (options.acquiredByMode !== undefined) artifact.acquiredByMode = options.acquiredByMode;
+  if (options.purchasePrice !== undefined) artifact.purchasePrice = options.purchasePrice;
+  if (options.packageId !== undefined) artifact.packageId = options.packageId;
+  revealArtifactTo(artifact, owner.id);
+  lockArtifactSettlementValue(state, artifact, owner, artifact.dayAcquired);
+}
+
+function removeArtifactFromPlayer(state: MutableGame, owner: PlayerState, artifact: ArtifactInstance): void {
+  owner.artifacts = owner.artifacts.filter((id) => id !== artifact.id);
+  artifact.ownerId = undefined;
+  artifact.lockedSettlementValue = undefined;
+}
 
 export class RuleError extends Error {
   constructor(message: string, public readonly code = "INVALID_ACTION") {
@@ -189,7 +249,7 @@ export function reduceGame(state: GameState, action: ServerAction): GameState {
     case "START_GAME": {
       assertPhase(next, "lobby");
       if (next.hostPlayerId !== action.playerId) throw new RuleError("只有房主可以开始游戏。", "NOT_OWNER");
-      const participants = activePlayers(next);
+      const participants = lobbyPlayers(next);
       if (participants.length < GAME_CONSTANTS.minPlayers) throw new RuleError(`至少需要 ${GAME_CONSTANTS.minPlayers} 人。`);
       if (participants.some((candidate) => !candidate.ready && candidate.id !== action.playerId)) throw new RuleError("还有玩家未准备。");
       setupGame(next);
@@ -205,9 +265,19 @@ export function reduceGame(state: GameState, action: ServerAction): GameState {
       break;
     }
     case "SET_AUCTION": {
-      assertPhase(next, "preview");
-      const payload = action.payload as { mode: AuctionMode; startingBid?: number; bundleInnerMode?: BundleInnerMode };
-      setAuction(next, payload.mode, payload.startingBid, payload.bundleInnerMode);
+      const payload = action.payload as { mode: AuctionMode; startingBid?: number; bundleInnerMode?: BundleInnerMode; dutchStep?: number };
+      if (next.phase === "preview") {
+        if (next.currentHostId && next.currentHostId !== player.id) {
+          throw new RuleError("当前拍卖方式由系统随机生成，只有当前主持人可以确认。", "NOT_HOST");
+        }
+        setAuction(next, payload.mode, payload.startingBid, payload.bundleInnerMode, payload.dutchStep);
+      } else {
+        updateAuctionStartingBid(next, player, payload.startingBid ?? 0, payload.dutchStep);
+      }
+      // 设置起拍价后立即进入拍卖阶段，无需再点"推进"
+      if (next.phase === "cardWindow" && next.auction && next.auction.status === "choosing") {
+        openAuction(next, player.id);
+      }
       break;
     }
     case "PLACE_BID": {
@@ -221,13 +291,19 @@ export function reduceGame(state: GameState, action: ServerAction): GameState {
     case "DUTCH_STOP":
       dutchStop(next, player);
       break;
+    case "AUCTION_BID_TIMEOUT":
+      if (next.auction && next.phase === "auction") {
+        const bm = next.auction.mode === "bundle" ? next.auction.bundleInnerMode ?? "english" : next.auction.mode;
+        if (bm === "english") checkAuctionBidDeadline(next, (action.payload as { now?: number })?.now);
+      }
+      break;
     case "SUBMIT_SEALED_BID": {
       const payload = action.payload as { amount: number };
       submitSealedBid(next, player, payload.amount);
       break;
     }
     case "PLAY_CARD": {
-      const payload = action.payload as { cardId: string; targetArtifactId?: string; targetPlayerId?: string };
+      const payload = action.payload as { cardId: string; targetArtifactId?: string; targetPlayerId?: string; amount?: number };
       playCard(next, player, payload);
       break;
     }
@@ -262,6 +338,11 @@ export function reduceGame(state: GameState, action: ServerAction): GameState {
     case "REPAY_LOAN":
       repayLoan(next, player);
       break;
+    case "RESOLVE_CHOICE": {
+      const payload = action.payload as { effectId: string; choice: ChoiceResolution };
+      resolveChoice(next, player, payload);
+      break;
+    }
     default:
       throw new RuleError("未知操作。");
   }
@@ -415,7 +496,14 @@ function autoAdvancePhaseTimeout(state: MutableGame, actor: PlayerState): void {
           markAutomated(bidder, "阶段超时自动退出英式竞拍");
         }
       }
-      if (state.phase === "auction") closeAuctionAsUnsold(state);
+      // 有当前出价人则按最后出价成交，否则流拍
+      if (state.phase === "auction") {
+        if (state.auction.currentBidderId) {
+          closeAuctionWithWinner(state, state.auction.currentBidderId, state.auction.currentBid);
+        } else {
+          closeAuctionAsUnsold(state);
+        }
+      }
     } else if (bidMode === "sealed") {
       for (const bidder of bidderPlayers(state)) {
         if (state.phase !== "auction") break;
@@ -449,13 +537,15 @@ function markAutomated(player: PlayerState, reason: string): void {
 }
 
 function setupGame(state: MutableGame): void {
-  const participatingPlayers = activePlayers(state);
+  const participatingPlayers = lobbyPlayers(state);
   if (participatingPlayers.length < GAME_CONSTANTS.minPlayers) throw new RuleError(`至少需要 ${GAME_CONSTANTS.minPlayers} 人。`);
   const rng = makeRng(`${state.roomId}:${state.joinCode}:${CONTENT_VERSION}`);
   const artifactTemplates = shuffled(ARTIFACT_TEMPLATES, rng);
+  const totalFakeMod = todayEffects(state).reduce((sum, e) => sum + (e.fakeProbabilityMod ?? 0), 0);
+  const effectiveFakeProb = Math.max(0, Math.min(1, 0.2 + totalFakeMod));
   const artifactEntries = artifactTemplates.map((template): [ArtifactId, ArtifactInstance] => {
-    const value = template.rumorMin + Math.floor(rng() * (template.rumorMax - template.rumorMin + 1));
-    const isFake = rng() < 0.2;
+    const value = randomTenInRange(template.rumorMin, template.rumorMax, rng);
+    const isFake = rng() < effectiveFakeProb;
     const properties = isFake ? ["fake"] : drawProperties(template.propertyPool.filter((id) => id !== "fake"), rng);
     const tag = firstTag(properties);
     return [
@@ -484,6 +574,8 @@ function setupGame(state: MutableGame): void {
   const missionDeck = shuffled(MISSIONS.map((mission) => mission.id), rng);
   const roleDeck = shuffled(ROLES.map((role) => role.id), rng);
 
+  // 随机确定第一天主持人偏移（让开局主持人不是固定第一个玩家）
+  state.startHostOffset = Math.floor(rng() * participatingPlayers.length);
   state.players = participatingPlayers.map((candidate, index) => {
     const role = roleDeck[index % roleDeck.length];
     const missionIds = [missionDeck[index * 2 % missionDeck.length], missionDeck[(index * 2 + 1) % missionDeck.length]].filter(Boolean) as string[];
@@ -555,23 +647,7 @@ function advancePhase(state: MutableGame, actorId: PlayerId): void {
       setRandomAuction(state);
       break;
     case "cardWindow": {
-      const auction = requireAuction(state);
-      const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "english" : auction.mode;
-      auction.status = "open";
-      if (bidMode === "dutch") {
-        const startPrice = auction.currentBid || Math.max(...auction.artifactIds.map((id) => requireArtifact(state, id).rumorMax));
-        auction.dutch = {
-          startPrice,
-          currentPrice: startPrice,
-          step: GAME_CONSTANTS.dutchStep,
-          tickMs: GAME_CONSTANTS.dutchTickMs,
-          startedAt: Date.now()
-        };
-        auction.currentBid = startPrice;
-      }
-      state.phase = "auction";
-      state.lastMessage = "竞拍开始。";
-      state.log.push(state.lastMessage);
+      openAuction(state, actorId);
       break;
     }
     case "settlement":
@@ -586,10 +662,12 @@ function advancePhase(state: MutableGame, actorId: PlayerId): void {
       maybeTriggerNaturalEvent(state);
       state.phase = "freeTrade";
       resolveBuybacks(state);
+      if (state.day >= state.maxDays) prepareProp31DonationChoices(state);
       state.lastMessage = "事件窗口结束，进入自由交易。";
       state.log.push(state.lastMessage);
       break;
     case "freeTrade":
+      resolveConsignmentListings(state);
       resolveDayEndEffects(state);
       if (state.day >= state.maxDays) {
         finalizeScores(state);
@@ -605,6 +683,7 @@ function advancePhase(state: MutableGame, actorId: PlayerId): void {
           candidate.passed = false;
           candidate.blackMarketBuysToday = 0;
           candidate.loansTakenToday = 0;
+          candidate.tradesToday = 0;
           resetDailyRoleSkillCharges(candidate);
         });
         expireFinishedEffects(state);
@@ -625,20 +704,18 @@ function runIncome(state: MutableGame): void {
   const incomeLogs: string[] = [];
   const incomeRolls: IncomeRollResult[] = [];
   for (const player of state.players) {
-    let roll = rollIncomeDie();
-    const gamblerReroll = todayEffects(state).find((effect) => effect.sourceRoleSkillId === "role05_skill01" && effect.createdBy === player.id);
-    const reroll = gamblerReroll ? rollIncomeDie() : undefined;
-    if (reroll !== undefined) roll = Math.max(roll, reroll);
+    const firstRoll = rollIncomeDie();
+    const secondRoll = player.role?.roleId === "role05" ? rollIncomeDie() : undefined;
+    const chosenRoll = secondRoll === undefined ? firstRoll : Math.max(firstRoll, secondRoll);
     const multiplier = Math.max(1, ...todayEffects(state, "E28").map((effect) => effect.incomeMultiplier ?? 1));
     const perPip = player.role?.roleId === "role05" && player.cash < 50 ? 15 : GAME_CONSTANTS.incomePerPip;
-    let amount = roll * perPip * multiplier;
+    let amount = chosenRoll * perPip * multiplier;
     amount += todayEffects(state).reduce((sum, effect) => sum + (effect.incomeBonus ?? 0), 0);
     player.cash += amount;
-    incomeRolls.push({ playerId: player.id, nickname: player.nickname, roll, reroll, amount });
-    incomeLogs.push(`${player.nickname}${reroll === undefined ? `掷出 ${roll}` : `掷出 ${roll}（重掷 ${reroll}，取高）`}，+${amount}`);
+    incomeRolls.push({ playerId: player.id, nickname: player.nickname, roll: firstRoll, reroll: secondRoll, chosenRoll, amount });
+    incomeLogs.push(`${player.nickname}${secondRoll === undefined ? `掷出 ${firstRoll}` : `掷出 ${firstRoll} 和 ${secondRoll}，取较高值 ${chosenRoll}`}，收入 ${amount} 银元`);
   }
   state.lastIncomeRolls = incomeRolls;
-  state.activeEffects = state.activeEffects.filter((effect) => effect.sourceRoleSkillId !== "role05_skill01" || effect.day !== state.day);
   state.lastMessage = `第 ${state.day} 天晨间收入：${incomeLogs.join("；")}。`;
   state.log.push(state.lastMessage);
 }
@@ -673,19 +750,283 @@ function resolveDayEndEffects(state: MutableGame): void {
   }
 }
 
+function resolveChoice(state: MutableGame, player: PlayerState, payload: { effectId: string; choice: ChoiceResolution }): void {
+  const effectIndex = state.activeEffects.findIndex((e) => e.id === payload.effectId && canResolveChoice(e, player.id));
+  if (effectIndex === -1) throw new RuleError("未找到对应的待定选择。", "INVALID_ACTION");
+  const effect = state.activeEffects[effectIndex]!;
+  if (effect.day !== undefined && effect.day > state.day) throw new RuleError("还未到处理这个选择的时机。", "BAD_PHASE");
+
+  if (effect.choiceType === "C03_buyback") {
+    const artifact = requireArtifact(state, effect.targetArtifactId);
+    const price = effect.amount ?? 0;
+    if (payload.choice === "accept") {
+      if (artifact.ownerId) throw new RuleError("该藏品已不在银行，无法回购。", "BAD_TARGET");
+      if (player.cash < price) throw new RuleError("现金不足，无法回购。", "CASH_LOW");
+      player.cash -= price;
+      assignArtifactToPlayer(state, player, artifact, { purchasePrice: price });
+      state.log.push(`${player.nickname} 以 ${price} 银元回购《${artifact.name}》。`);
+      pushPrivateLog(state, player.id, `你的《回购凭证》生效，以 ${price} 银元买回《${artifact.name}》。`);
+    } else {
+      pushPrivateLog(state, player.id, `你放弃回购《${artifact.name}》。`);
+      state.log.push(`${player.nickname} 放弃回购《${artifact.name}》。`);
+    }
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "C04_listing") {
+    const seller = requirePlayer(state, effect.createdBy);
+    if (seller.id === player.id) throw new RuleError("不能购买自己的寄售藏品。", "BAD_TARGET");
+    const artifact = requireArtifact(state, effect.targetArtifactId);
+    const price = effect.amount ?? 0;
+    if (artifact.ownerId !== seller.id || !seller.artifacts.includes(artifact.id)) throw new RuleError("寄售藏品已不在卖方手中。", "BAD_TARGET");
+    if (payload.choice !== "accept") throw new RuleError("寄售藏品只能选择购买。", "BAD_TARGET");
+    if (player.cash < price) throw new RuleError("现金不足，无法购买寄售藏品。", "CASH_LOW");
+    player.cash -= price;
+    seller.cash += price + 20;
+    removeArtifactFromPlayer(state, seller, artifact);
+    assignArtifactToPlayer(state, player, artifact, { purchasePrice: price });
+    addStat(state.stats.playerTradeCount, seller.id, 1);
+    addStat(state.stats.playerTradeCount, player.id, 1);
+    state.log.push(`${player.nickname} 买下 ${seller.nickname} 寄售的《${artifact.name}》，${seller.nickname} 额外获得 20 银元寄售奖金。`);
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "D02_refusal") {
+    const attacker = requirePlayer(state, effect.createdBy);
+    const artifact = requireArtifact(state, effect.targetArtifactId);
+    if (payload.choice === "pay") {
+      const penalty = Math.min(effect.amount ?? 20, player.cash);
+      player.cash -= penalty;
+      attacker.cash += penalty;
+      state.log.push(`${player.nickname} 拒绝巧取豪夺，支付 ${penalty} 银元给 ${attacker.nickname}。`);
+    } else if (payload.choice === "reveal") {
+      for (const candidate of activePlayers(state)) revealArtifactTo(artifact, candidate.id);
+      state.log.push(`${player.nickname} 拒绝巧取豪夺，公开展示《${artifact.name}》的属性。`);
+    } else {
+      throw new RuleError("巧取豪夺拒绝后只能选择付钱或展示属性。", "BAD_TARGET");
+    }
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "E25_protection_fee") {
+    const qualifyingArtifacts = playerArtifacts(state, player).filter(
+      (a) => ["relic", "evil", "curio"].includes(a.category)
+    );
+
+    if (payload.choice === "pay") {
+      const fee = qualifyingArtifacts.length * 10;
+      const paid = Math.min(fee, player.cash);
+      player.cash -= paid;
+
+      if (paid < fee) {
+        state.log.push(`${player.nickname} 现金不足，仅支付了 ${paid}/${fee} 银元保护费，灵异藏品仍受 -20% 影响。`);
+        // Partial payment = no protection, penalty stays from the global E25 effect
+      } else {
+        // Full payment: create compensating +25% effects to cancel the global -20%
+        for (const artifact of qualifyingArtifacts) {
+          if (artifact.dayAcquired === state.day) {
+            state.activeEffects.push({
+              id: makeId("effect"),
+              sourceEventId: "E25",
+              label: `灵异恐惧保护费已付 - ${artifact.name}`,
+              appliesTo: "finalValue",
+              multiplier: 1.25,
+              targetArtifactId: artifact.id,
+              day: state.day,
+              createdBy: player.id
+            });
+          }
+        }
+        state.log.push(`${player.nickname} 支付了 ${fee} 银元保护费，灵异藏品不受灵异恐惧影响。`);
+      }
+    } else {
+      // choice === "accept": global -20% effect applies, nothing extra needed
+      state.log.push(`${player.nickname} 选择接受灵异恐惧价值 -20%。`);
+    }
+
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "n1_mystery_buyer") {
+    const category = effect.category;
+    if (!category) {
+      state.activeEffects.splice(effectIndex, 1);
+      state.log.push(`${player.nickname} 的神秘收购选择因缺少类别信息已忽略。`);
+      return;
+    }
+
+    const qualifyingArtifacts = playerArtifacts(state, player).filter(
+      (a) => a.category === category
+    );
+
+    if (payload.choice === "sell") {
+      let totalCash = 0;
+      for (const artifact of qualifyingArtifacts) {
+        const price = artifact.rumorMax;
+        totalCash += price;
+        removeArtifactFromPlayer(state, player, artifact);
+        pushPrivateLog(state, player.id, `《神秘收购》以 ${price} 银元收购《${artifact.name}》。`);
+      }
+      player.cash += totalCash;
+      state.log.push(`${player.nickname} 选择卖出 ${qualifyingArtifacts.length} 件${categoryLabel(category)}类藏品，获得 ${totalCash} 银元。`);
+    } else {
+      // choice === "reject"
+      player.reputationBonus = (player.reputationBonus ?? 0) + 1;
+      state.log.push(`${player.nickname} 拒绝神秘收购，获得 1 声望。`);
+    }
+
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "role01_skill01_choice") {
+    const artifactId = effect.targetArtifactId;
+    if (artifactId) {
+      const artifact = requireArtifact(state, artifactId);
+      if (payload.choice === "rumorRange") {
+        if (!artifact.peekedBy.includes(player.id)) artifact.peekedBy.push(player.id);
+        pushPrivateLog(state, player.id, `《慧眼》结果：查看《${artifact.name}》的传闻区间为 ${artifact.rumorMin} - ${artifact.rumorMax} 银元。`);
+        state.log.push(`${player.nickname} 使用《慧眼》查看《${artifact.name}》的传闻区间。`);
+      } else if (payload.choice === "attribute") {
+        if (!artifact.revealedTo.includes(player.id)) artifact.revealedTo.push(player.id);
+        const propNames = artifact.properties.map((id) => propertyView(id)).filter(isDefined).map((p) => p.name).join("、") || "无";
+        pushPrivateLog(state, player.id, `《慧眼》结果：查看《${artifact.name}》的属性为${propNames}。`);
+        state.log.push(`${player.nickname} 使用《慧眼》查看《${artifact.name}》的属性。`);
+      }
+    }
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "role03_skill02_swap") {
+    const initiator = requirePlayer(state, effect.createdBy);
+    const myArtifact = requireArtifact(state, effect.targetArtifactId);
+    const theirArtifact = requireArtifact(state, effect.additionalTargetArtifactId);
+    if (!myArtifact || !theirArtifact) throw new RuleError("以物换物涉及的一件藏品已不存在。", "BAD_TARGET");
+
+    if (payload.choice === "accept") {
+      // 双方仍有这些藏品
+      if (!initiator.artifacts.includes(myArtifact.id)) throw new RuleError("发起方已没有这件藏品。", "BAD_TARGET");
+      if (!player.artifacts.includes(theirArtifact.id)) throw new RuleError("你已没有这件藏品。", "BAD_TARGET");
+      // 执行交换
+      removeArtifactFromPlayer(state, initiator, myArtifact);
+      removeArtifactFromPlayer(state, player, theirArtifact);
+      assignArtifactToPlayer(state, initiator, theirArtifact);
+      assignArtifactToPlayer(state, player, myArtifact);
+      addStat(state.stats.playerTradeCount, initiator.id, 1);
+      addStat(state.stats.playerTradeCount, player.id, 1);
+      state.log.push(`${initiator.nickname} 与 ${player.nickname} 以物换物成功：《${myArtifact.name}》⇄《${theirArtifact.name}》。`);
+    } else {
+      state.log.push(`${player.nickname} 拒绝了 ${initiator.nickname} 的以物换物请求。`);
+    }
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+
+  if (effect.choiceType === "prop31_donation") {
+    const artifact = requireArtifact(state, effect.targetArtifactId);
+    if (payload.choice === "accept") {
+      if (!player.artifacts.includes(artifact.id)) throw new RuleError("你没有这件藏品。", "NOT_OWNER");
+      removeArtifactFromPlayer(state, player, artifact);
+      state.activeEffects.push({
+        id: makeId("effect"),
+        sourceRoleSkillId: "prop31_donated",
+        label: `慈善捐赠：${player.nickname} 已弃置《${artifact.name}》，终局现金按每 30 银元兑换 1 声望。`,
+        appliesTo: "cash",
+        day: state.day,
+        createdBy: player.id
+      });
+      state.log.push(`${player.nickname} 主动捐赠《${artifact.name}》，终局现金兑换改为每 30 银元 1 声望。`);
+    } else {
+      pushPrivateLog(state, player.id, `你保留《${artifact.name}》，不触发慈善捐赠。`);
+    }
+    state.activeEffects.splice(effectIndex, 1);
+    return;
+  }
+}
+
+function canResolveChoice(effect: ActiveEffect, playerId: PlayerId): boolean {
+  if (!effect.pendingChoice) return false;
+  if (effect.choiceType === "C04_listing") return effect.createdBy !== playerId;
+  if (effect.choiceType === "role01_skill01_choice" || effect.choiceType === "I02_upper_lower") return effect.createdBy === playerId;
+  return effect.targetPlayerId === playerId;
+}
+
+function resolveAllPendingChoices(state: MutableGame): void {
+  const pending = state.activeEffects.filter((e) => e.pendingChoice);
+  for (const effect of pending) {
+    if (effect.choiceType === "E25_protection_fee" && effect.targetPlayerId) {
+      const target = state.players.find((p) => p.id === effect.targetPlayerId);
+      if (target) {
+        state.log.push(`${target.nickname} 未在时限内选择，自动接受灵异恐惧价值 -20%。`);
+      }
+    }
+    if (effect.choiceType === "n1_mystery_buyer" && effect.targetPlayerId) {
+      const target = state.players.find((p) => p.id === effect.targetPlayerId);
+      if (target) {
+        target.reputationBonus = (target.reputationBonus ?? 0) + 1;
+        state.log.push(`${target.nickname} 未在时限内选择，自动拒绝神秘收购，获得 1 声望。`);
+      }
+    }
+    if (effect.choiceType === "D02_refusal" && effect.targetPlayerId) {
+      const target = state.players.find((p) => p.id === effect.targetPlayerId);
+      const attacker = state.players.find((p) => p.id === effect.createdBy);
+      if (target && attacker) {
+        const penalty = Math.min(effect.amount ?? 20, target.cash);
+        target.cash -= penalty;
+        attacker.cash += penalty;
+        state.log.push(`${target.nickname} 未选择巧取豪夺拒绝代价，自动支付 ${penalty} 银元给 ${attacker.nickname}。`);
+      }
+    }
+    if (effect.choiceType === "C03_buyback" && effect.targetPlayerId) {
+      const target = state.players.find((p) => p.id === effect.targetPlayerId);
+      if (target && effect.targetArtifactId) {
+        const artifact = state.artifacts[effect.targetArtifactId];
+        state.log.push(`${target.nickname} 未选择回购，放弃《${artifact?.name ?? effect.targetArtifactId}》。`);
+      }
+    }
+    if (effect.choiceType === "prop31_donation" && effect.targetPlayerId) {
+      const target = state.players.find((p) => p.id === effect.targetPlayerId);
+      if (target && effect.targetArtifactId) {
+        const artifact = state.artifacts[effect.targetArtifactId];
+        state.log.push(`${target.nickname} 未选择慈善捐赠，保留《${artifact?.name ?? effect.targetArtifactId}》。`);
+      }
+    }
+    if (effect.choiceType === "role03_skill02_swap" && effect.targetPlayerId) {
+      const target = state.players.find((p) => p.id === effect.targetPlayerId);
+      const initiator = state.players.find((p) => p.id === effect.createdBy);
+      if (target && initiator) {
+        state.log.push(`${target.nickname} 超时未回应，${initiator.nickname} 的以物换物请求自动取消。`);
+      }
+    }
+    state.activeEffects = state.activeEffects.filter((e) => e.id !== effect.id);
+  }
+}
+
 function resolveFragileProtectionFees(state: MutableGame): void {
+  const fragileProtectionDelta = todayEffects(state).reduce((sum, effect) => sum + (effect.fragileProtectionDelta ?? 0), 0);
+  const baseFee = 5 + fragileProtectionDelta;
   for (const player of state.players) {
+    const hasC07Waiver = state.activeEffects.some((effect) => effect.sourceCardId === "C07" && effect.createdBy === player.id && effect.day === state.day);
     for (const artifactId of [...player.artifacts]) {
       const artifact = requireArtifact(state, artifactId);
       if (!artifact.properties.includes("fragile") || player.role?.roleId === "role07") continue;
-      const payment = Math.min(5, player.cash);
+      if (hasC07Waiver) {
+        state.activeEffects = state.activeEffects.filter((effect) => !(effect.sourceCardId === "C07" && effect.createdBy === player.id && effect.day === state.day));
+        state.log.push(`${player.nickname} 的《护宝符》生效，免除《${artifact.name}》的易损保护费。`);
+        continue;
+      }
+      const payment = Math.min(baseFee, player.cash);
       player.cash -= payment;
-      if (payment < 5) {
-        player.artifacts = player.artifacts.filter((id) => id !== artifact.id);
-        artifact.ownerId = undefined;
-        state.log.push(`《${artifact.name}》的“易损”未付足保护费，被弃置。`);
+      if (payment < baseFee) {
+        removeArtifactFromPlayer(state, player, artifact);
+        state.log.push(`《${artifact.name}》的"易损"未付足保护费，被弃置。`);
       } else {
-        state.log.push(`${player.nickname} 为《${artifact.name}》支付“易损”保护费 5 银元。`);
+        state.log.push(`${player.nickname} 为《${artifact.name}》支付"易损"保护费 ${baseFee} 银元。`);
       }
     }
   }
@@ -707,7 +1048,7 @@ function resolveBlackMarketStartEffects(state: MutableGame): void {
     const bonus = playerArtifacts(state, player).filter((artifact) => artifact.properties.includes("prop09")).length * 10;
     if (bonus > 0) {
       player.cash += bonus;
-      state.log.push(`${player.nickname} 的“钱能通神”生效，黑市额外获得 ${bonus} 银元。`);
+      state.log.push(`${player.nickname} 的"钱能通神"生效，黑市额外获得 ${bonus} 银元。`);
     }
   }
 }
@@ -716,10 +1057,40 @@ function expireFinishedEffects(state: MutableGame): void {
   state.activeEffects = state.activeEffects.filter((effect) => effect.day === undefined || effect.day >= state.day);
 }
 
+function totalFakeProbabilityMod(state: GameState): number {
+  return todayEffects(state).reduce((sum, e) => sum + (e.fakeProbabilityMod ?? 0), 0);
+}
+
+function adjustArtifactFakeStatusForDayEffects(state: MutableGame): void {
+  const fakeMod = totalFakeProbabilityMod(state);
+  if (fakeMod === 0) return;
+  const baseProb = 0.2;
+  const effectiveProb = Math.max(0, Math.min(1, baseProb + fakeMod));
+  const rng = makeRng(`${state.roomId}:fake:${state.day}`);
+  for (const artifactId of state.todayArtifactIds) {
+    const artifact = requireArtifact(state, artifactId);
+    const isCurrentlyFake = isFakeArtifact(artifact);
+    const shouldBeFake = rng() < effectiveProb;
+    if (isCurrentlyFake === shouldBeFake) continue;
+    if (shouldBeFake) {
+      artifact.properties = ["fake"];
+      artifact.tag = "fake";
+    } else {
+      artifact.properties = artifact.properties.filter((p) => p !== "fake");
+      if (artifact.properties.length === 0) {
+        const pool = (artifact.propertyPool ?? []).filter((id) => id !== "fake");
+        artifact.properties = drawProperties(pool, () => rng());
+      }
+      artifact.tag = firstTag(artifact.properties);
+    }
+  }
+}
+
 function preparePreview(state: MutableGame): void {
   if (state.todayArtifactIds.length === 0) {
     state.todayArtifactIds = [draw(state.deck), draw(state.deck)].filter(Boolean) as ArtifactId[];
   }
+  adjustArtifactFakeStatusForDayEffects(state);
   state.currentHostId = hostForDay(state, state.day);
   state.auction = undefined;
   applyPreviewEventEffects(state);
@@ -742,32 +1113,28 @@ function applyPreviewEventEffects(state: MutableGame): void {
     }
     state.log.push("《透明市场》生效：当天拍品传闻区间对所有人公开。");
   }
-  if (hasTodayEffect(state, "E27") && state.todayArtifactIds[0]) {
-    const category = requireArtifact(state, state.todayArtifactIds[0]).category;
-    upsertEffect(state, {
-      id: makeId("effect"),
-      sourceEventId: "E27",
-      label: `学术突破：${categoryLabel(category)}类当天新拍品终局价值 +20%。`,
-      appliesTo: "finalValue",
-      category,
-      multiplier: 1.2,
-      day: state.day,
-      createdBy: state.hostPlayerId ?? state.players[0]!.id
-    });
-  }
 }
 
-function setAuction(state: MutableGame, mode: AuctionMode, startingBid = 0, bundleInnerMode: BundleInnerMode = "english"): void {
+function normalizeDutchStep(step?: number): number {
+  if (step === undefined) return GAME_CONSTANTS.dutchStep;
+  const nextStep = Math.floor(step);
+  if (nextStep <= 0 || nextStep % 10 !== 0) throw new RuleError("荷兰式降价幅度必须是大于 0 的 10 的整数倍。", "INVALID_ACTION");
+  return nextStep;
+}
+
+function setAuction(state: MutableGame, mode: AuctionMode, startingBid = 0, bundleInnerMode: BundleInnerMode = "english", dutchStep?: number): void {
   if (state.todayArtifactIds.length === 0) preparePreview(state);
   const chosenMode = mode;
-  const selectedArtifactIds = chosenMode === "bundle" ? state.todayArtifactIds : state.todayArtifactIds;
-  let clampedBid = Math.max(0, Math.floor(startingBid));
+  const selectedArtifactIds = chosenMode === "bundle" ? state.todayArtifactIds : [state.todayArtifactIds[0]!];
   const auctionMode = chosenMode === "bundle" ? bundleInnerMode : chosenMode;
-  if (auctionMode === "dutch" && hasTodayEffect(state, "E20")) {
-    const minDutchPrice = Math.max(...selectedArtifactIds.map((id) => requireArtifact(state, id).rumorMax)) + (hasTodayEffect(state, "E20") ? 30 : 0);
-    clampedBid = Math.max(clampedBid, minDutchPrice);
-  }
-  const artifactIds = chosenMode === "bundle" ? state.todayArtifactIds : state.todayArtifactIds;
+  const bidCeiling = auctionBidCeilingForArtifactIds(state, selectedArtifactIds);
+  const rng = makeRng(`${state.roomId}:${state.day}:${state.actionIndex}:dutch-start:${chosenMode}:${bundleInnerMode}`);
+  const resolvedDutchStep = normalizeDutchStep(dutchStep);
+  let clampedBid =
+    auctionMode === "dutch"
+      ? randomDutchStartingBid(state, selectedArtifactIds, rng)
+      : Math.min(bidCeiling, roundToTen(Math.max(0, Math.floor(startingBid))));
+  const artifactIds = chosenMode === "bundle" ? state.todayArtifactIds : selectedArtifactIds;
   state.auction = {
     id: makeId("auction"),
     artifactIds,
@@ -776,6 +1143,7 @@ function setAuction(state: MutableGame, mode: AuctionMode, startingBid = 0, bund
     currentArtifactIndex: 0,
     status: "choosing",
     currentBid: clampedBid,
+    dutchStep: auctionMode === "dutch" ? resolvedDutchStep : undefined,
     minimumIncrement: hasTodayEffect(state, "E20") && auctionMode !== "sealed" ? 30 : GAME_CONSTANTS.englishIncrement,
     passedPlayerIds: [],
     sealedBids: {},
@@ -791,17 +1159,91 @@ function setAuction(state: MutableGame, mode: AuctionMode, startingBid = 0, bund
   state.log.push(state.lastMessage);
 }
 
+/**
+ * 打开拍卖（cardWindow→auction 阶段转换），荷兰式同时初始化降价计时器
+ */
+function openAuction(state: MutableGame, actorId: PlayerId): void {
+  const auction = requireAuction(state);
+  const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "english" : auction.mode;
+  if (state.currentHostId && actorId === state.currentHostId && bidMode !== "sealed") {
+    const ceiling = auctionBidCeilingForArtifactIds(state, currentAuctionArtifacts(state).map((artifact) => artifact.id));
+    if (auction.currentBid < 0 || auction.currentBid > ceiling) throw new RuleError("当前起拍价不合法。", "INVALID_ACTION");
+  }
+  auction.status = "open";
+  if (bidMode === "dutch") {
+    const startPrice =
+      auction.currentBid ||
+      randomDutchStartingBid(state, auction.artifactIds, makeRng(`${state.roomId}:${state.day}:${state.actionIndex}:dutch-open`));
+    auction.dutch = {
+      startPrice,
+      currentPrice: startPrice,
+      step: auction.dutchStep ?? GAME_CONSTANTS.dutchStep,
+      tickMs: GAME_CONSTANTS.dutchTickMs,
+      startedAt: Date.now(),
+      nextDropAt: Date.now() + GAME_CONSTANTS.dutchTickMs
+    };
+    auction.currentBid = startPrice;
+  }
+  state.phase = "auction";
+  state.lastMessage = "竞拍开始。";
+  state.log.push(state.lastMessage);
+}
+
 function setRandomAuction(state: MutableGame): void {
+  // 无主持人日强制英式拍卖（系统起拍价=0，加价10银元）
+  if (!state.currentHostId) {
+    setAuction(state, "english", 0, "english");
+    return;
+  }
   const rng = makeRng(`${state.roomId}:${state.day}:${state.actionIndex}:auction`);
   const mode = pick<AuctionMode>(["english", "dutch", "sealed", "bundle"], rng);
   const bundleInnerMode = mode === "bundle" ? pick<BundleInnerMode>(["english", "dutch", "sealed"], rng) : "english";
-  const startingBid = mode === "dutch" || (mode === "bundle" && bundleInnerMode === "dutch")
-    ? Math.max(...state.todayArtifactIds.map((id) => requireArtifact(state, id).rumorMax))
-    : 0;
-  setAuction(state, mode, startingBid, bundleInnerMode);
+  setAuction(state, mode, 0, bundleInnerMode);
 }
 
-function placeBid(state: MutableGame, player: PlayerState, amount: number): void {
+function updateAuctionStartingBid(state: MutableGame, player: PlayerState, startingBid: number, dutchStep?: number): void {
+  assertPhase(state, "cardWindow");
+  const auction = requireAuction(state);
+  if (!state.currentHostId || state.currentHostId !== player.id) throw new RuleError("只有当前主持人可以设置起拍价。", "NOT_HOST");
+  if (auction.status !== "choosing") throw new RuleError("当前拍卖已经开始，不能再修改起拍价。", "AUCTION_CLOSED");
+  const artifactIds = currentAuctionArtifacts(state).map((artifact) => artifact.id);
+  const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "english" : auction.mode;
+  const ceiling = auctionBidCeilingForArtifactIds(state, artifactIds);
+  const nextBid = Math.max(0, roundToTen(Math.floor(startingBid)));
+  if (nextBid > ceiling) throw new RuleError("起拍价不能超过当前拍品价格区间最高值。", "INVALID_ACTION");
+  if (bidMode === "sealed") {
+    auction.currentBid = 0;
+    state.lastMessage = `${player.nickname} 已确认本场为${auctionModeLabel(auction.mode)}，暗标拍卖不设置公开起拍价。`;
+    state.log.push(state.lastMessage);
+    return;
+  }
+  auction.currentBid = nextBid;
+  if (bidMode === "dutch") {
+    auction.dutchStep = normalizeDutchStep(dutchStep);
+    auction.dutch = undefined;
+    state.lastMessage = `${player.nickname} 将荷兰式起拍价设置为 ${nextBid} 银元。`;
+  } else {
+    state.lastMessage = `${player.nickname} 将起拍价设置为 ${nextBid} 银元。`;
+  }
+  state.log.push(state.lastMessage);
+}
+
+function randomDutchStartingBid(state: GameState, artifactIds: ArtifactId[], rng: () => number): number {
+  const ceiling = auctionBidCeilingForArtifactIds(state, artifactIds);
+  const maxStart = ceiling + 50; // 起拍价可至多半高出传闻最高价 50 银元
+  // E20 富豪入场：荷兰式起拍价至少为传闻最高值 +30
+  const e20Active = todayEffects(state).some((e) => e.sourceEventId === "E20");
+  const floor = e20Active ? Math.max(0, ceiling - 30) + 30 : Math.max(0, ceiling - 30);
+  return randomTenInRange(Math.min(floor, maxStart), maxStart, rng);
+}
+
+function announceEnglishBid(state: MutableGame, player: PlayerState, amount: number): void {
+  const names = currentAuctionArtifacts(state).map((artifact) => `《${artifact.name}》`).join("、");
+  state.lastMessage = `${player.nickname} 出价 ${amount} 银元，将以 ${amount} 银元买下 ${names}，15 秒内无人加价则成交。`;
+  state.log.push(state.lastMessage);
+}
+
+function placeBid(state: MutableGame, player: PlayerState, amount: number, now = Date.now()): void {
   assertPhase(state, "auction");
   const auction = requireAuction(state);
   const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "english" : auction.mode;
@@ -811,7 +1253,11 @@ function placeBid(state: MutableGame, player: PlayerState, amount: number): void
   if (isBlockedByCard(state, player, "D07", currentAuctionArtifact(state).id)) throw new RuleError("你本日不能对该藏品出价。", "NOT_ELIGIBLE");
   if (auction.passedPlayerIds.includes(player.id)) throw new RuleError("你已经退出当前竞拍。");
   const nextAmount = Math.floor(amount);
-  if (nextAmount < auction.currentBid + auction.minimumIncrement) throw new RuleError(`至少需要出价 ${auction.currentBid + auction.minimumIncrement}。`, "BID_TOO_LOW");
+  if (nextAmount % 10 !== 0) throw new RuleError("出价必须为 10 的倍数。", "BID_TOO_LOW");
+  const minimumAllowed = auction.currentBidderId ? auction.currentBid + auction.minimumIncrement : auction.currentBid > 0 ? auction.currentBid : auction.minimumIncrement;
+  if (nextAmount < minimumAllowed) throw new RuleError(`至少需要出价 ${minimumAllowed}。`, "BID_TOO_LOW");
+  const ceiling = auctionBidCeilingForArtifactIds(state, currentAuctionArtifacts(state).map((artifact) => artifact.id));
+  if (nextAmount > ceiling) throw new RuleError("当前出价已达到本拍品的主持叫价上限。", "INVALID_ACTION");
   const tax = previewBidTax(state, player);
   if (nextAmount + tax > player.cash) throw new RuleError("现金不足。", "CASH_LOW");
   commitBidTax(state, player, tax);
@@ -823,8 +1269,10 @@ function placeBid(state: MutableGame, player: PlayerState, amount: number): void
   bindPendingBidEffect(state, player.id, "B01", currentAuctionArtifact(state).id);
   auction.currentBid = nextAmount;
   auction.currentBidderId = player.id;
-  state.lastMessage = `${player.nickname} 出价 ${nextAmount}。`;
-  state.log.push(state.lastMessage);
+  // 英式拍卖 15 秒倒计时：出价后重置倒计时
+  auction.bidDeadline = now + 15000;
+  announceEnglishBid(state, player, nextAmount);
+  pushPrivateLog(state, player.id, `你对《${currentAuctionArtifact(state).name}》出价 ${nextAmount} 银元${tax > 0 ? `，并额外支付竞拍税 ${tax} 银元` : ""}。`);
 }
 
 function passBid(state: MutableGame, player: PlayerState): void {
@@ -837,13 +1285,52 @@ function passBid(state: MutableGame, player: PlayerState): void {
     auction.passedPlayerIds.push(player.id);
     player.passed = true;
   }
-  const activeBidders = bidderPlayers(state).filter((candidate) => !auction.passedPlayerIds.includes(candidate.id));
-  if (activeBidders.length <= 1 && auction.currentBidderId) closeAuctionWithWinner(state, auction.currentBidderId, auction.currentBid);
-  else if (activeBidders.length === 0 && !auction.currentBidderId) closeAuctionAsUnsold(state);
-  else {
-    state.lastMessage = `${player.nickname} 退出竞拍。`;
-    state.log.push(state.lastMessage);
+  // 不再立即结算——等待 15 秒倒计时（由 AUCTION_BID_TIMEOUT 处理）
+  state.lastMessage = `${player.nickname} 退出竞拍。`;
+  state.log.push(state.lastMessage);
+  const immediate = immediateEnglishResolution(state);
+  if (immediate?.winnerId) {
+    closeAuctionWithWinner(state, immediate.winnerId, state.auction!.currentBid);
+  } else if (immediate?.unsold) {
+    closeAuctionAsUnsold(state);
   }
+}
+
+/** 英式拍卖 15 秒倒计时到期检查 */
+function checkAuctionBidDeadline(state: MutableGame, now = Date.now()): void {
+  if (state.phase !== "auction" || !state.auction) return;
+  const bidMode = state.auction.mode === "bundle" ? state.auction.bundleInnerMode ?? "english" : state.auction.mode;
+  if (bidMode !== "english") return;
+  if (state.auction.status !== "open") return;
+  if (!state.auction.bidDeadline || now < state.auction.bidDeadline) return;
+  // 倒计时到期：有当前出价人则成交，否则流拍
+  if (state.auction.currentBidderId) {
+    closeAuctionWithWinner(state, state.auction.currentBidderId, state.auction.currentBid);
+    state.log.push("英式拍卖倒计时结束，当前最高出价成交。");
+  } else {
+    closeAuctionAsUnsold(state);
+    state.log.push("英式拍卖倒计时结束，无人继续出价，拍品流拍。");
+  }
+}
+
+export function tickDutchAuction(state: MutableGame, now = Date.now()): void {
+  if (state.phase !== "auction" || !state.auction) return;
+  const auction = state.auction;
+  const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "english" : auction.mode;
+  if (bidMode !== "dutch" || auction.status !== "open" || !auction.dutch) return;
+  if (now < auction.dutch.nextDropAt) return;
+  const nextPrice = Math.max(0, auction.dutch.currentPrice - auction.dutch.step);
+  auction.dutch.currentPrice = nextPrice;
+  auction.currentBid = nextPrice;
+  auction.dutch.startedAt = now;
+  auction.dutch.nextDropAt = now + auction.dutch.tickMs;
+  if (nextPrice <= 0) {
+    state.log.push("荷兰式拍卖价格已降至 0，拍品自动流拍。");
+    closeAuctionAsUnsold(state, { forbidHostSelfBuy: true });
+    return;
+  }
+  state.lastMessage = `荷兰式拍卖降价至 ${nextPrice} 银元，5 秒后继续降价。`;
+  state.log.push(state.lastMessage);
 }
 
 function dutchStop(state: MutableGame, player: PlayerState): void {
@@ -863,6 +1350,7 @@ function dutchStop(state: MutableGame, player: PlayerState): void {
   }
   if (currentPrice > player.cash) throw new RuleError("现金不足。", "CASH_LOW");
   recordAuctionBid(auction, player.id, currentPrice);
+  pushPrivateLog(state, player.id, `你喊停荷兰式拍卖，以 ${currentPrice} 银元竞买《${currentAuctionArtifacts(state).map((artifact) => artifact.name).join("》《")}》。`);
   closeAuctionWithWinner(state, player.id, currentPrice);
 }
 
@@ -876,12 +1364,17 @@ function submitSealedBid(state: MutableGame, player: PlayerState, amount: number
   if (auction.status === "tieBreak" && !auction.tieBreakPlayerIds?.includes(player.id)) throw new RuleError("你不在加赛名单中。", "NOT_ELIGIBLE");
   if (isBlockedByCard(state, player, "D07", currentAuctionArtifact(state).id)) throw new RuleError("你本日不能对该藏品出价。", "NOT_ELIGIBLE");
   const baseBid = Math.max(0, Math.floor(amount));
+  if (baseBid % 10 !== 0) throw new RuleError("暗标出价必须为 10 的倍数。", "BID_TOO_LOW");
   const sealedBoost = consumeAuctionEffect(state, player.id, "B05", currentAuctionArtifact(state).id)?.amount ?? 0;
   const bid = baseBid + sealedBoost;
-  if (bid > player.cash) throw new RuleError("现金不足。", "CASH_LOW");
+  if (baseBid > player.cash) throw new RuleError("现金不足。", "CASH_LOW");
   recordAuctionBid(auction, player.id, bid);
   auction.sealedBids[player.id] = bid;
+  auction.sealedBidBoosts ??= {};
+  auction.sealedBidBoosts[player.id] = (auction.sealedBidBoosts?.[player.id] ?? 0) + sealedBoost;
   auction.sealedBidRounds![player.id] = auction.status === "tieBreak" ? 2 : 1;
+  const sealedTarget = currentAuctionArtifacts(state).map((artifact) => `《${artifact.name}》`).join("、");
+  pushPrivateLog(state, player.id, `你对${sealedTarget}提交暗标 ${bid} 银元${sealedBoost > 0 ? `（基础 ${baseBid} + 加封 ${sealedBoost}）` : ""}。`);
   const bidderIds = auction.status === "tieBreak" ? auction.tieBreakPlayerIds ?? [] : bidderPlayers(state).map((candidate) => candidate.id);
   if (bidderIds.every((id) => Object.prototype.hasOwnProperty.call(auction.sealedBids, id))) {
     resolveSealedBids(state, bidderIds);
@@ -901,19 +1394,24 @@ function resolveSealedBids(state: MutableGame, bidderIds: PlayerId[]): void {
   const highest = Math.max(...entries.map((entry) => entry.amount));
   const tied = entries.filter((entry) => entry.amount === highest);
   if (tied.length === 1) {
-    closeAuctionWithWinner(state, tied[0]!.id, tied[0]!.amount);
+    const boost = auction.sealedBidBoosts?.[tied[0]!.id] ?? 0;
+    closeAuctionWithWinner(state, tied[0]!.id, tied[0]!.amount - boost);
+    delete auction.sealedBidBoosts?.[tied[0]!.id];
     return;
   }
   if (auction.status !== "tieBreak") {
     auction.status = "tieBreak";
     auction.tieBreakPlayerIds = tied.map((entry) => entry.id);
     auction.sealedBids = {};
+    auction.sealedBidBoosts = {};
     state.lastMessage = `暗标平局，${auction.tieBreakPlayerIds.length} 名玩家进入追加暗标。`;
     state.log.push(state.lastMessage);
     return;
   }
   const winner = tied.sort((a, b) => seatOf(state, a.id) - seatOf(state, b.id))[0]!;
-  closeAuctionWithWinner(state, winner.id, winner.amount);
+  const boost = auction.sealedBidBoosts?.[winner.id] ?? 0;
+  closeAuctionWithWinner(state, winner.id, winner.amount - boost);
+  delete auction.sealedBidBoosts?.[winner.id];
 }
 
 function closeAuctionWithWinner(state: MutableGame, winnerId: PlayerId, amount: number): void {
@@ -922,15 +1420,15 @@ function closeAuctionWithWinner(state: MutableGame, winnerId: PlayerId, amount: 
   if (winner.cash < amount) throw new RuleError("赢家现金不足，请先贷款再出价。", "CASH_LOW");
   winner.cash -= amount;
   const wonArtifacts = currentAuctionArtifacts(state);
+  const rumorRange = auctionRumorRangeText(wonArtifacts);
   const secondHighestBid = secondHighestAuctionBid(state, winnerId);
   for (const artifact of wonArtifacts) {
-    winner.artifacts.push(artifact.id);
-    artifact.ownerId = winner.id;
-    artifact.dayAcquired = state.day;
-    artifact.acquiredByMode = auction.mode;
-    artifact.purchasePrice = amount;
-    if (auction.mode === "bundle") artifact.packageId = auction.id;
-    revealArtifactTo(artifact, winner.id);
+    assignArtifactToPlayer(state, winner, artifact, {
+      dayAcquired: state.day,
+      acquiredByMode: auction.mode,
+      purchasePrice: amount,
+      packageId: auction.mode === "bundle" ? auction.id : undefined
+    });
     if (artifact.properties.includes("prop15") && winner.cash < 50) {
       addArtifactValueEffect(state, "prop15", artifact.id, "冒险家的奖励：获得时现金低于 50，终局价值 +30%。", 1.3, winner.id);
     }
@@ -941,19 +1439,21 @@ function closeAuctionWithWinner(state: MutableGame, winnerId: PlayerId, amount: 
       addArtifactValueEffect(state, "prop08", artifact.id, "一见钟情：第一次出价即成功拍得，终局价值 +20%。", 1.2, winner.id);
     }
     if (artifact.properties.includes("prop10")) {
-      const cardIndex = findLastIndex(state.discardPile, (cardId) => trickById.has(cardId));
-      const cardId = cardIndex >= 0 ? state.discardPile.splice(cardIndex, 1)[0] : undefined;
-      if (cardId) {
-        winner.hand.push(cardId);
-        state.log.push(`《${artifact.name}》的“锦囊妙计”生效，${winner.nickname} 从弃牌堆获得 1 张锦囊。`);
+      const rng = makeRng(`${state.roomId}:${state.day}:${state.actionIndex}:prop10`);
+      const eligibleDiscards = state.discardPile.filter(id => trickById.has(id));
+      const randomCard = eligibleDiscards.length > 0 ? shuffled(eligibleDiscards, rng)[0] : undefined;
+      if (randomCard) {
+        const cardIndex = state.discardPile.indexOf(randomCard);
+        state.discardPile.splice(cardIndex, 1);
+        winner.hand.push(randomCard);
+        state.log.push(`《${artifact.name}》的"锦囊妙计"生效，${winner.nickname} 从弃牌堆获得 1 张锦囊。`);
       }
     }
     if (hasTodayEffect(state, "E07") && (artifact.properties.includes("fake") || artifact.tag === "fake")) {
       winner.cash += 30;
       state.log.push(`《假货横行》生效，${winner.nickname} 因买到赝品获得 30 银元补偿。`);
     }
-    if (winner.role?.roleId === "role08" && amount < artifact.rumorMin && (winner.role.skillCharges.role08_skill01 ?? 1) > 0) {
-      winner.role.skillCharges.role08_skill01 = (winner.role.skillCharges.role08_skill01 ?? 1) - 1;
+    if (winner.role?.roleId === "role08" && amount < artifact.rumorMin) {
       winner.cash += 20;
       state.log.push(`${winner.nickname} 的《奇货》生效，获得 20 银元。`);
     }
@@ -974,6 +1474,7 @@ function closeAuctionWithWinner(state: MutableGame, winnerId: PlayerId, amount: 
     }
   }
   addStat(state.stats.auctionWinsByMode, `${winner.id}:${auction.mode}`, 1);
+  if (auction.mode === "bundle" && auction.bundleInnerMode) addStat(state.stats.auctionWinsByMode, `${winner.id}:${auction.bundleInnerMode}`, 1);
   addStat(state.stats.auctionWinCount, winner.id, wonArtifacts.length);
   addStat(state.stats.auctionSpend, winner.id, amount);
   if (amount >= 200) addStat(state.stats.auctionWinBid200, winner.id, 1);
@@ -984,36 +1485,37 @@ function closeAuctionWithWinner(state: MutableGame, winnerId: PlayerId, amount: 
   resolveRoleAuctionEffects(state, winnerId, amount, wonArtifacts.map((artifact) => artifact.id));
   auction.status = "closed";
   state.phase = "settlement";
-  state.lastMessage = `${winner.nickname} 以 ${amount} 拍下 ${wonArtifacts.map((artifact) => `《${artifact.name}》`).join("、")}。`;
+  state.lastMessage = `${winner.nickname} 以 ${amount} 拍下 ${wonArtifacts.map((artifact) => `《${artifact.name}》`).join("、")}（${rumorRange}）。`;
   state.log.push(state.lastMessage);
-  pushPrivateLog(state, winner.id, `你以 ${amount} 银元买到 ${wonArtifacts.map((artifact) => `《${artifact.name}》`).join("、")}。终局时藏品价值会按每 50 银元折算声望。`);
+  pushPrivateLog(state, winner.id, `你花费 ${amount} 银元买到 ${wonArtifacts.map((artifact) => `《${artifact.name}》`).join("、")}。现金扣除后剩余 ${winner.cash} 银元，终局时藏品价值会按每 50 银元折算声望。`);
   resolveAuctionTriggeredEffects(state, winnerId, amount, wonArtifacts.map((artifact) => artifact.id));
   resolveDelayedCardEffects(state);
 }
 
+
 function closeAuctionAsUnsold(state: MutableGame, options: { forbidHostSelfBuy?: boolean } = {}): void {
   const auction = requireAuction(state);
   const artifacts = currentAuctionArtifacts(state);
+  const rumorRange = auctionRumorRangeText(artifacts);
   const host = state.currentHostId ? requirePlayer(state, state.currentHostId) : undefined;
   if (host && !options.forbidHostSelfBuy && auction.mode !== "dutch") {
     const selfBuyPrice = Math.floor(artifacts.reduce((sum, artifact) => sum + artifact.rumorMin, 0) * 0.5);
     if (host.cash >= selfBuyPrice) {
       host.cash -= selfBuyPrice;
       for (const artifact of artifacts) {
-        host.artifacts.push(artifact.id);
-        artifact.ownerId = host.id;
-        artifact.dayAcquired = state.day;
-        artifact.purchasePrice = selfBuyPrice;
-        revealArtifactTo(artifact, host.id);
+        assignArtifactToPlayer(state, host, artifact, {
+          dayAcquired: state.day,
+          purchasePrice: selfBuyPrice
+        });
       }
       addStat(state.stats.selfBoughtPassInCount, host.id, artifacts.length);
-      state.lastMessage = `流拍，主持人以 ${selfBuyPrice} 自吞 ${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}。`;
+      state.lastMessage = `流拍，主持人以 ${selfBuyPrice} 自吞 ${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}（${rumorRange}）。`;
       pushPrivateLog(state, host.id, `你以 ${selfBuyPrice} 银元自吞 ${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}。`);
     } else {
-      state.lastMessage = `流拍，${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}弃置。`;
+      state.lastMessage = `流拍，${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}弃置（${rumorRange}）。`;
     }
   } else {
-    state.lastMessage = `流拍，${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}弃置。`;
+    state.lastMessage = `流拍，${artifacts.map((artifact) => `《${artifact.name}》`).join("、")}弃置（${rumorRange}）。`;
   }
   if (host) addStat(state.stats.hostedPassInCount, host.id, artifacts.length);
   auction.status = "closed";
@@ -1043,9 +1545,16 @@ function resolveAuctionTriggeredEffects(state: MutableGame, winnerId: PlayerId |
     if (effect.sourceCardId === "B02") {
       if (winnerId) {
         const player = requirePlayer(state, effect.createdBy);
-        const bonus = Math.floor(amount * 0.1);
+        const bonus = Math.floor(amount * 0.2);
         player.cash += bonus;
         pushPrivateLog(state, player.id, `你的《坐地分赃》生效，获得 ${bonus} 银元。`);
+        if (state.currentHostId) {
+          const host = requirePlayer(state, state.currentHostId);
+          const hostCommission = Math.floor(amount * hostCommissionRate(state, host));
+          host.cash = Math.max(0, host.cash - hostCommission);
+          addStat(state.stats.commissionEarned, host.id, -hostCommission);
+          pushPrivateLog(state, host.id, `《坐地分赃》生效，本拍品主持佣金被取消。`);
+        }
       }
       removeIds.add(effect.id);
     }
@@ -1060,6 +1569,26 @@ function resolveAuctionTriggeredEffects(state: MutableGame, winnerId: PlayerId |
       pushPrivateLog(state, winner.id, `你被一个私密效果影响，支付 ${payment} 银元。`);
       removeIds.add(effect.id);
     }
+
+    if (effect.sourceCardId === "B07" && winnerId && state.auction) {
+      const lastBid = state.auction.highestBids?.[effect.createdBy] ?? 0;
+      if (lastBid > 0 && amount - lastBid >= 40) {
+        const bidder = requirePlayer(state, effect.createdBy);
+        bidder.cash += 15;
+        pushPrivateLog(state, effect.createdBy, `你的《退场有奖》生效，成交价 ${amount} 比你的最后报价 ${lastBid} 高 ${amount - lastBid}，获得 15 银元。`);
+      }
+      removeIds.add(effect.id);
+    }
+
+    if (effect.sourceCardId === "C06" && winnerId && state.auction) {
+      const secondHighest = secondHighestAuctionBid(state, winnerId);
+      if (secondHighest !== undefined && amount - secondHighest >= 30) {
+        const bidder = requirePlayer(state, effect.createdBy);
+        bidder.cash += 20;
+        pushPrivateLog(state, effect.createdBy, `你的《找零》生效，成交价 ${amount} 比第二高价 ${secondHighest} 高 ${amount - secondHighest}，获得 20 银元。`);
+      }
+      removeIds.add(effect.id);
+    }
   }
   if (removeIds.size > 0) state.activeEffects = state.activeEffects.filter((effect) => !removeIds.has(effect.id));
   resolveAuctionEventEffects(state, winnerId, artifactIds);
@@ -1068,28 +1597,37 @@ function resolveAuctionTriggeredEffects(state: MutableGame, winnerId: PlayerId |
 function resolveAuctionEventEffects(state: MutableGame, winnerId: PlayerId | undefined, artifactIds: ArtifactId[]): void {
   const mysteryBuy = todayEffects(state, "N1")[0];
   if (mysteryBuy && winnerId && artifactIds[0]) {
-    const winner = requirePlayer(state, winnerId);
     const artifact = requireArtifact(state, artifactIds[0]);
-    if (artifact.ownerId === winner.id) {
-      const price = artifact.rumorMax;
-      winner.cash += price;
-      winner.artifacts = winner.artifacts.filter((id) => id !== artifact.id);
-      artifact.ownerId = undefined;
-      state.log.push(`《神秘收购》生效，系统以 ${price} 银元收购《${artifact.name}》。`);
+    const category = artifact.category;
+    // 对每个持有被选中类别藏品的玩家，创建一个 pendingChoice
+    for (const p of state.players) {
+      const ownedInCategory = p.artifacts.filter((aid) => requireArtifact(state, aid).category === category);
+      if (ownedInCategory.length > 0) {
+        state.activeEffects.push({
+          id: makeId("effect"),
+          sourceEventId: "N1",
+          label: `神秘收购：${p.nickname} 可选择卖出 ${categoryLabel(category)} 类藏品（按传闻最高价）或拒绝（获得 1 声望）`,
+          appliesTo: "auction",
+          day: state.day,
+          createdBy: mysteryBuy.createdBy,
+          targetPlayerId: p.id,
+          pendingChoice: true,
+          choiceType: "n1_mystery_buyer",
+          category
+        });
+      }
     }
     state.activeEffects = state.activeEffects.filter((effect) => effect.id !== mysteryBuy.id);
   }
 }
 
 function resolveRoleAuctionEffects(state: MutableGame, winnerId: PlayerId, amount: number, artifactIds: ArtifactId[]): void {
-  const auctionArtifactIds = new Set(artifactIds);
-  for (const effect of todayEffects(state)) {
-    if (effect.sourceCardId || effect.sourceEventId) continue;
-    if (!effect.targetArtifactId || !auctionArtifactIds.has(effect.targetArtifactId)) continue;
-    if (effect.label.includes("包装") && amount > 100) {
-      const host = requirePlayer(state, effect.createdBy);
-      host.cash += effect.amount ?? 10;
-      state.log.push(`${host.nickname} 的《包装》生效，获得 ${effect.amount ?? 10} 银元。`);
+  // 拍卖师被动：包装——成交价超过100银元时自动获得10银元
+  if (state.currentHostId) {
+    const host = requirePlayer(state, state.currentHostId);
+    if (host.role?.roleId === "role09" && amount > 100) {
+      host.cash += 10;
+      state.log.push(`${host.nickname} 的《包装》生效，成交价 ${amount} 超过 100 银元，额外获得 10 银元奖金。`);
     }
   }
   for (const player of state.players) {
@@ -1113,7 +1651,7 @@ function grantIntelBrokerCards(state: MutableGame): void {
     const cardId = draw(state.trickDeck);
     if (cardId) {
       player.hand.push(cardId);
-      pushPrivateLog(state, player.id, "你的《密报》生效，获得 1 张锦囊。");
+      pushPrivateLog(state, player.id, "你的《密报》生效，获得 1 张锦囊，且后续购买锦囊需要额外支付 10 银元。");
     }
   }
 }
@@ -1146,16 +1684,19 @@ function resolveDelayedCardEffects(state: MutableGame): void {
 function resolveBuybacks(state: MutableGame): void {
   const resolvedIds = new Set<string>();
   for (const effect of state.activeEffects) {
-    if (effect.sourceCardId !== "C03" || effect.day !== state.day || !effect.targetArtifactId || !effect.amount) continue;
+    if (effect.pendingChoice || effect.sourceCardId !== "C03" || effect.day !== state.day || !effect.targetArtifactId || !effect.amount) continue;
     const player = requirePlayer(state, effect.createdBy);
     const artifact = requireArtifact(state, effect.targetArtifactId);
     if (!artifact.ownerId && player.cash >= effect.amount) {
-      player.cash -= effect.amount;
-      player.artifacts.push(artifact.id);
-      artifact.ownerId = player.id;
-      revealArtifactTo(artifact, player.id);
-      state.log.push(`${player.nickname} 以 ${effect.amount} 银元回购《${artifact.name}》。`);
-      pushPrivateLog(state, player.id, `你的《回购凭证》生效，以 ${effect.amount} 银元买回《${artifact.name}》。`);
+      state.activeEffects.push({
+        ...effect,
+        id: makeId("effect"),
+        label: `回购凭证：是否以 ${effect.amount} 银元买回《${artifact.name}》？`,
+        targetPlayerId: player.id,
+        pendingChoice: true,
+        choiceType: "C03_buyback"
+      });
+      pushPrivateLog(state, player.id, `《${artifact.name}》可以用 ${effect.amount} 银元回购，请选择是否买回。`);
     } else {
       pushPrivateLog(state, player.id, `《${artifact.name}》的回购机会失效。`);
     }
@@ -1164,12 +1705,53 @@ function resolveBuybacks(state: MutableGame): void {
   if (resolvedIds.size > 0) state.activeEffects = state.activeEffects.filter((effect) => !resolvedIds.has(effect.id));
 }
 
+function resolveConsignmentListings(state: MutableGame): void {
+  const resolvedIds = new Set<string>();
+  for (const effect of state.activeEffects) {
+    if (effect.choiceType !== "C04_listing" || !effect.targetArtifactId || !effect.amount) continue;
+    const seller = requirePlayer(state, effect.createdBy);
+    const artifact = requireArtifact(state, effect.targetArtifactId);
+    if (artifact.ownerId === seller.id && seller.artifacts.includes(artifact.id)) {
+      seller.cash += effect.amount + 20;
+      removeArtifactFromPlayer(state, seller, artifact);
+      addStat(state.stats.sellToBankCount, seller.id, 1);
+      state.log.push(`《寄售单》结算：${seller.nickname} 的《${artifact.name}》无人买走，卖给银行获得 ${effect.amount + 20} 银元。`);
+    } else {
+      pushPrivateLog(state, seller.id, `《寄售单》挂售的藏品已不在你手中，挂售失效。`);
+    }
+    resolvedIds.add(effect.id);
+  }
+  if (resolvedIds.size > 0) state.activeEffects = state.activeEffects.filter((effect) => !resolvedIds.has(effect.id));
+}
+
+function prepareProp31DonationChoices(state: MutableGame): void {
+  for (const player of state.players) {
+    if (state.activeEffects.some((effect) => effect.choiceType === "prop31_donation" && effect.targetPlayerId === player.id)) continue;
+    if (state.activeEffects.some((effect) => effect.sourceRoleSkillId === "prop31_donated" && effect.createdBy === player.id)) continue;
+    const artifact = playerArtifacts(state, player).find((candidate) => candidate.properties.includes("prop31"));
+    if (!artifact) continue;
+    state.activeEffects.push({
+      id: makeId("effect"),
+      sourceRoleSkillId: "prop31_donation",
+      label: `慈善捐赠：是否弃置《${artifact.name}》，让终局现金按每 30 银元兑换 1 声望？`,
+      appliesTo: "cash",
+      targetPlayerId: player.id,
+      targetArtifactId: artifact.id,
+      day: state.day,
+      createdBy: player.id,
+      pendingChoice: true,
+      choiceType: "prop31_donation"
+    });
+    pushPrivateLog(state, player.id, `《${artifact.name}》带有慈善捐赠：终局前可选择弃置它，让现金按每 30 银元兑换 1 声望。`);
+  }
+}
+
 function resolveEventEffect(state: MutableGame, player: PlayerState, card: EventCard): void {
   const nextDay = Math.min(state.maxDays, state.day + 1);
   const creator = player.id;
   switch (card.id) {
     case "N1":
-      upsertEffect(state, timedEvent("N1", "神秘收购：下一拍卖日后系统默认按传闻最高价收购一件成交藏品。", state.day + 1, creator, "auction"));
+      upsertEffect(state, timedEvent("N1", "神秘收购：下一个拍卖日结束后，从当天成交藏品中随机 1 件触发收购。", state.day + 1, creator, "auction"));
       break;
     case "N2":
       upsertEffect(state, timedEvent("N2", "经济回暖：后续 2 天卖银行按 100% 回收。", state.day + 1, creator, "cash", { bankSellRate: 1 }));
@@ -1195,10 +1777,10 @@ function resolveEventEffect(state: MutableGame, player: PlayerState, card: Event
       upsertEffect(state, timedEvent(card.id, "熟人门路：下一次黑市每人免费获得 1 张锦囊，且不能再买锦囊。", nextBlackMarketDay(state), creator, "cash", { blackMarketBlockTricks: true }));
       break;
     case "E07":
-      upsertEffect(state, timedEvent(card.id, "假货横行：下一天买到赝品的买家获得 30 银元补偿。", nextDay, creator, "cash"));
+      upsertEffect(state, timedEvent(card.id, "假货横行：下一天买到赝品的买家获得 30 银元补偿。", nextDay, creator, "cash", { fakeProbabilityMod: 0.1 }));
       break;
     case "E08":
-      upsertEffect(state, timedEvent(card.id, "鉴定风潮：下一天探查类锦囊需额外支付 10 银元。", nextDay, creator, "cash"));
+      upsertEffect(state, timedEvent(card.id, "鉴定风潮：下一天探查类锦囊需额外支付 10 银元。", nextDay, creator, "cash", { fakeProbabilityMod: -0.1 }));
       break;
     case "E09":
       upsertEffect(state, timedEvent(card.id, "收藏展邀约：下一天结束时，3 类及以上藏品玩家获得 30 银元。", nextDay, creator, "cash"));
@@ -1226,7 +1808,7 @@ function resolveEventEffect(state: MutableGame, player: PlayerState, card: Event
       upsertEffect(state, timedEvent(card.id, "现金为王：终局现金额外兑换声望最多 +5。", state.maxDays, creator, "cash"));
       break;
     case "E17":
-      upsertEffect(state, timedEvent(card.id, "通胀来袭：下一天黑市和新贷款利息 +10。", nextDay, creator, "cash", { blackMarketCostDelta: 10, loanRepayment: 130 }));
+      upsertEffect(state, timedEvent(card.id, "通胀来袭：下一天黑市和新贷款利息 +10，易损保护费 +10。", nextDay, creator, "cash", { blackMarketCostDelta: 10, loanRepayment: 130, fragileProtectionDelta: 10 }));
       break;
     case "E18":
       upsertEffect(state, timedEvent(card.id, "银根紧缩：下一天晨间每位玩家支付最多 30 银元。", nextDay, creator, "cash"));
@@ -1249,17 +1831,37 @@ function resolveEventEffect(state: MutableGame, player: PlayerState, card: Event
     case "E24":
       upsertEffect(state, timedEvent(card.id, "海外热潮：下一天字画/珠宝/钱币终局价值 +15%。", nextDay, creator, "finalValue", { categories: ["calligraphy", "jewelry", "coin"], multiplier: 1.15 }));
       break;
-    case "E25":
+    case "E25": {
+      // Create global -20% category effect as fallback for unresolved/auto-accept
       upsertEffect(state, timedEvent(card.id, "灵异恐惧：下一天灵器/邪物/奇物终局价值 -20%。", nextDay, creator, "finalValue", { categories: ["relic", "evil", "curio"], multiplier: 0.8 }));
+      // Create per-player pendingChoice effects so the frontend can show a popup
+      for (const p of state.players) {
+        state.activeEffects.push({
+          id: makeId("effect"),
+          sourceEventId: card.id,
+          label: `灵异恐惧：${p.nickname} 需要选择是否支付保护费（每件 10 银元）`,
+          appliesTo: "finalValue",
+          day: nextDay,
+          createdBy: creator,
+          targetPlayerId: p.id,
+          pendingChoice: true,
+          choiceType: "E25_protection_fee"
+        });
+      }
       break;
+    }
     case "E26": {
-      const category = state.todayArtifactIds[0] ? requireArtifact(state, state.todayArtifactIds[0]).category : "calligraphy";
+      const allCategories: ArtifactCategory[] = ["calligraphy", "bronze", "jewelry", "porcelain", "jade", "book", "coin", "curio", "relic", "evil", "legacy", "lastword", "celebrity"];
+      const category = pick(allCategories, makeRng(`${state.roomId}:${state.day}:${card.id}:E26`));
       upsertEffect(state, timedEvent(card.id, `文化禁令：下一天${categoryLabel(category)}类禁止交易和卖银行。`, nextDay, creator, "auction", { category }));
       break;
     }
-    case "E27":
-      upsertEffect(state, timedEvent(card.id, "学术突破：下一天随机一类新拍品终局价值 +20%。", nextDay, creator, "finalValue"));
+    case "E27": {
+      const allCategories: ArtifactCategory[] = ["calligraphy", "bronze", "jewelry", "porcelain", "jade", "book", "coin", "curio", "relic", "evil", "legacy", "lastword", "celebrity"];
+      const category = pick(allCategories, makeRng(`${state.roomId}:${state.day}:${card.id}:E27`));
+      upsertEffect(state, timedEvent(card.id, `学术突破：下一天${categoryLabel(category)}类新拍品终局价值 +20%，且赝品基础概率降为 10%。`, nextDay, creator, "finalValue", { category, multiplier: 1.2, fakeProbabilityMod: -0.1 }));
       break;
+    }
     case "E28":
       upsertEffect(state, timedEvent(card.id, "丰收晨曦：下一天晨间收入翻倍。", nextDay, creator, "cash", { incomeMultiplier: 2 }));
       break;
@@ -1331,6 +1933,7 @@ function buyBlackMarket(state: MutableGame, player: PlayerState, kind: "trick" |
   const baseCost = kind === "trick" ? GAME_CONSTANTS.trickCost : GAME_CONSTANTS.eventCost;
   let cost = baseCost + todayEffects(state).reduce((sum, effect) => sum + (effect.blackMarketCostDelta ?? 0), 0);
   if (player.role?.roleId === "role02") cost -= 10;
+  if (player.role?.roleId === "role06" && kind === "trick") cost += 10;
   if (hasTodayEffect(state, "E05") && boughtToday >= GAME_CONSTANTS.blackMarketLimit) cost += 20;
   cost = Math.max(0, cost);
   if (player.cash < cost) throw new RuleError("现金不足。", "CASH_LOW");
@@ -1345,13 +1948,13 @@ function buyBlackMarket(state: MutableGame, player: PlayerState, kind: "trick" |
   const card = kind === "trick" ? trickById.get(cardId) : eventById.get(cardId);
   state.lastMessage = `${player.nickname} 在黑市花 ${cost} 银元购买了 1 张${kind === "trick" ? "锦囊" : "事件卡"}。`;
   state.log.push(state.lastMessage);
-  pushPrivateLog(state, player.id, `你在黑市花 ${cost} 银元买到${kind === "trick" ? "锦囊" : "事件卡"}《${card?.name ?? cardId}》。`);
+  pushPrivateLog(state, player.id, `你在黑市花费 ${cost} 银元买到${kind === "trick" ? "锦囊" : "事件卡"}《${card?.name ?? cardId}》，当前剩余 ${player.cash} 银元。`);
 }
 
 function playCard(
   state: MutableGame,
   player: PlayerState,
-  payload: { cardId: string; targetArtifactId?: string; targetPlayerId?: string }
+  payload: { cardId: string; targetArtifactId?: string; targetPlayerId?: string; amount?: number }
 ): void {
   if (!["cardWindow", "auction", "settlement", "eventWindow", "freeTrade"].includes(state.phase)) throw new RuleError("当前阶段不能使用卡牌。", "BAD_PHASE");
   if (state.pendingReaction) throw new RuleError("等待反制响应。", "PENDING_REACTION");
@@ -1392,8 +1995,11 @@ function playCard(
 
   const previousLogLength = state.log.length;
   const previousLastMessage = state.lastMessage;
+  const beforeUse = playerActionSnapshot(state, player);
   pushPrivateLog(state, player.id, playCardPrivateMessage(state, player, card, payload));
   resolveCardEffect(state, player, card, payload);
+  const resultMessage = playCardResultPrivateMessage(state, player, card, beforeUse);
+  if (resultMessage) pushPrivateLog(state, player.id, resultMessage);
   if (inEvents) {
     const narrative = `今日发生：${eventPublicNarrative(card as EventCard)}`;
     state.log.push(narrative);
@@ -1421,13 +2027,19 @@ function validateCardPayload(
     if (artifact.ownerId === player.id) throw new RuleError("不能巧取自己的藏品。", "BAD_TARGET");
     requirePlayer(state, artifact.ownerId);
   }
+  if (card.id === "C04") {
+    requireArtifact(state, payload.targetArtifactId);
+  }
+  if (card.id === "C08" && state.phase !== "freeTrade") {
+    throw new RuleError("牵线人只能在自由交易阶段使用。", "BAD_PHASE");
+  }
 }
 
 function resolveCardEffect(
   state: MutableGame,
   player: PlayerState,
   card: TrickCard | EventCard,
-  payload: { targetArtifactId?: string; targetPlayerId?: string }
+  payload: { targetArtifactId?: string; targetPlayerId?: string; amount?: number }
 ): void {
   const text = card.description;
   if (eventById.has(card.id)) {
@@ -1455,13 +2067,13 @@ function resolveCardEffect(
     state.activeEffects.push({
       id: makeId("effect"),
       sourceCardId: card.id,
-      label: `${card.name}：当前藏品成交后从银行获得成交价 10%。`,
+      label: `${card.name}：当前藏品成交后从银行获得成交价 20%，且主持人不再获得佣金。`,
       appliesTo: "auction",
       targetArtifactId: artifactId,
       day: state.day,
       createdBy: player.id
     });
-    state.lastMessage = `${player.nickname} 使用《${card.name}》，成交后可分得一笔银元。`;
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，成交后可分得一笔银元，主持人佣金将被取消。`;
     return;
   }
   if (card.id === "B04") {
@@ -1474,13 +2086,21 @@ function resolveCardEffect(
   if (card.id === "B06") {
     const auction = requireAuction(state);
     const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "english" : auction.mode;
-    if (state.phase !== "auction" || bidMode !== "english" || auction.status !== "open") throw new RuleError("最后一口只能在英式竞拍中使用。", "BAD_PHASE");
-    assertNonHostBidder(state, player);
-    const nextBid = auction.currentBid + 20;
-    if (nextBid > player.cash) throw new RuleError("现金不足。", "CASH_LOW");
+  if (state.phase !== "auction" || bidMode !== "english" || auction.status !== "open") throw new RuleError("最后一口只能在英式竞拍中使用。", "BAD_PHASE");
+  assertNonHostBidder(state, player);
+  if (auction.passedPlayerIds.includes(player.id)) throw new RuleError("你已经退出当前竞拍。");
+  if (isBlockedByCard(state, player, "D07", currentAuctionArtifact(state).id)) throw new RuleError("你本日不能对该藏品出价。", "NOT_ELIGIBLE");
+  const nextBid = auction.currentBid + 20;
+  const ceiling = auctionBidCeilingForArtifactIds(state, currentAuctionArtifacts(state).map((artifact) => artifact.id));
+  if (nextBid > ceiling) throw new RuleError("当前出价已达到本拍品的主持叫价上限。", "INVALID_ACTION");
+  if (nextBid > player.cash) throw new RuleError("现金不足。", "CASH_LOW");
+    // 不调用 recordAuctionBid，避免影响 bidCounts（否则 prop08 一见钟情会误判）
+    auction.highestBids = { ...(auction.highestBids ?? {}), [player.id]: Math.max(auction.highestBids?.[player.id] ?? 0, nextBid) };
     auction.currentBid = nextBid;
     auction.currentBidderId = player.id;
-    state.lastMessage = `${player.nickname} 使用《${card.name}》，加价到 ${nextBid}。`;
+    auction.bidDeadline = Date.now() + 15000;
+    announceEnglishBid(state, player, nextBid);
+    pushPrivateLog(state, player.id, `你使用《${card.name}》，加价到 ${nextBid} 银元。`);
     return;
   }
   if (card.id === "B05") {
@@ -1490,14 +2110,14 @@ function resolveCardEffect(
     state.activeEffects.push({
       id: makeId("effect"),
       sourceCardId: card.id,
-      label: `${card.name}：自己的下一次暗标额外 +10。`,
+      label: `${card.name}：自己的下一次暗标额外 +20。`,
       appliesTo: "auction",
       targetArtifactId: currentAuctionArtifact(state).id,
-      amount: 10,
+      amount: 20,
       day: state.day,
       createdBy: player.id
     });
-    state.lastMessage = `${player.nickname} 使用《${card.name}》，下一次暗标额外 +10。`;
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，下一次暗标额外 +20。`;
     return;
   }
   if (card.id === "B08") {
@@ -1587,23 +2207,130 @@ function resolveCardEffect(
       day: state.day,
       createdBy: player.id
     });
-    pushPrivateLog(state, player.id, `《${card.name}》结果：${target.nickname} 的锦囊为 ${formatCardNames(target.hand, trickById, "无")}；事件卡为 ${formatCardNames(target.events, eventById, "无")}。`);
+    pushPrivateLog(state, player.id, `《${card.name}》结果：${target.nickname} 的锦囊为 ${formatCardNames(target.hand, trickById, "无")}。`);
     state.lastMessage = `${player.nickname} 使用《${card.name}》，查看了 ${target.nickname} 的锦囊。`;
     return;
   }
   if (card.id === "D04") {
     const target = requirePlayer(state, payload.targetPlayerId);
-    const discarded = target.hand.shift();
+    let discarded: string | undefined;
+    if (target.hand.length > 0) {
+      const randomDiscard = shuffled(target.hand, makeRng(`${state.roomId}:${state.day}:${state.actionIndex}:D04`))[0];
+      if (randomDiscard) {
+        discarded = randomDiscard;
+        target.hand.splice(target.hand.indexOf(discarded), 1);
+      }
+    }
     state.lastMessage = discarded
       ? `${player.nickname} 使用《${card.name}》，${target.nickname} 弃掉 1 张锦囊。`
       : `${player.nickname} 使用《${card.name}》，${target.nickname} 没有锦囊可弃。`;
+    // 向使用方展示对方手牌情况（空手牌也要展示以证明）
+    const handStatus = target.hand.length > 0
+      ? `手牌：${target.hand.map((cid) => cardById.get(cid)?.name ?? cid).join("、")}`
+      : "手牌为空";
+    pushPrivateLog(state, player.id, `${target.nickname} 当前${handStatus}。`);
     return;
   }
   if (card.id === "D06") {
     const target = requirePlayer(state, payload.targetPlayerId);
-    const lost = Math.min(10, target.cash);
-    target.cash -= lost;
-    state.lastMessage = `${player.nickname} 使用《${card.name}》，${target.nickname} 失去 ${lost} 银元。`;
+    if (target.cash >= 10) {
+      target.cash -= 10;
+      state.lastMessage = `${player.nickname} 使用《${card.name}》，${target.nickname} 失去 10 银元。`;
+    } else {
+      // 现金不足则展示手牌证明无现金，无损失
+      const handPreview = target.hand.length > 0
+        ? `手牌：${target.hand.map((cid) => cardById.get(cid)?.name ?? cid).join("、")}`
+        : "手牌为空";
+      pushPrivateLog(state, player.id, `${target.nickname} 现金不足 10 银元，${handPreview}。`);
+      state.lastMessage = `${player.nickname} 使用《${card.name}》，${target.nickname} 现金不足，展示手牌证明。`;
+    }
+    return;
+  }
+  if (card.id === "B07") {
+    state.activeEffects.push({
+      id: makeId("effect"),
+      sourceCardId: "B07",
+      label: `${card.name}：若本次成交价比你的最后报价高 40 以上，获得 15 银元。`,
+      appliesTo: "auction",
+      day: state.day,
+      createdBy: player.id
+    });
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，等待竞拍结果。`;
+    return;
+  }
+  if (card.id === "C02") {
+    const amount = player.cash < 100 ? 40 : 15;
+    player.cash += amount;
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，获得 ${amount} 银元。`;
+    return;
+  }
+  if (card.id === "C04") {
+    const artifact = requireArtifact(state, payload.targetArtifactId);
+    if (!player.artifacts.includes(artifact.id)) throw new RuleError("你没有这件藏品。", "NOT_OWNER");
+    const price = Math.max(0, Math.floor(payload.amount ?? artifact.purchasePrice ?? artifact.rumorMin));
+    state.activeEffects.push({
+      id: makeId("effect"),
+      sourceCardId: "C04",
+      label: `寄售单：${player.nickname} 公开挂售《${artifact.name}》，定价 ${price} 银元；若被买走，卖方额外获得 20 银元。`,
+      appliesTo: "cash",
+      targetArtifactId: artifact.id,
+      amount: price,
+      day: state.day,
+      createdBy: player.id,
+      pendingChoice: true,
+      choiceType: "C04_listing"
+    });
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，公开挂售《${artifact.name}》，定价 ${price} 银元。`;
+    return;
+  }
+  if (card.id === "C06") {
+    state.activeEffects.push({
+      id: makeId("effect"),
+      sourceCardId: "C06",
+      label: `${card.name}：若本拍品成交价至少比第二高价高 30，获得 20 银元。`,
+      appliesTo: "auction",
+      day: state.day,
+      createdBy: player.id
+    });
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，等待竞拍结果。`;
+    return;
+  }
+  if (card.id === "C07") {
+    const hasFragile = playerArtifacts(state, player).some((artifact) => artifact.properties.includes("fragile"));
+    if (hasFragile) {
+      state.activeEffects.push({
+        id: makeId("effect"),
+        sourceCardId: "C07",
+        label: `${card.name}：免除下一次易损保护费。`,
+        appliesTo: "cash",
+        day: state.day,
+        createdBy: player.id
+      });
+      state.lastMessage = `${player.nickname} 使用《${card.name}》，获得易损保护费豁免。`;
+    } else {
+      player.cash += 10;
+      state.lastMessage = `${player.nickname} 使用《${card.name}》，获得 10 银元。`;
+    }
+    return;
+  }
+  if (card.id === "C08") {
+    state.activeEffects.push({
+      id: makeId("effect"),
+      sourceCardId: "C08",
+      label: `${card.name}：本阶段下一次玩家交易成功后双方各获得 10 银元。`,
+      appliesTo: "cash",
+      day: state.day,
+      createdBy: player.id
+    });
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，等待下一次交易。`;
+    return;
+  }
+  if (card.id === "I02") {
+    const artifact = requireArtifact(state, payload.targetArtifactId ?? currentAuctionArtifacts(state)[0]?.id ?? state.todayArtifactIds[0]);
+    privatelyPeekArtifact(artifact, player.id);
+    pushPrivateLog(state, player.id, `《${card.name}》结果：《${artifact.name}》的传闻区间为 ${artifact.rumorMin} - ${artifact.rumorMax} 银元。`);
+    if (card.category?.includes("信息")) addStat(state.stats.infoTricksPlayed, player.id, 1);
+    state.lastMessage = `${player.nickname} 使用《${card.name}》，获得藏品情报。`;
     return;
   }
   if (text.includes("查看") || card.effects?.some((effect) => effect.type === "revealInfo")) {
@@ -1652,7 +2379,7 @@ function resolveCardEffect(
 function useRoleSkill(
   state: MutableGame,
   player: PlayerState,
-  payload: { skillId: string; targetArtifactId?: string; targetPlayerId?: string; targetMissionId?: string; invalidateMission?: boolean }
+  payload: { skillId: string; targetArtifactId?: string; targetPlayerId?: string; targetMissionId?: string }
 ): void {
   const role = player.role?.roleId ? roleById.get(player.role.roleId) : undefined;
   const skill = role?.skills.find((candidate) => candidate.id === payload.skillId);
@@ -1661,19 +2388,45 @@ function useRoleSkill(
   if (typeof charges === "number" && charges <= 0) throw new RuleError("该技能次数已用完。", "NOT_ELIGIBLE");
 
   switch (payload.skillId) {
-    case "role01_skill01":
-    case "role07_skill01": {
+    case "role01_skill01": {
       if (!["preview", "cardWindow", "auction"].includes(state.phase)) throw new RuleError("当前阶段不能使用该探查技能。", "BAD_PHASE");
       const artifact = requireArtifact(state, payload.targetArtifactId ?? currentAuctionArtifacts(state)[0]?.id ?? state.todayArtifactIds[0]);
-      privatelyPeekArtifact(artifact, player.id);
-      state.lastMessage = `${player.nickname} 使用《${skill.name}》，查看了《${artifact.name}》。`;
+      const existingChoice = state.activeEffects.find(
+        (e) => e.sourceRoleSkillId === "role01_skill01" && e.createdBy === player.id && e.targetArtifactId === artifact.id
+      );
+      if (!existingChoice) {
+        state.activeEffects.push({
+          id: makeId("effect"),
+          sourceRoleSkillId: payload.skillId,
+          label: `《${skill.name}》：请选择查看《${artifact.name}》的传闻区间或属性。`,
+          appliesTo: "visibility",
+          targetArtifactId: artifact.id,
+          day: state.day,
+          createdBy: player.id,
+          pendingChoice: true,
+          choiceType: "role01_skill01_choice"
+        });
+      }
+      state.lastMessage = `${player.nickname} 使用《${skill.name}》，待选择查看《${artifact.name}》的信息。`;
       break;
+    }
+    case "role07_skill01": {
+      if (!["preview", "cardWindow", "auction"].includes(state.phase)) throw new RuleError("当前阶段不能使用该探查技能。", "BAD_PHASE");
+      const artifact7 = requireArtifact(state, payload.targetArtifactId ?? currentAuctionArtifacts(state)[0]?.id ?? state.todayArtifactIds[0]);
+      privatelyPeekArtifact(artifact7, player.id);
+      state.lastMessage = `${player.nickname} 使用《${skill.name}》，查看了《${artifact7.name}》。`;
+      break;
+    }
+    case "role07_skill03": {
+      // 保护已经被改为被动技能「数量最多的类别+1」，自动生效
+      throw new RuleError("该技能已改为被动，自动生效。", "INVALID_ACTION");
     }
     case "role01_skill02": {
       if (state.phase !== "blackMarket") throw new RuleError("妙笔只能在黑市日使用。", "BAD_PHASE");
       const artifact = requireArtifact(state, payload.targetArtifactId ?? player.artifacts[0]);
       if (!player.artifacts.includes(artifact.id)) throw new RuleError("只能指定自己的藏品。", "NOT_OWNER");
-      const property = PROPERTIES.find((candidate) => !artifact.properties.includes(candidate.id) && !["anonymous"].includes(candidate.id));
+      const candidates = PROPERTIES.filter((candidate) => !artifact.properties.includes(candidate.id) && !["anonymous"].includes(candidate.id));
+      const property = candidates.length ? pick(candidates, makeRng(`${state.roomId}:${player.id}:${artifact.id}:${state.day}:role01_skill02`)) : undefined;
       if (property) artifact.properties.push(property.id);
       state.lastMessage = `${player.nickname} 使用《${skill.name}》，为《${artifact.name}》增加属性。`;
       break;
@@ -1694,26 +2447,70 @@ function useRoleSkill(
       state.lastMessage = `${player.nickname} 使用《${skill.name}》，强化《${artifact.name}》。`;
       break;
     }
-    case "role05_skill01": {
-      if (state.phase !== "dayIncome") throw new RuleError("孤注一掷只能在晨间收入阶段使用。", "BAD_PHASE");
-      state.activeEffects.push({
-        id: makeId("effect"),
-        sourceRoleSkillId: payload.skillId,
-        label: "孤注一掷：今天晨间收入重掷一次并取较高值。",
-        appliesTo: "cash",
-        day: state.day,
-        createdBy: player.id
-      });
-      state.lastMessage = `${player.nickname} 使用《${skill.name}》，今天晨间收入将重掷并取高。`;
+    case "role03_skill02": {
+      // 以物换物：在自由阶段向别人提出物物交换
+      if (state.phase !== "freeTrade") throw new RuleError("以物换物只能在自由阶段使用。", "BAD_PHASE");
+      if (!payload.targetPlayerId || !payload.targetArtifactId) throw new RuleError("需要指定目标玩家和对方的藏品。", "BAD_TARGET");
+      const swapTarget = requirePlayer(state, payload.targetPlayerId);
+      const myArtifact = requireArtifact(state, payload.targetArtifactId);
+      if (!player.artifacts.includes(myArtifact.id)) throw new RuleError("你没有这件藏品。", "NOT_OWNER");
+      // 对方的藏品 ID 通过 targetArtifactId 传递（前端需要选择自己的藏品后，再选对方的藏品）
+      // 对方的藏品 ID 编码在 targetMissionId 中（作为临时传递字段）
+      const theirArtifactId = payload.targetMissionId as string | undefined;
+      if (!theirArtifactId) throw new RuleError("需要指定对方的藏品。", "BAD_TARGET");
+      const theirArtifact = requireArtifact(state, theirArtifactId);
+      if (!swapTarget.artifacts.includes(theirArtifact.id)) throw new RuleError("对方没有这件藏品。", "BAD_TARGET");
+      if (myArtifact.id === theirArtifact.id) throw new RuleError("不能用自己的藏品换自己。", "BAD_TARGET");
+      if (swapTarget.id === player.id) throw new RuleError("不能和自己交换。", "BAD_TARGET");
+
+      const myValue = adjustedArtifactValueForPlayer(state, player, myArtifact, state.activeEffects);
+      const theirValue = adjustedArtifactValueForPlayer(state, swapTarget, theirArtifact, state.activeEffects);
+
+      if (myValue >= theirValue) {
+        // 强制交换
+        removeArtifactFromPlayer(state, player, myArtifact);
+        removeArtifactFromPlayer(state, swapTarget, theirArtifact);
+        assignArtifactToPlayer(state, player, theirArtifact);
+        assignArtifactToPlayer(state, swapTarget, myArtifact);
+        addStat(state.stats.playerTradeCount, player.id, 1);
+        addStat(state.stats.playerTradeCount, swapTarget.id, 1);
+        state.log.push(`${player.nickname} 以《${myArtifact.name}》(价值${myValue}) 强制交换 ${swapTarget.nickname} 的《${theirArtifact.name}》(价值${theirValue})。`);
+      } else {
+        // 对方的价值更高，创建 pendingChoice 让对方选择是否接受
+        state.activeEffects.push({
+          id: makeId("effect"),
+          sourceRoleSkillId: payload.skillId,
+          label: `以物换物：${player.nickname} 想用《${myArtifact.name}》(价值${myValue}) 换你的《${theirArtifact.name}》(价值${theirValue})`,
+          appliesTo: "cash",
+          targetPlayerId: swapTarget.id,
+          targetArtifactId: myArtifact.id,
+          additionalTargetArtifactId: theirArtifact.id,
+          day: state.day,
+          createdBy: player.id,
+          pendingChoice: true,
+          choiceType: "role03_skill02_swap"
+        });
+        pushPrivateLog(state, swapTarget.id, `${player.nickname} 想用《${myArtifact.name}》(价值${myValue}) 交换你的《${theirArtifact.name}》(价值${theirValue})，是否同意？`);
+        state.log.push(`${player.nickname} 向 ${swapTarget.nickname} 提出以物换物，等待对方回应。`);
+      }
+      state.lastMessage = `${player.nickname} 使用《${skill.name}》，与 ${swapTarget.nickname} 进行以物换物。`;
       break;
     }
+    case "role05_skill01": {
+      // 孤注一掷已改为被动技能，不再允许手动触发
+      throw new RuleError("孤注一掷是被动技能，无需手动使用。", "INVALID_ACTION");
+    }
     case "role05_skill02": {
+      // 千术技能 — 后端逻辑完整，依赖的前端入口：
+      //   (1) roles.json / content.ts(.js) 中 kind 须为 "主动" 才能渲染按钮
+      //   (2) App.tsx canUseRoleSkillFromView 中已加入 phase/mode/bid 检查
+      //   (3) 暗标所有人出价可见性已在 getPlayerView 中按 viewer.role.roleId==="role05" 自动处理（passive 部分）
       const auction = requireAuction(state);
       const bidMode = auction.mode === "bundle" ? auction.bundleInnerMode ?? "sealed" : auction.mode;
       if (state.phase !== "auction" || bidMode !== "sealed") throw new RuleError("千术只能在暗标拍卖时使用。", "BAD_PHASE");
       if ((player.role?.skillCharges.role05_skill02 ?? 1) <= 0) throw new RuleError("千术本局已修改过暗标。", "NOT_ELIGIBLE");
       if (!Object.prototype.hasOwnProperty.call(auction.sealedBids, player.id)) throw new RuleError("需要先提交自己的暗标。", "NOT_ELIGIBLE");
-      const nextBid = Math.min(player.cash, Math.max(auction.sealedBids[player.id] ?? 0, ...Object.values(auction.sealedBids)) + 1);
+      const nextBid = Math.min(player.cash, ceilToTen(Math.max(auction.sealedBids[player.id] ?? 0, ...Object.values(auction.sealedBids)) + 10));
       auction.sealedBids[player.id] = nextBid;
       auction.sealedBidRounds![player.id] = (auction.sealedBidRounds?.[player.id] ?? 1) + 1;
       player.role!.skillCharges.role05_skill02 = 0;
@@ -1722,6 +2519,7 @@ function useRoleSkill(
       break;
     }
     case "role06_skill01": {
+      if (state.phase !== "blackMarket") throw new RuleError("窃听只能在黑市日使用。", "BAD_PHASE");
       const target = requirePlayer(state, payload.targetPlayerId ?? state.players.find((candidate) => candidate.id !== player.id)?.id);
       state.activeEffects.push({
         id: makeId("effect"),
@@ -1737,45 +2535,29 @@ function useRoleSkill(
     }
     case "role06_skill03": {
       const target = requirePlayer(state, payload.targetPlayerId ?? state.players.find((candidate) => candidate.id !== player.id)?.id);
-      if (player.cash < 30) throw new RuleError("现金不足。", "CASH_LOW");
-      player.cash -= 30;
+      if (player.cash < 50) throw new RuleError("现金不足。", "CASH_LOW");
+      player.cash -= 50;
       recordCommissionPeek(state, player.id, target.id);
-      if (payload.invalidateMission) {
-        const missionId = payload.targetMissionId ?? target.missionIds[0] ?? target.missionId;
-        if (missionId) {
-          target.missionIds = target.missionIds.filter((id) => id !== missionId);
-          if (target.missionId === missionId) target.missionId = target.missionIds[0];
-        }
-        state.lastMessage = `${player.nickname} 使用《${skill.name}》，支付 30 银元公开并作废 ${target.nickname} 的 1 张秘密委托。`;
-      } else {
-        state.activeEffects.push({
-          id: makeId("effect"),
-          sourceRoleSkillId: payload.skillId,
-          label: `黑料：你可以查看 ${target.nickname} 的秘密委托。`,
-          appliesTo: "visibility",
-          targetPlayerId: target.id,
-          day: state.day,
-          createdBy: player.id
-        });
-        state.lastMessage = `${player.nickname} 使用《${skill.name}》，支付 30 银元查看 ${target.nickname} 的秘密委托。`;
-      }
-      break;
-    }
-    case "role09_skill02": {
-      if (state.phase !== "preview" || state.currentHostId !== player.id) throw new RuleError("包装只能在自己主持的预展阶段使用。", "BAD_PHASE");
-      const artifact = requireArtifact(state, payload.targetArtifactId ?? state.todayArtifactIds[0]);
+      // 查看对方两个秘密委托
+      const missions = target.missionIds.slice(0, 2).map((id) => state.missions[id]).filter(Boolean);
+      const missionText = missions.map((m) => `《${m!.name}》：${m!.description}`).join("；");
+      pushPrivateLog(state, player.id, `《黑料》结果：${target.nickname} 的秘密委托：${missionText}`);
+      // 创建可见性效果，确保 getPlayerView 填充 revealedMissions 字段
       state.activeEffects.push({
         id: makeId("effect"),
         sourceRoleSkillId: payload.skillId,
-        label: `包装：《${artifact.name}》成交价超过 100 时主持人额外 +10。`,
-        appliesTo: "auction",
-        targetArtifactId: artifact.id,
-        amount: 10,
+        label: `黑料：查看 ${target.nickname} 的秘密委托`,
+        appliesTo: "visibility",
+        targetPlayerId: target.id,
         day: state.day,
         createdBy: player.id
       });
-      state.lastMessage = `${player.nickname} 使用《${skill.name}》，包装《${artifact.name}》。`;
+      state.lastMessage = `${player.nickname} 使用《${skill.name}》，支付 50 银元查看 ${target.nickname} 的两个秘密委托。`;
       break;
+    }
+    case "role09_skill02": {
+      // 包装已被改为被动技能，主持时成交价>100自动触发
+      throw new RuleError("该技能已改为被动，自动生效。", "INVALID_ACTION");
     }
     case "role09_skill03": {
       if (state.phase !== "auction") throw new RuleError("暗箱操作只能在竞拍阶段使用。", "BAD_PHASE");
@@ -1886,7 +2668,9 @@ function createTradeOffer(
 ): void {
   assertPhase(state, "freeTrade");
   if (isBlockedByCard(state, player, "D05")) throw new RuleError("你本日不能进行玩家交易。", "NOT_ELIGIBLE");
+  if ((player.tradesToday ?? 0) >= GAME_CONSTANTS.maxTradesPerDay) throw new RuleError("你今日已达交易上限（3次）。", "INVALID_ACTION");
   const target = requirePlayer(state, payload.toPlayerId);
+  if ((target.tradesToday ?? 0) >= GAME_CONSTANTS.maxTradesPerDay) throw new RuleError("对方今日已达交易上限（3次）。", "INVALID_ACTION");
   assertAssets(player, payload.give);
   assertAssets(target, payload.receive);
   assertTradeAllowedByEvents(state, payload.give);
@@ -1905,6 +2689,9 @@ function createTradeOffer(
   state.tradeOffers.push(offer);
   state.lastMessage = `${player.nickname} 向 ${target.nickname} 发起交易。`;
   state.log.push(state.lastMessage);
+  const detail = tradeOfferDetail(state, offer);
+  pushPrivateLog(state, player.id, `你向 ${target.nickname} 发起交易：你给出 ${detail.give}，想获得 ${detail.receive}。`);
+  pushPrivateLog(state, target.id, `${player.nickname} 向你发起交易：对方给出 ${detail.give}，想获得 ${detail.receive}。`);
 }
 
 function respondTradeOffer(state: MutableGame, player: PlayerState, tradeOfferId: string, accept: boolean, version: number): void {
@@ -1916,16 +2703,33 @@ function respondTradeOffer(state: MutableGame, player: PlayerState, tradeOfferId
   if (!accept) {
     if (offer.message === "D02") {
       const from = requirePlayer(state, offer.fromPlayerId);
-      const penalty = Math.min(20, player.cash);
-      player.cash -= penalty;
-      from.cash += penalty;
-      state.lastMessage = `${player.nickname} 拒绝巧取豪夺，支付 ${penalty} 银元给 ${from.nickname}。`;
+      const artifactId = offer.receive.artifactIds?.[0];
+      const artifact = artifactId ? requireArtifact(state, artifactId) : undefined;
+      if (artifact) {
+        state.activeEffects.push({
+          id: makeId("effect"),
+          sourceCardId: "D02",
+          label: `巧取豪夺：${player.nickname} 拒绝收购《${artifact.name}》，请选择支付 20 银元或展示属性。`,
+          appliesTo: "cash",
+          targetPlayerId: player.id,
+          targetArtifactId: artifact.id,
+          amount: 20,
+          day: state.day,
+          createdBy: from.id,
+          pendingChoice: true,
+          choiceType: "D02_refusal"
+        });
+      }
+      state.lastMessage = `${player.nickname} 拒绝巧取豪夺，等待选择付钱或展示属性。`;
     } else {
       state.lastMessage = `${player.nickname} 拒绝了交易。`;
     }
     offer.status = "declined";
     offer.version += 1;
     state.log.push(state.lastMessage);
+    const detail = tradeOfferDetail(state, offer);
+    pushPrivateLog(state, player.id, `你拒绝了 ${requirePlayer(state, offer.fromPlayerId).nickname} 的交易：对方给出 ${detail.give}，想获得 ${detail.receive}。`);
+    pushPrivateLog(state, offer.fromPlayerId, `${player.nickname} 拒绝了你的交易：你原本给出 ${detail.give}，想获得 ${detail.receive}。`);
     return;
   }
   const from = requirePlayer(state, offer.fromPlayerId);
@@ -1942,14 +2746,27 @@ function respondTradeOffer(state: MutableGame, player: PlayerState, tradeOfferId
   applyHotTradeBonus(state, to, offer.receive, offer.give);
   offer.status = "accepted";
   offer.version += 1;
+  from.tradesToday = (from.tradesToday ?? 0) + 1;
+  to.tradesToday = (to.tradesToday ?? 0) + 1;
   addStat(state.stats.playerTradeCount, from.id, 1);
   addStat(state.stats.playerTradeCount, to.id, 1);
   if ([...(offer.give.artifactIds ?? []), ...(offer.receive.artifactIds ?? [])].length > 0) {
     if (from.role?.roleId === "role08") from.cash += 10;
     if (to.role?.roleId === "role08") to.cash += 10;
   }
+  // 牵线人：本阶段下一次玩家交易成功后双方各获得10银元
+  const c08Effect = state.activeEffects.find((effect) => effect.sourceCardId === "C08" && effect.day === state.day);
+  if (c08Effect) {
+    from.cash += 10;
+    to.cash += 10;
+    state.activeEffects = state.activeEffects.filter((effect) => effect.id !== c08Effect.id);
+    state.log.push(`《牵线人》生效，${from.nickname} 和 ${to.nickname} 各获得 10 银元。`);
+  }
   state.lastMessage = `${from.nickname} 与 ${to.nickname} 完成交易。`;
   state.log.push(state.lastMessage);
+  const detail = tradeOfferDetail(state, offer);
+  pushPrivateLog(state, from.id, `交易完成：你给出 ${detail.give}，从 ${to.nickname} 获得 ${detail.receive}。`);
+  pushPrivateLog(state, to.id, `交易完成：你给出 ${detail.receive}，从 ${from.nickname} 获得 ${detail.give}。`);
 }
 
 function sellToBank(state: MutableGame, player: PlayerState, artifactId: ArtifactId): void {
@@ -1960,13 +2777,10 @@ function sellToBank(state: MutableGame, player: PlayerState, artifactId: Artifac
   const bannedCategory = todayEffects(state, "E26").find((effect) => effect.category === artifact.category);
   if (bannedCategory) throw new RuleError("该类别今日禁止出售给银行。", "NOT_ELIGIBLE");
   const saleEffect = state.activeEffects.find((effect) => effect.createdBy === player.id && effect.sourceCardId === "C01" && effect.day === state.day);
-  const rate = saleEffect?.bankSellRate ?? bankSellRateFor(state, player, artifact);
-  const propertyPenalty = artifact.properties.includes("prop25") ? 0.8 : 1;
-  const price = Math.floor(artifact.rumorMin * rate * propertyPenalty);
+  const price = bankSellPriceFor(state, player, artifact);
   const buybackVoucher = state.activeEffects.find((effect) => effect.createdBy === player.id && effect.sourceCardId === "C03" && effect.day === state.day && !effect.targetArtifactId);
   player.cash += price;
-  player.artifacts = player.artifacts.filter((id) => id !== artifactId);
-  artifact.ownerId = undefined;
+  removeArtifactFromPlayer(state, player, artifact);
   if (saleEffect) state.activeEffects = state.activeEffects.filter((effect) => effect.id !== saleEffect.id);
   if (buybackVoucher) {
     state.activeEffects = state.activeEffects.filter((effect) => effect.id !== buybackVoucher.id);
@@ -1983,6 +2797,7 @@ function sellToBank(state: MutableGame, player: PlayerState, artifactId: Artifac
   addStat(state.stats.sellToBankCount, player.id, 1);
   state.lastMessage = `${player.nickname} 将《${artifact.name}》卖给银行，获得 ${price} 银元。`;
   state.log.push(state.lastMessage);
+  pushPrivateLog(state, player.id, `你把藏品《${artifact.name}》卖给银行，获得 ${price} 银元，当前剩余 ${player.cash} 银元。`);
 }
 
 function takeLoan(state: MutableGame, player: PlayerState): void {
@@ -2020,9 +2835,8 @@ function maybeTriggerNaturalEvent(state: MutableGame): void {
   state.activeEffects.push({
     id: makeId("effect"),
     sourceEventId: natural.id,
-    label: `自然事件：${natural.name}`,
-    appliesTo: "cash",
-    amount: 10,
+    label: `自然事件：${natural.name}（下一个拍卖日结束后，从当天成交藏品中随机 1 件触发收购）`,
+    appliesTo: "auction",
     day: state.day + 1,
     createdBy: state.hostPlayerId ?? state.players[0]!.id
   });
@@ -2031,54 +2845,75 @@ function maybeTriggerNaturalEvent(state: MutableGame): void {
 }
 
 function finalizeScores(state: MutableGame): void {
+  resolveAllPendingChoices(state);
   for (const player of state.players) {
-    const roleAdjustedEffects = roleFinalValueEffects(state, player);
-    const finalEffects = [...state.activeEffects, ...roleAdjustedEffects];
-    const artifactValues = player.artifacts.map((id) => adjustedArtifactValueForPlayer(state, player, requireArtifact(state, id), finalEffects));
-    const artifactValue = artifactValues.reduce((sum, value) => sum + value, 0);
-    const loanDebt = remainingLoanDebt(player);
-    const cashAfterLoan = Math.max(0, player.cash - loanDebt);
-    const cashRepDivisor = playerArtifacts(state, player).some((artifact) => artifact.properties.includes("prop31")) ? 30 : hasTodayEffect(state, "E16") ? 40 : 50;
-    const baseCashRep = Math.floor(cashAfterLoan / 50);
-    const cashRep = cashRepDivisor < 50 ? baseCashRep + (cashRepDivisor === 40 ? Math.min(5, Math.floor(cashAfterLoan / cashRepDivisor) - baseCashRep) : Math.floor(cashAfterLoan / cashRepDivisor) - baseCashRep) : baseCashRep;
-    const artifactRep = Math.floor(artifactValue / 50);
-    let categoryRep = scoreCategoryCollections(state, player);
-    if (player.role?.roleId === "role03") categoryRep = Math.floor(categoryRep * 1.5);
-    const setRep = categoryRep;
-    const missionResults = scoreMissions(state, player);
-    let missionRep = missionResults.reduce((sum, result) => sum + result.reputation, 0);
-    if (player.role?.roleId === "role03") missionRep = Math.floor(missionRep * 1.3);
-    let propertyRep = scorePropertyRep(state, player);
-    if (player.role?.roleId === "role07") propertyRep += Math.floor(new Set(player.artifacts.map((id) => requireArtifact(state, id).category)).size / 3);
-    const rolePenalty = roleFinalPenalty(state, player);
-    const loanPenalty = player.cash >= loanDebt ? 0 : player.loans * 2;
-    const reputation = cashRep + artifactRep + categoryRep + missionRep + propertyRep - loanPenalty - rolePenalty;
-    player.finalScore = {
-      reputation,
-      cashRep,
-      artifactRep,
-      categoryRep,
-      setRep,
-      missionRep,
-      propertyRep,
-      loanPenalty,
-      artifactValue,
-      tieBreakers: {
-        artifactValue,
-        cash: cashAfterLoan,
-        highestArtifactValue: Math.max(0, ...artifactValues)
-      },
-      missionResults
-    };
+    const score = calculatePlayerScore(state as GameState, player);
+    player.finalScore = score;
+    if (player.cash < remainingLoanDebt(player) && player.artifacts.length > 0) {
+      const vals = player.artifacts.map((id) => ({ id, v: adjustedArtifactValueForPlayer(state, player, requireArtifact(state, id), state.activeEffects) }));
+      const forfeit = vals.sort((a, b) => a.v - b.v)[0]!;
+      const art = state.artifacts[forfeit.id];
+      if (art) removeArtifactFromPlayer(state, player, art);
+      state.log.push(`${player.nickname} 因无力偿还贷款，被没收《${art?.name ?? forfeit.id}》。`);
+    }
   }
 }
 
-function scoreCategoryCollections(state: GameState, player: PlayerState): number {
+function calculatePlayerScore(state: GameState, player: PlayerState): FinalScore {
+  const loanDebt = remainingLoanDebt(player);
+  let cashAfterLoan: number;
+  let loanPenalty = 0;
+  if (player.cash >= loanDebt) {
+    cashAfterLoan = player.cash - loanDebt;
+  } else {
+    const shortfall = loanDebt - player.cash;
+    cashAfterLoan = 0;
+    if (player.artifacts.length > 0) {
+      const vals = player.artifacts.map((id) => ({ id, v: adjustedArtifactValueForPlayer(state, player, requireArtifact(state, id), state.activeEffects) }));
+      vals.sort((a, b) => a.v - b.v);
+    } else {
+      loanPenalty = Math.floor(shortfall / 10);
+    }
+  }
+  const roleEffects = roleFinalValueEffects(state as MutableGame, player);
+  const finalEff = [...state.activeEffects, ...roleEffects];
+  const artVals = player.artifacts.map((id) => adjustedArtifactValueForPlayer(state, player, requireArtifact(state, id), finalEff));
+  const artVal = artVals.reduce((s, v) => s + v, 0);
+  const donated = state.activeEffects.some((e) => e.sourceRoleSkillId === "prop31_donated" && e.createdBy === player.id);
+  const divisor = donated ? 30 : hasTodayEffect(state, "E16") ? 40 : 50;
+  const baseCash = Math.floor(cashAfterLoan / 50);
+  const cashRep = divisor < 50 ? baseCash + (divisor === 40 ? Math.min(5, Math.floor(cashAfterLoan / divisor) - baseCash) : Math.floor(cashAfterLoan / divisor) - baseCash) : baseCash;
+  const artRep = Math.floor(artVal / 50);
+  let catRep = scoreCategoryCollections(state, player);
+  const setRep = catRep;
+  const mResults = scoreMissions(state, player);
+  let mRep = mResults.reduce((s, r) => s + r.reputation, 0);
+  if (player.role?.roleId === "role03") mRep = Math.floor(mRep * 1.3);
+  let propRep = scorePropertyRep(state, player);
+  if (player.role?.roleId === "role07") propRep += Math.floor(new Set(player.artifacts.map((id) => requireArtifact(state, id).category)).size / 3);
+  const rPenalty = roleFinalPenalty(state, player);
+  const eRep = player.reputationBonus ?? 0;
+  const rep = cashRep + artRep + catRep + mRep + propRep + eRep - loanPenalty - rPenalty;
+  return {
+    reputation: rep, cashRep, cashAfterLoan, cashDivisor: divisor, artifactRep: artRep, categoryRep: catRep, setRep,
+    missionRep: mRep, propertyRep: propRep, eventRep: eRep, loanPenalty, loanDebt, rolePenalty: rPenalty,
+    artifactValue: artVal,
+    tieBreakers: { artifactValue: artVal, cash: cashAfterLoan, highestArtifactValue: Math.max(0, ...artVals) },
+    missionResults: mResults
+  };
+}
+
+function scoreCategoryCollections(state: GameState, player: PlayerState) {
   const counts = new Map<string, number>();
   for (const artifactId of player.artifacts) {
     const artifact = requireArtifact(state, artifactId);
     if (artifact.properties.includes("fake") || artifact.tag === "fake") continue;
     counts.set(artifact.category, (counts.get(artifact.category) ?? 0) + 1);
+  }
+  // 考古学者被动：数量最多的类别+1
+  if (player.role?.roleId === "role07" && counts.size > 0) {
+    const maxCategory = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]![0];
+    counts.set(maxCategory, (counts.get(maxCategory) ?? 0) + 1);
   }
   let score = 0;
   for (const count of counts.values()) {
@@ -2102,7 +2937,7 @@ function evaluateMission(state: GameState, player: PlayerState, mission: Mission
   const artifacts = player.artifacts.map((id) => requireArtifact(state, id));
   const values = artifacts.map((artifact) => adjustedArtifactValueForPlayer(state, player, artifact, state.activeEffects, { includeMissionDependentEffects: false }));
   const finalCash = Math.max(0, player.cash - remainingLoanDebt(player));
-  const categoryCounts = countBy(artifacts.map((artifact) => artifact.category));
+  const categoryCounts = categoryCountsForArtifacts(state, player, artifacts);
   const fakeCount = artifacts.filter(isFakeArtifact).length;
   const nonFakeCount = artifacts.length - fakeCount;
   const maxValue = Math.max(0, ...values);
@@ -2118,7 +2953,7 @@ function evaluateMission(state: GameState, player: PlayerState, mission: Mission
     case "W03":
       return categoryCounts.size >= 5;
     case "W04":
-      return Math.max(0, ...categoryCounts.values()) >= 4;
+      return Math.max(0, ...categoryCounts.values()) >= 3;
     case "W05":
       return exclusiveCategoryItemCount(state, player) >= 3;
     case "W06":
@@ -2164,7 +2999,7 @@ function evaluateMission(state: GameState, player: PlayerState, mission: Mission
     case "W26":
       return artifacts.filter((artifact) => artifact.peekedBy.length === 0).length >= 3 && artifacts.filter((artifact) => artifact.peekedBy.length === 0).reduce((sum, artifact) => sum + adjustedArtifactValueForPlayer(state, player, artifact, state.activeEffects, { includeMissionDependentEffects: false }), 0) >= 200;
     case "W27":
-      return (state.stats.commissionPeeksByViewer[player.id] ?? 0) >= 3;
+      return new Set(state.stats.commissionPeekTargetsByViewer?.[player.id] ?? []).size >= 3;
     case "W28":
       return fakeCount >= 2 && nonFakeCount >= 2;
     case "W29":
@@ -2216,13 +3051,13 @@ function scorePropertyRep(state: GameState, player: PlayerState): number {
 
 function roleFinalValueEffects(state: GameState, player: PlayerState): ActiveEffect[] {
   const effects: ActiveEffect[] = [];
-  if (player.role?.roleId === "role01" || player.role?.roleId === "role07") {
+  if (player.role?.roleId === "role01") {
     const fakeArtifact = player.artifacts.map((id) => requireArtifact(state, id)).find(isFakeArtifact);
     if (fakeArtifact) {
-      const currentMultiplier = artifactBaseMultiplier(fakeArtifact, state.day);
+      const currentMultiplier = artifactBaseMultiplier(fakeArtifact);
       effects.push({
         id: "role_fake_value",
-        sourceRoleSkillId: player.role.roleId === "role01" ? "role01_skill03" : "role07_skill03",
+        sourceRoleSkillId: "role01_skill03",
         label: "角色技能：一件赝品按原价结算。",
         appliesTo: "finalValue",
         targetArtifactId: fakeArtifact.id,
@@ -2259,6 +3094,15 @@ function missionCategory(missionId: string): ArtifactCategory | undefined {
     W52: "lastword"
   };
   return categories[missionId];
+}
+
+function categoryCountsForArtifacts(state: GameState, player: PlayerState, artifacts: ArtifactInstance[]): Map<string, number> {
+  const counts = countBy(artifacts.map((artifact) => artifact.category));
+  if (player.role?.roleId === "role07" && counts.size > 0) {
+    const maxCategory = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]![0];
+    counts.set(maxCategory, (counts.get(maxCategory) ?? 0) + 1);
+  }
+  return counts;
 }
 
 function exclusiveCategoryItemCount(state: GameState, player: PlayerState): number {
@@ -2304,7 +3148,28 @@ function adjustedArtifactValueForPlayer(
   activeEffects: ActiveEffect[] = state.activeEffects,
   options: { includeMissionDependentEffects?: boolean } = { includeMissionDependentEffects: true }
 ): number {
-  let multiplier = artifactBaseMultiplier(artifact, state.day);
+  if (typeof artifact.lockedSettlementValue === "number") {
+    const roleOverride = activeEffects.find(
+      (effect) =>
+        effect.appliesTo === "finalValue" &&
+        effect.sourceRoleSkillId === "role01_skill03" &&
+        effect.targetArtifactId === artifact.id &&
+        effect.createdBy === player.id
+    );
+    // 传世（heirloom）需要动态计算每日增长，不能锁死在获取时
+    const baseValue = roleOverride ? artifact.trueValue : artifact.lockedSettlementValue;
+    const heirloomMultiplier = (artifact.tag === "heirloom" || artifact.properties.includes("heirloom"))
+      ? (1 + Math.max(0, state.day - (artifact.dayAcquired ?? state.day)) * 0.02)
+      : 1;
+    if (!roleOverride && heirloomMultiplier <= 1) return artifact.lockedSettlementValue;
+    if (!roleOverride && heirloomMultiplier > 1) return Math.floor(baseValue * heirloomMultiplier);
+    // roleOverride继续往下走完整计算
+  }
+  let multiplier = artifactBaseMultiplier(artifact);
+  // 传世动态加成（不在锁定值路径时）
+  if (artifact.tag === "heirloom" || artifact.properties.includes("heirloom")) {
+    multiplier *= 1 + Math.max(0, state.day - (artifact.dayAcquired ?? state.day)) * 0.02;
+  }
   if (!artifact.properties.includes("treasure") && playerArtifacts(state, player).some((owned) => owned.properties.includes("treasure"))) multiplier *= 1.1;
   if (!artifact.properties.includes("prop16") && artifact.peekedBy.length === 0 && playerArtifacts(state, player).some((owned) => owned.properties.includes("prop16"))) multiplier *= 1.08;
   if (artifact.properties.includes("prop03")) multiplier *= 1.1;
@@ -2335,19 +3200,18 @@ function adjustedArtifactValueForPlayer(
   return Math.floor(artifact.trueValue * multiplier * effectMultiplier);
 }
 
-function artifactBaseMultiplier(artifact: ArtifactInstance, currentDay: number): number {
+function artifactBaseMultiplier(artifact: ArtifactInstance): number {
   let multiplier = 1;
   if (artifact.tag === "treasure" || artifact.properties.includes("treasure")) multiplier *= artifact.tag === "treasure" ? 1.15 : 1.1;
-  if (artifact.tag === "heirloom" || artifact.properties.includes("heirloom")) multiplier *= 1 + Math.max(0, currentDay - (artifact.dayAcquired ?? currentDay)) * 0.02;
   if (artifact.tag === "fake" || artifact.properties.includes("fake")) multiplier *= 0.3;
   if (artifact.tag === "fragile" || artifact.properties.includes("fragile")) multiplier *= 0.9;
   return multiplier;
 }
 
-function currentDutchPrice(auction: NonNullable<GameState["auction"]>, now = Date.now()): number {
+function currentDutchPrice(auction: NonNullable<GameState["auction"]>): number {
+  // 直接返回当前已存储的荷兰价，不需要重新计算
   if (!auction.dutch) return Math.max(0, auction.currentBid);
-  const elapsedTicks = Math.max(0, Math.floor((now - auction.dutch.startedAt) / auction.dutch.tickMs));
-  return Math.max(0, auction.dutch.startPrice - elapsedTicks * auction.dutch.step);
+  return Math.max(0, auction.dutch.currentPrice);
 }
 
 export function getPlayerView(state: GameState, playerId: PlayerId): PlayerView {
@@ -2389,6 +3253,7 @@ export function getPlayerView(state: GameState, playerId: PlayerId): PlayerView 
       revealedEvents: canSeeHand ? player.events.map((id) => eventById.get(id)).filter(isDefined) : undefined,
       revealedMissions: canSeeMissions ? player.missionIds.map((id) => state.missions[id]).filter(isDefined) : undefined,
       artifacts: player.artifacts.map((id) => artifactView(state, id, self.id, false, isFinal)),
+      tradesToday: player.tradesToday,
       finalScore: player.finalScore
     };
   });
@@ -2418,7 +3283,9 @@ export function getPlayerView(state: GameState, playerId: PlayerId): PlayerView 
       artifacts: selfArtifacts,
       missions: self.missionIds.map((id) => state.missions[id]).filter(isDefined),
       mission: self.missionId ? state.missions[self.missionId] : undefined,
-      role
+      role,
+      loanRepayments: self.loanRepayments,
+      roleSkillCharges: self.role?.skillCharges
     },
     todayArtifacts,
     auction: publicAuctionView(state, self.id),
@@ -2427,8 +3294,8 @@ export function getPlayerView(state: GameState, playerId: PlayerId): PlayerView 
     canStart:
       state.phase === "lobby" &&
       state.hostPlayerId === self.id &&
-      activePlayers(state).length >= GAME_CONSTANTS.minPlayers &&
-      activePlayers(state).every((player) => player.ready || player.id === self.id),
+      lobbyPlayers(state).length >= GAME_CONSTANTS.minPlayers &&
+      lobbyPlayers(state).every((player) => player.ready || player.id === self.id),
     canSetAuction: state.phase === "preview" && (!state.currentHostId || state.currentHostId === self.id),
     canAdvance: canAdvance(state, self.id),
     canManageRoom: state.hostPlayerId === self.id,
@@ -2436,6 +3303,7 @@ export function getPlayerView(state: GameState, playerId: PlayerId): PlayerView 
     lastMessage: publicLastMessage(state),
     log: publicLogForView(state.log).slice(-12),
     privateLog: (self.privateLog ?? []).slice(-24),
+    projectedScore: isFinal ? undefined : calculatePlayerScore(state, self),
     lastIncomeRolls: state.lastIncomeRolls,
     catalog: {
       tricks: TRICK_CARDS,
@@ -2463,9 +3331,10 @@ function artifactView(state: GameState, artifactId: ArtifactId, viewerId: Player
     ownerId: artifact.ownerId,
     dayAcquired: artifact.dayAcquired,
     purchasePrice: artifact.ownerId === viewerId || isFinal ? artifact.purchasePrice : undefined,
+    lockedSettlementValue: artifact.ownerId === viewerId || isFinal ? artifact.lockedSettlementValue : undefined,
     tag: canSeeSecret ? artifact.tag : undefined,
     properties: canSeeSecret ? artifact.properties.map((id) => propertyView(id)).filter(isDefined) : undefined,
-    trueValue: isFinal || artifact.ownerId === viewerId ? (owner ? adjustedArtifactValueForPlayer(state, owner, artifact) : adjustedArtifactValue(artifact, state.day, state.activeEffects)) : undefined,
+    trueValue: isFinal || artifact.ownerId === viewerId ? roundToTen(owner ? adjustedArtifactValueForPlayer(state, owner, artifact) : adjustedArtifactValue(artifact, state.day, state.activeEffects)) : undefined,
     tagLabel: canSeeSecret ? TAG_LABELS[artifact.tag] : undefined
   };
 }
@@ -2524,6 +3393,9 @@ function phaseLabel(phase: GameState["phase"]): string {
 }
 
 function isEffectVisibleTo(effect: ActiveEffect, viewerId: PlayerId, isFinal: boolean): boolean {
+  if (effect.pendingChoice && effect.choiceType === "C04_listing") return true;
+  if (effect.pendingChoice && canResolveChoice(effect, viewerId)) return true;
+  if (effect.pendingChoice && effect.createdBy === viewerId) return true;
   if (!isFinal && (effect.sourceCardId || effect.sourceEventId)) return effect.createdBy === viewerId;
   if (isFinal || effect.appliesTo !== "visibility") return true;
   if (effect.sourceCardId === "D03" || effect.sourceRoleSkillId === "role06_skill01" || effect.sourceRoleSkillId === "role06_skill03") {
@@ -2535,14 +3407,28 @@ function isEffectVisibleTo(effect: ActiveEffect, viewerId: PlayerId, isFinal: bo
 function hostForDay(state: GameState, day: number): PlayerId | undefined {
   const players = activePlayers(state);
   if (players.length === 0) return undefined;
+  // 2 人局：轮流当主持人，第一天随机
+  if (players.length === 2) {
+    const offset = state.startHostOffset ?? 0;
+    return players[(offset + day - 1) % 2]?.id;
+  }
+  // 6 人局：前 6 天轮流，后 4 天无主持人
+  if (players.length === 6 && day >= 7) return undefined;
+  // 3 人局：第 10 天无主持人
   if (players.length === 3 && day === 10) return undefined;
+  // 4 人局：第 9-10 天无主持人
   if (players.length === 4 && day >= 9) return undefined;
-  const index = (day - 1) % players.length;
+  const offset = state.startHostOffset ?? 0;
+  const index = (offset + day - 1) % players.length;
   return players[index]?.id;
 }
 
 function activePlayers(state: GameState): PlayerState[] {
   return state.players.filter((candidate) => !candidate.kicked);
+}
+
+function lobbyPlayers(state: GameState): PlayerState[] {
+  return activePlayers(state).filter((candidate) => candidate.connected);
 }
 
 function currentAuctionArtifacts(state: GameState): ArtifactInstance[] {
@@ -2553,6 +3439,19 @@ function currentAuctionArtifacts(state: GameState): ArtifactInstance[] {
 
 function currentAuctionArtifact(state: GameState): ArtifactInstance {
   return currentAuctionArtifacts(state)[0]!;
+}
+
+function auctionBidCeilingForArtifactIds(state: GameState, artifactIds: ArtifactId[]): number {
+  return Math.max(
+    0,
+    artifactIds.reduce((sum, artifactId) => sum + requireArtifact(state, artifactId).rumorMax, 0)
+  );
+}
+
+function auctionRumorRangeText(artifacts: ArtifactInstance[]): string {
+  const floor = artifacts.reduce((sum, artifact) => sum + artifact.rumorMin, 0);
+  const ceiling = artifacts.reduce((sum, artifact) => sum + artifact.rumorMax, 0);
+  return `价格区间 ${floor} - ${ceiling} 银元`;
 }
 
 function recordAuctionBid(auction: NonNullable<GameState["auction"]>, playerId: PlayerId, amount: number): void {
@@ -2583,6 +3482,20 @@ function firstTag(properties: string[]): ArtifactTag {
 
 function bidderPlayers(state: GameState): PlayerState[] {
   return activePlayers(state).filter((candidate) => candidate.id !== state.currentHostId);
+}
+
+function immediateEnglishResolution(state: GameState): { winnerId?: PlayerId; unsold?: boolean } | undefined {
+  if (state.phase !== "auction" || !state.auction) return undefined;
+  const bidMode = state.auction.mode === "bundle" ? state.auction.bundleInnerMode ?? "english" : state.auction.mode;
+  if (bidMode !== "english" || state.auction.status !== "open") return undefined;
+  const bidderIds = bidderPlayers(state).map((candidate) => candidate.id);
+  if (state.auction.currentBidderId) {
+    const challengers = bidderIds.filter((id) => id !== state.auction!.currentBidderId && !state.auction!.passedPlayerIds.includes(id));
+    if (challengers.length === 0) return { winnerId: state.auction.currentBidderId };
+    return undefined;
+  }
+  if (bidderIds.length > 0 && bidderIds.every((id) => state.auction!.passedPlayerIds.includes(id))) return { unsold: true };
+  return undefined;
 }
 
 function assertNonHostBidder(state: GameState, player: PlayerState): void {
@@ -2700,6 +3613,21 @@ function bankSellRateFor(state: GameState, player: PlayerState, artifact?: Artif
   return GAME_CONSTANTS.bankSellRate;
 }
 
+function bankSellPriceFor(state: GameState, player: PlayerState, artifact: ArtifactInstance): number {
+  const saleEffect = state.activeEffects.find((effect) => effect.createdBy === player.id && effect.sourceCardId === "C01" && effect.day === state.day);
+  const rate = saleEffect?.bankSellRate ?? bankSellRateFor(state, player, artifact);
+  const propertyPenalty = artifact.properties.includes("prop25") ? 0.8 : 1;
+  const firstSaleEffect = todayEffects(state, "E10")[0];
+  if (firstSaleEffect) {
+    const counts = firstSaleEffect.perPlayerCounts ?? {};
+    if ((counts[player.id] ?? 0) === 0) {
+      firstSaleEffect.perPlayerCounts = { ...counts, [player.id]: 1 };
+      return Math.floor((artifact.purchasePrice ?? artifact.rumorMin) * propertyPenalty);
+    }
+  }
+  return Math.floor(artifact.rumorMin * rate * propertyPenalty);
+}
+
 function loanRepaymentFor(state: GameState, player: PlayerState): number {
   const eventRepayment = todayEffects(state)
     .map((effect) => effect.loanRepayment)
@@ -2752,6 +3680,10 @@ function assertTradeAllowedByEvents(state: GameState, assets: TradeAssetSet): vo
 function recordCommissionPeek(state: MutableGame, viewerId: PlayerId, targetPlayerId?: PlayerId): void {
   if (!targetPlayerId || targetPlayerId === viewerId) return;
   addStat(state.stats.commissionPeeksByViewer, viewerId, 1);
+  state.stats.commissionPeekTargetsByViewer ??= {};
+  const targets = new Set(state.stats.commissionPeekTargetsByViewer[viewerId] ?? []);
+  targets.add(targetPlayerId);
+  state.stats.commissionPeekTargetsByViewer[viewerId] = [...targets];
   addStat(state.stats.commissionPeekedByTarget, targetPlayerId, 1);
 }
 
@@ -2772,7 +3704,7 @@ function applyHotTradeBonus(state: MutableGame, seller: PlayerState, soldAssets:
     if (!artifact.properties.includes("prop04")) continue;
     const bonus = Math.min(30, Math.floor(cash * 0.2));
     seller.cash += bonus;
-    state.log.push(`${seller.nickname} 出售《${artifact.name}》的“热门”生效，银行补贴 ${bonus} 银元。`);
+    state.log.push(`${seller.nickname} 出售《${artifact.name}》的"热门"生效，银行补贴 ${bonus} 银元。`);
   }
 }
 
@@ -2891,17 +3823,36 @@ function assertAssets(player: PlayerState, assets: TradeAssetSet): void {
   for (const id of assets.cardIds ?? []) if (!player.hand.includes(id) && !player.events.includes(id)) throw new RuleError("交易卡牌不属于玩家。", "NOT_OWNER");
 }
 
+function tradeOfferDetail(state: GameState, offer: TradeOffer): { give: string; receive: string } {
+  return {
+    give: formatTradeAssetSet(state, offer.give),
+    receive: formatTradeAssetSet(state, offer.receive)
+  };
+}
+
+function formatTradeAssetSet(state: GameState, assets: TradeAssetSet): string {
+  const parts: string[] = [];
+  if (assets.cash && assets.cash > 0) parts.push(`${assets.cash} 银元`);
+  for (const artifactId of assets.artifactIds ?? []) {
+    const artifact = state.artifacts[artifactId];
+    parts.push(artifact ? `藏品《${artifact.name}》` : `藏品 ${artifactId}`);
+  }
+  for (const cardId of assets.cardIds ?? []) {
+    const card = cardById.get(cardId);
+    parts.push(card ? `${eventById.has(cardId) ? "事件卡" : "锦囊"}《${card.name}》` : `卡牌 ${cardId}`);
+  }
+  return parts.length ? parts.join("、") : "无";
+}
+
 function transferAssets(state: MutableGame, from: PlayerState, to: PlayerState, assets: TradeAssetSet): void {
   if (assets.cash) {
     from.cash -= assets.cash;
     to.cash += assets.cash;
   }
   for (const id of assets.artifactIds ?? []) {
-    from.artifacts = from.artifacts.filter((artifactId) => artifactId !== id);
-    to.artifacts.push(id);
     const artifact = requireArtifact(state, id);
-    artifact.ownerId = to.id;
-    revealArtifactTo(artifact, to.id);
+    removeArtifactFromPlayer(state, from, artifact);
+    assignArtifactToPlayer(state, to, artifact);
   }
   for (const id of assets.cardIds ?? []) {
     if (from.hand.includes(id)) {
@@ -3013,6 +3964,7 @@ function emptyStats() {
     trickCardsPlayed: {},
     infoTricksPlayed: {},
     commissionPeeksByViewer: {},
+    commissionPeekTargetsByViewer: {},
     commissionPeekedByTarget: {},
     eventCardsPlayed: {},
     blackMarketCardsBought: {},
@@ -3070,37 +4022,33 @@ function resolveInfoCardResult(
     const missions = target.missionIds.map((id) => state.missions[id]).filter(isDefined);
     if (missions.length === 0) return { message: `${target.nickname} 没有秘密委托。` };
     const first = missions[0]!;
-    const detail = card.id === "I04" ? first.route ?? first.name : `${first.name}：${first.description}（奖励 ${first.reputation} 声望）`;
+    if (card.id === "I04") {
+      return { message: `${target.nickname} 的委托线索：${first.route ?? first.name}。` };
+    }
+    const detail = `${first.name}：${first.description}（奖励 ${first.reputation} 声望）`;
     return { message: `${target.nickname} 的委托线索：${detail}。` };
   }
   if (card.id === "I08") {
-    const auction = requireAuction(state);
-    const prepared = bidderPlayers(state).filter((candidate) => !Object.prototype.hasOwnProperty.call(auction.sealedBids, candidate.id)).length;
-    return { message: `本次暗标仍有 ${prepared} 名玩家尚未提交或准备出价。` };
+    const artifact = requireArtifact(state, payload.targetArtifactId ?? currentAuctionArtifacts(state)[0]?.id ?? state.todayArtifactIds[0]);
+    return { peekArtifactId: artifact.id, message: `《${artifact.name}》传闻区间最低值为 ${artifact.rumorMin} 银元。` };
   }
   if (card.id === "I09") {
     const nextArtifacts = state.deck.slice(0, 2).map((id) => requireArtifact(state, id));
     return {
       message: nextArtifacts.length
-        ? `下一天预展可能出现：${nextArtifacts.map((artifact) => `《${artifact.name}》（${CATEGORY_LABELS[artifact.category]}）`).join("、")}。`
+        ? `下一天预展可能出现：${nextArtifacts.map((artifact) => `《${artifact.name}》(${artifact.rumorMin}-${artifact.rumorMax} 银元，属性 ${formatPropertyNames(artifact.properties)})`).join("、")}。`
         : "牌库中没有可预告的藏品。"
     };
   }
 
   const artifact = requireArtifact(state, payload.targetArtifactId ?? currentAuctionArtifacts(state)[0]?.id ?? state.todayArtifactIds[0]);
   if (card.id === "I01") return { peekArtifactId: artifact.id, message: `《${artifact.name}》传闻上限${artifact.rumorMax >= 200 ? "大于等于" : "低于"} 200。` };
-  if (card.id === "I02") return { peekArtifactId: artifact.id, message: `《${artifact.name}》传闻下限 ${artifact.rumorMin}，上限 ${artifact.rumorMax}。` };
-  if (card.id === "I03") {
-    const artifacts = state.todayArtifactIds.map((id) => requireArtifact(state, id));
-    const categories = artifacts.map((candidate) => CATEGORY_LABELS[candidate.category]);
-    const sameCategory = new Set(artifacts.map((candidate) => candidate.category)).size <= 1;
-    return { peekArtifactId: artifact.id, message: `今日拍品类别：${categories.join(" / ")}；${sameCategory ? "属于同类别" : "不属于同类别"}。` };
-  }
-  if (card.id === "I06") return { peekArtifactId: artifact.id, message: `《${artifact.name}》属性倾向：${propertyTendency(artifact)}。` };
+  if (card.id === "I02") return { peekArtifactId: artifact.id, message: `《${artifact.name}》传闻区间：${artifact.rumorMin} - ${artifact.rumorMax} 银元。` };
+  if (card.id === "I06") return { peekArtifactId: artifact.id, message: `《${artifact.name}》完整属性：${formatPropertyNames(artifact.properties)}。` };
   if (card.id === "I07" || card.id === "I10") return { peekArtifactId: artifact.id, message: `《${artifact.name}》完整属性：${formatPropertyNames(artifact.properties)}。` };
   if (card.id === "I11" || card.id === "I14") return { peekArtifactId: artifact.id, message: `《${artifact.name}》${artifact.properties.includes("fake") || artifact.tag === "fake" ? "是" : "不是"}赝品。` };
   if (card.id === "I13" || card.id === "I15" || card.id === "B03") return { peekArtifactId: artifact.id, message: `《${artifact.name}》传闻区间：${artifact.rumorMin} - ${artifact.rumorMax} 银元。` };
-  if (card.id === "C04") return { peekArtifactId: artifact.id, message: `你公开挂售《${artifact.name}》；若本阶段被买走，卖方额外获得 20 银元。` };
+  if (card.id === "C04") return { peekArtifactId: artifact.id, message: `你公开挂售《${artifact.name}》；若本阶段被买走，成交价由玩家定价，卖方额外获得 20 银元。` };
   return { peekArtifactId: artifact.id, message: `《${artifact.name}》情报：传闻 ${artifact.rumorMin} - ${artifact.rumorMax} 银元，属性倾向 ${propertyTendency(artifact)}。` };
 }
 
@@ -3123,6 +4071,16 @@ function formatCardNames<T extends { name: string }>(cardIds: string[], lookup: 
   return names.length ? names.map((name) => `《${name}》`).join("、") : emptyText;
 }
 
+function playerActionSnapshot(state: GameState, player: PlayerState) {
+  return {
+    cash: player.cash,
+    hand: [...player.hand],
+    events: [...player.events],
+    artifacts: [...player.artifacts],
+    tradeOfferCount: state.tradeOffers.length
+  };
+}
+
 function playCardPrivateMessage(
   state: GameState,
   player: PlayerState,
@@ -3130,6 +4088,7 @@ function playCardPrivateMessage(
   payload: { targetArtifactId?: string; targetPlayerId?: string }
 ): string {
   const parts = [`你使用了${eventById.has(card.id) ? "事件卡" : "锦囊"}《${card.name}》`];
+  if (card.cost) parts.push(`花费 ${card.cost} 银元`);
   if (payload.targetPlayerId) {
     const target = state.players.find((candidate) => candidate.id === payload.targetPlayerId);
     if (target) parts.push(`目标玩家：${target.nickname}`);
@@ -3139,6 +4098,38 @@ function playCardPrivateMessage(
     if (artifact) parts.push(`目标藏品：《${artifact.name}》`);
   }
   return `${parts.join("，")}。`;
+}
+
+function playCardResultPrivateMessage(
+  state: GameState,
+  player: PlayerState,
+  card: TrickCard | EventCard,
+  before: ReturnType<typeof playerActionSnapshot>
+): string | undefined {
+  const parts: string[] = [];
+  const cashDelta = player.cash - before.cash;
+  if (cashDelta > 0) parts.push(`获得 ${cashDelta} 银元`);
+  if (cashDelta < 0) parts.push(`支付 ${Math.abs(cashDelta)} 银元`);
+
+  const newTricks = player.hand.filter((cardId) => !before.hand.includes(cardId));
+  const newEvents = player.events.filter((cardId) => !before.events.includes(cardId));
+  const newArtifacts = player.artifacts.filter((artifactId) => !before.artifacts.includes(artifactId));
+  if (newTricks.length > 0) parts.push(`获得锦囊 ${formatCardNames(newTricks, trickById, "无")}`);
+  if (newEvents.length > 0) parts.push(`获得事件卡 ${formatCardNames(newEvents, eventById, "无")}`);
+  for (const artifactId of newArtifacts) {
+    const artifact = state.artifacts[artifactId];
+    if (artifact) parts.push(`获得藏品《${artifact.name}》`);
+  }
+
+  const newOffers = state.tradeOffers.slice(before.tradeOfferCount).filter((offer) => offer.fromPlayerId === player.id);
+  for (const offer of newOffers) {
+    const detail = tradeOfferDetail(state, offer);
+    const target = state.players.find((candidate) => candidate.id === offer.toPlayerId);
+    parts.push(`向 ${target?.nickname ?? "目标玩家"} 发起交易：你给出 ${detail.give}，想获得 ${detail.receive}`);
+  }
+
+  if (parts.length === 0 && eventById.has(card.id)) parts.push(card.description.trim().replace(/[。.]?$/, ""));
+  return parts.length ? `《${card.name}》结果：${parts.join("；")}。` : undefined;
 }
 
 function countBy(values: string[]): Map<string, number> {

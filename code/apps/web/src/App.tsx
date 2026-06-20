@@ -25,22 +25,29 @@ import {
   UserMinus,
   X
 } from "lucide-react";
-import type { AuctionMode, ClientToServerEvents, EventCard, GamePhase, PhaseTimeouts, PlayerView, PublicArtifactView, RoleSkill, TrickCard } from "@auctioneer/shared";
+import type { ActiveEffect, AuctionMode, ChoiceResolution, ClientToServerEvents, EventCard, GamePhase, PhaseTimeouts, PlayerView, PublicArtifactView, RoleSkill, TrickCard } from "@auctioneer/shared";
 import { CATEGORY_LABELS, TAG_LABELS } from "@auctioneer/shared";
+import { CardPreviewShowcase, isCardPreviewRoute } from "./CardPreviewShowcase";
+import { ActiveSkillShowcase, isActiveSkillShowcaseRoute } from "./ActiveSkillShowcase";
 import { clearSession, createGameSocket, loadSession, saveSession, summarizeView, type GameSocket } from "./socket";
+import { useBackgroundMusic } from "./useBackgroundMusic";
 
 gsap.registerPlugin(useGSAP);
 
 type Ack<T> = ({ ok: true } & T) | { ok: false; error: string };
 type PlayableCard = TrickCard | EventCard;
-type TargetMode = "none" | "player" | "artifact" | "ownedArtifact" | "playerArtifact" | "playerAuctionArtifact" | "playerMission";
+type CardVaultKind = "tricks" | "events";
+type TargetMode = "none" | "player" | "artifact" | "ownedArtifact" | "playerArtifact" | "playerAuctionArtifact" | "playerMission" | "playerSwap";
 type TargetRequest =
   | { kind: "card"; card: PlayableCard; defaultArtifactId?: string }
-  | { kind: "role"; skill: RoleSkill };
+  | { kind: "role"; skill: RoleSkill }
+  | { kind: "consignment"; card: PlayableCard; defaultArtifactId?: string };
 type AppNotice =
   | { kind: "auction"; id: string; title: string }
   | { kind: "purchase"; id: string; artifacts: PublicArtifactView[] }
-  | { kind: "commission"; id: string; message: string };
+  | { kind: "blackMarketPurchase"; id: string; card: PlayableCard; cardKind: "trick" | "event"; cost: number; remainingCash: number }
+  | { kind: "commission"; id: string; message: string }
+  | { kind: "loanWarning"; id: string; debt: number; loans: number };
 
 const phaseLabels: Record<PlayerView["phase"], string> = {
   lobby: "大厅",
@@ -58,7 +65,26 @@ const phaseLabels: Record<PlayerView["phase"], string> = {
 
 const configurableTimeoutPhases: GamePhase[] = ["dayIncome", "blackMarket", "preview", "cardWindow", "auction", "settlement", "eventWindow", "freeTrade"];
 
+const rolePortraitById: Record<string, string> = {
+  role01: "/roles/role01.png",
+  role02: "/roles/role02.png",
+  role03: "/roles/role03.png",
+  role04: "/roles/role04.png",
+  role05: "/roles/role05.png",
+  role06: "/roles/role06.png",
+  role07: "/roles/role07.png",
+  role08: "/roles/role08.png",
+  role09: "/roles/role09.png"
+};
+
+function getRolePortrait(roleId?: string): string | undefined {
+  return roleId ? rolePortraitById[roleId] : undefined;
+}
+
 export function App() {
+  if (isCardPreviewRoute()) return <CardPreviewShowcase />;
+  if (isActiveSkillShowcaseRoute()) return <ActiveSkillShowcase />;
+
   const appRef = useRef<HTMLElement | null>(null);
   const socketRef = useRef<GameSocket | null>(null);
   const [view, setView] = useState<PlayerView>();
@@ -66,14 +92,23 @@ export function App() {
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
   const [bidAmount, setBidAmount] = useState(10);
+  const [dutchStepAmount, setDutchStepAmount] = useState(10);
   const [sealedAmount, setSealedAmount] = useState(0);
   const [targetRequest, setTargetRequest] = useState<TargetRequest>();
   const [confirmCard, setConfirmCard] = useState<PlayableCard>();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scoreboardOpen, setScoreboardOpen] = useState(false);
   const [backpackOpen, setBackpackOpen] = useState(false);
+  const [cardVaultOpen, setCardVaultOpen] = useState<CardVaultKind | undefined>(undefined);
+  const [pendingActions, setPendingActions] = useState<Set<string>>(new Set());
+  const bgm = useBackgroundMusic(view?.day);
+  const [loanConfirmOpen, setLoanConfirmOpen] = useState(false);
+  const [sellConfirmArtifactId, setSellConfirmArtifactId] = useState<string>();
   const [incomeRollsOpen, setIncomeRollsOpen] = useState(false);
   const [roleRevealOpen, setRoleRevealOpen] = useState(false);
+  const [choiceEffect, setChoiceEffect] = useState<ActiveEffect | undefined>(undefined);
+  const [dismissedChoiceIds, setDismissedChoiceIds] = useState<string[]>([]);
+  const [projectionOpen, setProjectionOpen] = useState(false);
   const [notices, setNotices] = useState<AppNotice[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected" | "recovering" | "failed">("connecting");
   const [now, setNow] = useState(Date.now());
@@ -104,6 +139,18 @@ export function App() {
       setConnectionStatus(socket.connected ? "connected" : "connecting");
       setError("");
     });
+    socket.on("room:redirect", (data: { newRoomId: string; joinCode: string; newPlayerId: string; sessionToken: string }) => {
+      clearSession();
+      saveSession({ roomId: data.newRoomId, playerId: data.newPlayerId, sessionToken: data.sessionToken });
+      setConnectionStatus("recovering");
+      socket.emit("room:resume", { roomId: data.newRoomId, playerId: data.newPlayerId, sessionToken: data.sessionToken }, (response: { ok: boolean; view?: PlayerView; error?: string }) => {
+        if (response.ok && response.view) {
+          setView(response.view);
+          setConnectionStatus("connected");
+          setError("");
+        }
+      });
+    });
     socket.on("room:error", (payload) => {
       if (payload.code === "SESSION_INVALID") {
         clearSession();
@@ -112,11 +159,13 @@ export function App() {
         setSettingsOpen(false);
       setScoreboardOpen(false);
       setBackpackOpen(false);
+      setCardVaultOpen(undefined);
       setIncomeRollsOpen(false);
       setRoleRevealOpen(false);
         setTargetRequest(undefined);
         setConfirmCard(undefined);
         setNotices([]);
+        setDismissedChoiceIds([]);
         setJoinCode("");
       }
       setError(payload.message);
@@ -195,6 +244,7 @@ export function App() {
     const closeOverlays = () => {
       setScoreboardOpen(false);
       setBackpackOpen(false);
+      setCardVaultOpen(undefined);
     };
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -212,16 +262,20 @@ export function App() {
       seenAuctionNoticeRef.current = new Set();
       previousPrivateLogRef.current = [];
       setBackpackOpen(false);
+      setCardVaultOpen(undefined);
       setIncomeRollsOpen(false);
       setNotices([]);
+      setDismissedChoiceIds([]);
       return;
     }
     seenArtifactIdsRef.current = new Set(view.self.artifacts.map((artifact) => artifact.id));
     seenAuctionNoticeRef.current = new Set();
     previousPrivateLogRef.current = view.privateLog;
     setBackpackOpen(false);
+    setCardVaultOpen(undefined);
     setIncomeRollsOpen(false);
     setNotices([]);
+    setDismissedChoiceIds([]);
   }, [view?.roomId, view?.selfId]);
 
   useEffect(() => {
@@ -268,18 +322,53 @@ export function App() {
     }
   }, [view?.roomId, view?.selfId, view?.privateLog]);
 
+  useEffect(() => {
+    if (!view || view.day !== view.maxDays) return;
+    const debt = (view.self.loanRepayments ?? []).reduce((sum, repayment) => sum + repayment, 0);
+    if (view.self.loans <= 0 || debt <= 0) return;
+    enqueueNotice({
+      kind: "loanWarning",
+      id: `loan-warning:${view.roomId}:${view.selfId}:${view.day}:${view.self.loans}:${debt}`,
+      debt,
+      loans: view.self.loans
+    });
+  }, [view?.roomId, view?.selfId, view?.day, view?.maxDays, view?.self.loans, view?.self.loanRepayments]);
+
+  useEffect(() => {
+    if (!view) return;
+    const pending = view.activeEffects.find(
+      (e) => e.pendingChoice && !dismissedChoiceIds.includes(e.id) && canRespondChoiceEffect(e, view)
+    );
+    setChoiceEffect(pending);
+  }, [view?.activeEffects, view?.selfId, dismissedChoiceIds]);
+
+  const scopedTargets = (selector: string) => Array.from(appRef.current?.querySelectorAll(selector) ?? []);
+
   useGSAP(
     () => {
       if (!backpackOpen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".backpack-panel", { autoAlpha: 0, y: -14, scale: 0.98 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.2, ease: "power2.out", overwrite: "auto" });
+      const panels = scopedTargets(".backpack-panel");
+      if (panels.length) gsap.fromTo(panels, { autoAlpha: 0, y: -14, scale: 0.98 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.2, ease: "power2.out", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [backpackOpen], revertOnUpdate: true }
   );
 
   useGSAP(
     () => {
+      if (!cardVaultOpen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const panels = scopedTargets(".card-vault-panel");
+      const cards = scopedTargets(".card-vault-panel .game-card-face");
+      if (panels.length) gsap.fromTo(panels, { autoAlpha: 0, y: -14, scale: 0.98 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.2, ease: "power2.out", overwrite: "auto" });
+      if (cards.length) gsap.fromTo(cards, { autoAlpha: 0, y: 10, rotationX: -6 }, { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.26, stagger: 0.035, ease: "power2.out", overwrite: "auto" });
+    },
+    { scope: appRef, dependencies: [cardVaultOpen, view?.self.hand.length, view?.self.events.length], revertOnUpdate: true }
+  );
+
+  useGSAP(
+    () => {
       if (!notice || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".notice-modal", { autoAlpha: 0, y: 18, scale: 0.96 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.24, ease: "back.out(1.35)", overwrite: "auto" });
+      const modals = scopedTargets(".notice-modal");
+      if (modals.length) gsap.fromTo(modals, { autoAlpha: 0, y: 18, scale: 0.96 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.24, ease: "back.out(1.35)", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [notice?.id], revertOnUpdate: true }
   );
@@ -293,9 +382,16 @@ export function App() {
   }, [backpackOpen]);
 
   useEffect(() => {
+    if (!cardVaultOpen) return;
+    setScoreboardOpen(false);
+    setBackpackOpen(false);
+  }, [cardVaultOpen]);
+
+  useEffect(() => {
     if (!view) return;
     setScoreboardOpen(false);
     setBackpackOpen(false);
+    setCardVaultOpen(undefined);
     setTargetRequest(undefined);
     setConfirmCard(undefined);
   }, [view?.phase, view?.day]);
@@ -303,22 +399,43 @@ export function App() {
   useEffect(() => {
     if (!view) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      if (notice) closeNotice();
-      else setBackpackOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (projectionOpen) setProjectionOpen(false);
+        else if (notice) closeNotice();
+        else if (cardVaultOpen) setCardVaultOpen(undefined);
+        else setBackpackOpen(false);
+      }
+      if ((event.key === "`" || event.key === "~" || event.code === "Backquote") && !event.repeat) {
+        event.preventDefault();
+        if (view.phase !== "finalScoring" && view.projectedScore) {
+          setProjectionOpen(true);
+        }
+      }
+    };
+    const onKeyUp = (event: KeyboardEvent) => {
+      // 松开 ~ 键关闭投影面板
+      if ((event.key === "`" || event.key === "~" || event.code === "Backquote") && projectionOpen) {
+        setProjectionOpen(false);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
-  }, [view, notice]);
+  }, [view, notice, cardVaultOpen, projectionOpen]);
 
-  const currentArtifact = useMemo(() => {
-    if (!view?.auction) return view?.todayArtifacts[0];
-    const artifactId = view.auction.artifactIds[view.auction.currentArtifactIndex];
-    return view.todayArtifacts.find((artifact) => artifact.id === artifactId);
+  const tableArtifacts = useMemo(() => {
+    if (!view) return [];
+    return visibleTableArtifacts(view);
   }, [view]);
+  const currentArtifact = useMemo(() => {
+    if (!view?.auction) return tableArtifacts[0];
+    const artifactId = view.auction.artifactIds[view.auction.currentArtifactIndex];
+    return tableArtifacts.find((artifact) => artifact.id === artifactId);
+  }, [view, tableArtifacts]);
   const incomeRollSignature = useMemo(
     () => view?.lastIncomeRolls?.map((roll) => `${roll.playerId}:${roll.roll}:${roll.reroll ?? ""}:${roll.amount}`).join("|") ?? "",
     [view?.lastIncomeRolls]
@@ -340,8 +457,10 @@ export function App() {
   useGSAP(
     () => {
       if (!view || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const panels = scopedTargets(".motion-panel");
+      if (!panels.length) return;
       gsap.fromTo(
-        ".motion-panel",
+        panels,
         { autoAlpha: 0, y: 10 },
         { autoAlpha: 1, y: 0, duration: 0.32, stagger: 0.035, ease: "power2.out", overwrite: "auto" }
       );
@@ -352,8 +471,10 @@ export function App() {
   useGSAP(
     () => {
       if (!view || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".phase-chip", { scale: 0.98 }, { scale: 1, duration: 0.18, ease: "power1.out", overwrite: "auto" });
-      gsap.fromTo(".artifact-card.current", { y: 8, scale: 0.99 }, { y: 0, scale: 1, duration: 0.26, ease: "power2.out", overwrite: "auto" });
+      const phaseChips = scopedTargets(".phase-chip");
+      const currentCards = scopedTargets(".artifact-card.current");
+      if (phaseChips.length) gsap.fromTo(phaseChips, { scale: 0.98 }, { scale: 1, duration: 0.18, ease: "power1.out", overwrite: "auto" });
+      if (currentCards.length) gsap.fromTo(currentCards, { y: 8, scale: 0.99 }, { y: 0, scale: 1, duration: 0.26, ease: "power2.out", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [view?.phase, view?.day], revertOnUpdate: true }
   );
@@ -361,7 +482,8 @@ export function App() {
   useGSAP(
     () => {
       if (!scoreboardOpen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".scoreboard-panel", { autoAlpha: 0, y: -18, scale: 0.98 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.18, ease: "power2.out", overwrite: "auto" });
+      const panels = scopedTargets(".scoreboard-panel");
+      if (panels.length) gsap.fromTo(panels, { autoAlpha: 0, y: -18, scale: 0.98 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.18, ease: "power2.out", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [scoreboardOpen], revertOnUpdate: true }
   );
@@ -369,7 +491,8 @@ export function App() {
   useGSAP(
     () => {
       if (!roleRevealOpen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".role-reveal-modal", { autoAlpha: 0, y: 18, scale: 0.96 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(1.4)", overwrite: "auto" });
+      const modals = scopedTargets(".role-reveal-modal");
+      if (modals.length) gsap.fromTo(modals, { autoAlpha: 0, y: 18, scale: 0.96 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(1.4)", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [roleRevealOpen], revertOnUpdate: true }
   );
@@ -377,8 +500,10 @@ export function App() {
   useGSAP(
     () => {
       if (!incomeRollsOpen || !view?.lastIncomeRolls?.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".dice-card", { autoAlpha: 0, y: -8, rotation: -10 }, { autoAlpha: 1, y: 0, rotation: 0, duration: 0.34, stagger: 0.05, ease: "back.out(1.8)", overwrite: "auto" });
-      gsap.fromTo(".dice-face", { rotation: -180, scale: 0.72 }, { rotation: 0, scale: 1, duration: 0.5, stagger: 0.04, ease: "elastic.out(1, 0.55)", overwrite: "auto" });
+      const cards = scopedTargets(".dice-card");
+      const faces = scopedTargets(".dice-face");
+      if (cards.length) gsap.fromTo(cards, { autoAlpha: 0, y: -8, rotation: -10 }, { autoAlpha: 1, y: 0, rotation: 0, duration: 0.34, stagger: 0.05, ease: "back.out(1.8)", overwrite: "auto" });
+      if (faces.length) gsap.fromTo(faces, { rotation: -180, scale: 0.72 }, { rotation: 0, scale: 1, duration: 0.5, stagger: 0.04, ease: "elastic.out(1, 0.55)", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [incomeRollSignature, incomeRollsOpen], revertOnUpdate: true }
   );
@@ -386,8 +511,10 @@ export function App() {
   useGSAP(
     () => {
       if (!view || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.fromTo(".public-log-list p:first-child", { autoAlpha: 0, x: -8 }, { autoAlpha: 1, x: 0, duration: 0.2, ease: "power2.out", overwrite: "auto" });
-      gsap.fromTo(".mini-card", { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.22, stagger: 0.02, ease: "power2.out", overwrite: "auto" });
+      const logItems = scopedTargets(".public-log-list p:first-child");
+      const miniCards = scopedTargets(".mini-card");
+      if (logItems.length) gsap.fromTo(logItems, { autoAlpha: 0, x: -8 }, { autoAlpha: 1, x: 0, duration: 0.2, ease: "power2.out", overwrite: "auto" });
+      if (miniCards.length) gsap.fromTo(miniCards, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.22, stagger: 0.02, ease: "power2.out", overwrite: "auto" });
     },
     { scope: appRef, dependencies: [view?.log.at(-1), view?.self.hand.length, view?.self.events.length], revertOnUpdate: true }
   );
@@ -395,20 +522,30 @@ export function App() {
   const call = <T,>(event: keyof ClientToServerEvents, payload: unknown) => {
     const socket = socketRef.current;
     if (!socket) return;
+    // 防重复点击：同一事件未响应时忽略后续
+    if (pendingActions.has(event as string)) return;
     setError("");
+    setPendingActions((prev) => new Set(prev).add(event as string));
     (socket.emit as unknown as (
       event: string,
       payload: unknown,
       ack: (response: Ack<T & { view?: PlayerView; sessionToken?: string }>) => void
     ) => void)(event, payload, (response) => {
+      setPendingActions((prev) => {
+        const next = new Set(prev);
+        next.delete(event as string);
+        return next;
+      });
       if (!response.ok) {
         setError(response.error);
         return;
       }
       if (response.view) {
+        const blackMarketNotice = buildBlackMarketPurchaseNotice(event, payload, view, response.view);
         setView(response.view);
         setConnectionStatus(socket.connected ? "connected" : "connecting");
         setError("");
+        if (blackMarketNotice) enqueueNotice(blackMarketNotice);
       }
       if (response.sessionToken && response.view) {
         saveSession({
@@ -482,7 +619,7 @@ export function App() {
         </div>
         <PhaseTimer view={view} now={now} />
         <div className="host-chip">
-          <span>主持</span>
+          <span>当前主持人</span>
           <strong>{view.players.find((player) => player.id === view.currentHostId)?.nickname ?? "系统"}</strong>
         </div>
         {connectionStatus !== "connected" && <div className={`connection-pill ${connectionStatus}`}>{connectionLabel(connectionStatus)}</div>}
@@ -511,23 +648,26 @@ export function App() {
       <section className="play-screen">
         <aside className="left-rail motion-panel">
           <RoleSkillsPanel view={view} call={call} openTargetRequest={setTargetRequest} />
-          <LogPanel title="我的操作" icon={<History size={16} />} log={view.privateLog} emptyText="还没有私密操作。" />
         </aside>
 
         <section className="table-zone motion-panel">
           {view.paused && <div className="pause-banner"><Pause size={18} /> 房间已暂停</div>}
           {error && <div className="error-bar">{error}</div>}
-          <ControlPanel
-            view={view}
-            bidAmount={bidAmount}
-            sealedAmount={sealedAmount}
-            setBidAmount={setBidAmount}
-            setSealedAmount={setSealedAmount}
-            call={call}
-          />
+          <div className="table-workbench">
+            <ControlPanel
+              view={view}
+              bidAmount={bidAmount}
+              dutchStepAmount={dutchStepAmount}
+              sealedAmount={sealedAmount}
+              setBidAmount={setBidAmount}
+              setDutchStepAmount={setDutchStepAmount}
+              setSealedAmount={setSealedAmount}
+              call={call}
+            />
+            <ArtifactBoard artifacts={tableArtifacts} currentArtifact={currentArtifact} />
+            <PublicPool view={view} currentArtifact={currentArtifact} />
+          </div>
           <DiceRollPanel view={view} visible={incomeRollsOpen} />
-          <ArtifactBoard artifacts={view.todayArtifacts} currentArtifact={currentArtifact} />
-          <PublicPool view={view} currentArtifact={currentArtifact} />
           <ActiveEffectsPanel view={view} />
           <AutomationNotice view={view} now={now} />
         </section>
@@ -535,20 +675,72 @@ export function App() {
         <aside className="right-rail motion-panel">
           <SelfPanel
             view={view}
-            currentArtifact={currentArtifact}
             call={call}
-            openTargetRequest={setTargetRequest}
-            openConfirmCard={setConfirmCard}
+            openLoanConfirm={() => setLoanConfirmOpen(true)}
+            openCardVault={setCardVaultOpen}
           />
+          <LogPanel title="我的操作" icon={<History size={16} />} log={view.privateLog} emptyText="还没有私密操作。" />
         </aside>
       </section>
 
       {scoreboardOpen && <ScoreboardOverlay view={view} />}
-      {backpackOpen && <BackpackOverlay view={view} call={call} onClose={() => setBackpackOpen(false)} />}
+      {backpackOpen && (
+        <BackpackOverlay
+          view={view}
+          call={call}
+          onClose={() => setBackpackOpen(false)}
+          onSellArtifact={(artifactId) => setSellConfirmArtifactId(artifactId)}
+        />
+      )}
+      {cardVaultOpen && (
+        <CardVaultOverlay
+          view={view}
+          kind={cardVaultOpen}
+          currentArtifact={currentArtifact}
+          onClose={() => setCardVaultOpen(undefined)}
+          setKind={setCardVaultOpen}
+          openTargetRequest={setTargetRequest}
+          openConfirmCard={setConfirmCard}
+        />
+      )}
       <TradeOfferModal view={view} call={call} />
       {notice && <NoticeModal notice={notice} onClose={closeNotice} />}
+      {loanConfirmOpen && (
+        <LoanConfirmModal
+          view={view}
+          onClose={() => setLoanConfirmOpen(false)}
+          onConfirm={() => {
+            setLoanConfirmOpen(false);
+            call("loan:take", {});
+          }}
+        />
+      )}
+      {sellConfirmArtifactId && (
+        <SellConfirmModal
+          view={view}
+          artifactId={sellConfirmArtifactId}
+          onClose={() => setSellConfirmArtifactId(undefined)}
+          onConfirm={() => {
+            const artifactId = sellConfirmArtifactId;
+            setSellConfirmArtifactId(undefined);
+            call("bank:sell", { artifactId });
+          }}
+        />
+      )}
       {roleRevealOpen && <RoleRevealModal view={view} onClose={() => setRoleRevealOpen(false)} />}
-      {settingsOpen && <SettingsModal view={view} call={call} onClose={() => setSettingsOpen(false)} />}
+      {projectionOpen && view && view.projectedScore && <ProjectionPanel view={view} />}
+      {settingsOpen && <SettingsModal view={view} call={call} onClose={() => setSettingsOpen(false)} bgm={bgm} />}
+      {choiceEffect && (
+        <PendingChoiceModal
+          view={view}
+          effect={choiceEffect}
+          call={call}
+          onDismiss={() => {
+            setDismissedChoiceIds((current) => [...new Set([...current, choiceEffect.id])]);
+            setChoiceEffect(undefined);
+          }}
+        />
+      )}
       {confirmCard && (
         <CardConfirmModal
           card={confirmCard}
@@ -704,6 +896,115 @@ function ActiveEffectsPanel({ view }: { view: PlayerView }) {
   );
 }
 
+function PendingChoiceModal({
+  view,
+  effect,
+  call,
+  onDismiss
+}: {
+  view: PlayerView;
+  effect: ActiveEffect;
+  call: <T>(event: keyof ClientToServerEvents, payload: unknown) => void;
+  onDismiss: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const choose = (choice: ChoiceResolution) => {
+    if (busy) return;
+    setBusy(true);
+    call("choice:resolve", { effectId: effect.id, choice });
+  };
+  const artifactName = effect.targetArtifactId ? findArtifactName(view, effect.targetArtifactId) : "目标藏品";
+  const options = choiceOptionsForEffect(effect);
+  const title = choiceTitleForEffect(effect);
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="target-modal compact-modal" role="dialog" aria-modal="true" aria-label={title}>
+        <header className="target-modal-header">
+          <div>
+            <p className="eyebrow">待选择</p>
+            <h2>{title}</h2>
+          </div>
+          <button className="icon-button" onClick={onDismiss} aria-label="稍后再处理">
+            <X size={18} />
+          </button>
+        </header>
+        <p style={{ padding: "0 1rem 1rem", textAlign: "center" }}>
+          {effect.label.replace("目标藏品", artifactName)}
+        </p>
+        <div style={{ display: "flex", gap: "1rem", justifyContent: "center", padding: "0 1rem 1.5rem" }}>
+          {options.map((option) => (
+            <button className={option.primary ? "bids-button primary" : "bids-button"} disabled={busy} onClick={() => choose(option.choice)} key={option.choice}>
+              {option.label}
+            </button>
+          ))}
+          <button className="bids-button" disabled={busy} onClick={onDismiss}>
+            稍后
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function choiceTitleForEffect(effect: ActiveEffect): string {
+  if (effect.choiceType === "role03_skill02_swap") return "以物换物";
+  if (effect.choiceType === "role01_skill01_choice") return "慧眼";
+  if (effect.choiceType === "E25_protection_fee") return "灵异恐惧";
+  if (effect.choiceType === "n1_mystery_buyer") return "神秘收购";
+  if (effect.choiceType === "C03_buyback") return "回购凭证";
+  if (effect.choiceType === "C04_listing") return "寄售单";
+  if (effect.choiceType === "D02_refusal") return "巧取豪夺";
+  if (effect.choiceType === "prop31_donation") return "慈善捐赠";
+  return "选择";
+}
+
+function choiceOptionsForEffect(effect: ActiveEffect): Array<{ choice: ChoiceResolution; label: string; primary?: boolean }> {
+  if (effect.choiceType === "role01_skill01_choice") {
+    return [
+      { choice: "rumorRange", label: "传闻区间", primary: true },
+      { choice: "attribute", label: "属性" }
+    ];
+  }
+  if (effect.choiceType === "E25_protection_fee") {
+    return [
+      { choice: "pay", label: "支付保护费", primary: true },
+      { choice: "accept", label: "接受 -20%" }
+    ];
+  }
+  if (effect.choiceType === "n1_mystery_buyer") {
+    return [
+      { choice: "sell", label: "卖出藏品", primary: true },
+      { choice: "reject", label: "拒绝得声望" }
+    ];
+  }
+  if (effect.choiceType === "C03_buyback") {
+    return [
+      { choice: "accept", label: "买回", primary: true },
+      { choice: "reject", label: "放弃" }
+    ];
+  }
+  if (effect.choiceType === "C04_listing") return [{ choice: "accept", label: `购买 ${effect.amount ?? ""} 银元`, primary: true }];
+  if (effect.choiceType === "D02_refusal") {
+    return [
+      { choice: "pay", label: "支付 20", primary: true },
+      { choice: "reveal", label: "展示属性" }
+    ];
+  }
+  if (effect.choiceType === "prop31_donation") {
+    return [
+      { choice: "accept", label: "捐赠弃置", primary: true },
+      { choice: "reject", label: "保留藏品" }
+    ];
+  }
+  if (effect.choiceType === "role03_skill02_swap") {
+    return [
+      { choice: "accept", label: "同意交换", primary: true },
+      { choice: "reject", label: "拒绝" }
+    ];
+  }
+  return [{ choice: "accept", label: "确认", primary: true }];
+}
+
 function PlayerList({ view }: { view: PlayerView }) {
   return (
     <div className="panel">
@@ -778,6 +1079,7 @@ function ScoreboardOverlay({ view }: { view: PlayerView }) {
 function RoleRevealModal({ view, onClose }: { view: PlayerView; onClose: () => void }) {
   const role = view.self.role;
   if (!role) return null;
+  const rolePortrait = getRolePortrait(role.id);
   return (
     <div className="modal-backdrop" role="presentation">
       <section className="target-modal role-reveal-modal" role="dialog" aria-modal="true" aria-label="角色揭示">
@@ -791,12 +1093,19 @@ function RoleRevealModal({ view, onClose }: { view: PlayerView; onClose: () => v
           </button>
         </header>
         <div className="role-reveal-body">
-          {role.skills.map((skill) => (
-            <div className="mini-card" key={skill.id}>
-              <strong>{skill.name} · {skill.kind}</strong>
-              <span>{skill.effectText}</span>
+          {rolePortrait && (
+            <div className="role-reveal-art">
+              <img src={rolePortrait} alt={`${role.name} role portrait`} draggable={false} decoding="async" loading="eager" />
             </div>
-          ))}
+          )}
+          <div className="role-reveal-skills">
+            {role.skills.map((skill) => (
+              <div className="mini-card" key={skill.id}>
+                <strong>{skill.name} · {skill.kind}</strong>
+                <span>{skill.effectText}</span>
+              </div>
+            ))}
+          </div>
         </div>
         <footer className="target-actions">
           <button className="primary" onClick={onClose}>
@@ -818,19 +1127,26 @@ function RoleSkillsPanel({
   openTargetRequest: (request: TargetRequest) => void;
 }) {
   const role = view.self.role;
+  const rolePortrait = getRolePortrait(role?.id);
   return (
     <section className="panel role-skill-panel">
       <div>
         <p className="eyebrow">角色</p>
         <h3>{role?.name ?? view.self.roleName ?? "未分配角色"}</h3>
       </div>
+      {rolePortrait && role && (
+        <div className="role-panel-art">
+          <img src={rolePortrait} alt={`${role.name} role portrait`} draggable={false} decoding="async" loading="eager" />
+        </div>
+      )}
       {role ? (
         <div className="role-skill-grid">
           {role.skills.map((skill) => (
             <article className="role-skill-card" key={skill.id}>
               <strong>{skill.name} · {skill.kind}</strong>
+              <small>{skill.timing || "时机未标注"}</small>
               <span>{skill.effectText}</span>
-              {skill.kind === "主动" && (
+              {((skill.kind === "主动" && skill.id !== "role05_skill01") || skill.id === "role05_skill02") && (
                 <button
                   data-target-mode={targetModeForRoleSkill(skill.id)}
                   disabled={!canUseRoleSkillFromView(view, skill)}
@@ -862,20 +1178,53 @@ function playerStatusLabel(player: PlayerView["players"][number]): string {
 function ControlPanel({
   view,
   bidAmount,
+  dutchStepAmount,
   sealedAmount,
   setBidAmount,
+  setDutchStepAmount,
   setSealedAmount,
   call
 }: {
   view: PlayerView;
   bidAmount: number;
+  dutchStepAmount: number;
   sealedAmount: number;
   setBidAmount: (value: number) => void;
+  setDutchStepAmount: (value: number) => void;
   setSealedAmount: (value: number) => void;
   call: <T>(event: keyof ClientToServerEvents, payload: unknown) => void;
 }) {
-  if (view.phase === "finalScoring") return <FinalScores view={view} />;
+  const counterCards = view.self.hand.filter((card) => card.category?.includes("反制"));
+  const counterSignature = counterCards.map((card) => card.id).join("|");
+  const [counterCardId, setCounterCardId] = useState(counterCards[0]?.id ?? "");
+  const [redirectTargetId, setRedirectTargetId] = useState("");
+  const selectedCounterCardId = counterCards.some((card) => card.id === counterCardId) ? counterCardId : counterCards[0]?.id ?? "";
+  const redirectTargets = view.players.filter((player) => player.id !== view.selfId && player.id !== view.pendingReaction?.sourcePlayerId);
+  const isHostChoosingStartBid = view.phase === "cardWindow" && view.currentHostId === view.selfId && view.auction?.status === "choosing";
   const auctionBidMode = view.auction?.mode === "bundle" ? view.auction.bundleInnerMode ?? "english" : view.auction?.mode;
+  const activeAuctionIds = view.auction?.mode === "bundle" ? (view.auction?.artifactIds ?? []) : view.auction?.artifactIds?.slice(view.auction.currentArtifactIndex, view.auction.currentArtifactIndex + 1) ?? [];
+  const activeArtifacts =
+    activeAuctionIds.length > 0 ? view.todayArtifacts.filter((artifact) => activeAuctionIds.includes(artifact.id)) : [];
+  const startBidCeiling = activeArtifacts.reduce((sum, artifact) => sum + (artifact.rumorMax ?? 0), 0);
+
+  useEffect(() => {
+    setCounterCardId((current) => (counterCards.some((card) => card.id === current) ? current : counterCards[0]?.id ?? ""));
+  }, [counterSignature]);
+
+  useEffect(() => {
+    setRedirectTargetId((current) => (redirectTargets.some((player) => player.id === current) ? current : redirectTargets[0]?.id ?? ""));
+  }, [view.pendingReaction?.id, redirectTargets.map((player) => player.id).join("|")]);
+
+  useEffect(() => {
+    if (isHostChoosingStartBid && typeof view.auction?.currentBid === "number") {
+      setBidAmount(view.auction.currentBid);
+    }
+    if (isHostChoosingStartBid && typeof view.auction?.dutchStep === "number") {
+      setDutchStepAmount(view.auction.dutchStep);
+    }
+  }, [isHostChoosingStartBid, view.auction?.id, view.auction?.currentBid, view.auction?.dutchStep, setBidAmount, setDutchStepAmount]);
+
+  if (view.phase === "finalScoring") return <FinalScores view={view} />;
 
   return (
     <section className="panel action-panel">
@@ -887,7 +1236,32 @@ function ControlPanel({
       {view.pendingReaction && (
         <div className="reaction-strip">
           <strong>反制窗口已打开</strong>
-          <button className="primary" onClick={() => call("reaction:respond", { reactionId: view.pendingReaction?.id, response: "counter" })}>
+          {counterCards.length > 1 && (
+            <select value={selectedCounterCardId} onChange={(event) => setCounterCardId(event.target.value)} aria-label="选择反制牌">
+              {counterCards.map((card, index) => (
+                <option value={card.id} key={`${card.id}-${index}`}>{card.name}</option>
+              ))}
+            </select>
+          )}
+          {selectedCounterCardId === "R05" && (
+            <select value={redirectTargetId} onChange={(event) => setRedirectTargetId(event.target.value)} aria-label="转移目标">
+              {redirectTargets.map((player) => (
+                <option value={player.id} key={player.id}>{player.nickname}</option>
+              ))}
+            </select>
+          )}
+          <button
+            className="primary"
+            disabled={!selectedCounterCardId || (selectedCounterCardId === "R05" && !redirectTargetId)}
+            onClick={() =>
+              call("reaction:respond", {
+                reactionId: view.pendingReaction?.id,
+                cardId: selectedCounterCardId,
+                targetPlayerId: selectedCounterCardId === "R05" ? redirectTargetId : undefined,
+                response: "counter"
+              })
+            }
+          >
             <ShieldCheck size={18} /> 反制
           </button>
           <button onClick={() => call("reaction:respond", { reactionId: view.pendingReaction?.id, response: "pass" })}>
@@ -921,9 +1295,46 @@ function ControlPanel({
         </div>
       )}
 
+      {isHostChoosingStartBid && (
+        <div className="auction-controls">
+          <strong>
+            主持人设置起拍价
+            {auctionBidMode === "dutch" ? "（荷兰式起拍）" : auctionBidMode === "sealed" ? "（暗标无需设置）" : ""}
+          </strong>
+          {auctionBidMode === "sealed" ? (
+            <small>暗标拍卖不公开起拍价，直接推进即可。</small>
+          ) : (
+            <>
+              <label>
+                起拍价（银元）
+                <input type="number" min={0} step={10} value={bidAmount} onChange={(event) => setBidAmount(Number(event.target.value))} />
+              </label>
+              {auctionBidMode === "dutch" && (
+                <label>
+                  降价幅度（银元，必须是10的整数倍）
+                  <input type="number" min={10} step={10} value={dutchStepAmount} onChange={(event) => setDutchStepAmount(Number(event.target.value))} />
+                </label>
+              )}
+              <small>上限 {startBidCeiling} 银元</small>
+              <button className="primary" onClick={() => call("host:setAuction", { startingBid: bidAmount, dutchStep: auctionBidMode === "dutch" ? dutchStepAmount : undefined })}>
+                <Gavel size={18} /> 确认起拍价
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {view.phase === "auction" && auctionBidMode === "english" && (
         <div className="auction-controls">
           <strong>当前价：{view.auction?.currentBid ?? 0}</strong>
+          {view.auction?.bidDeadline && (
+            <div className="bid-timer">
+              <span className={view.auction.bidDeadline - Date.now() <= 10000 ? "urgent" : ""}>
+                剩余 {Math.max(0, Math.ceil((view.auction.bidDeadline - Date.now()) / 1000))} 秒
+              </span>
+              <progress value={Math.max(0, view.auction.bidDeadline - Date.now())} max={15000} />
+            </div>
+          )}
           <input type="number" value={bidAmount} onChange={(event) => setBidAmount(Number(event.target.value))} />
           <button className="primary" onClick={() => call("bid:place", { amount: bidAmount })}>
             <Gavel size={18} /> 出价
@@ -934,7 +1345,20 @@ function ControlPanel({
 
       {view.phase === "auction" && auctionBidMode === "dutch" && (
         <div className="auction-controls">
-          <strong>当前荷兰价：{view.auction?.dutch?.currentPrice ?? view.auction?.currentBid ?? 0}</strong>
+          <strong ref={(el) => {
+            // GSAP bounce on price change
+            if (el && view.auction?.dutch?.currentPrice !== undefined) {
+              const prev = el.dataset.price;
+              const curr = String(view.auction.dutch.currentPrice);
+              if (prev && prev !== curr && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                gsap.fromTo(el.querySelector(".dutch-price") ?? el, { scale: 1.25, color: "#2e7568" }, { scale: 1, color: "", duration: 0.35, ease: "back.out(2.5)", overwrite: "auto" });
+              }
+              el.dataset.price = curr;
+            }
+          }}>
+            <span className="dutch-price">当前荷兰价：{view.auction?.dutch?.currentPrice ?? view.auction?.currentBid ?? 0} 银元</span>
+          </strong>
+          {view.auction?.dutch && <DutchTimer dutch={view.auction.dutch} />}
           <button className="primary" onClick={() => call("dutch:stop", {})}>
             <Gavel size={18} /> 喊停
           </button>
@@ -1007,6 +1431,13 @@ const diceDots: Record<number, number[]> = {
 function ArtifactBoard({ artifacts, currentArtifact }: { artifacts: PublicArtifactView[]; currentArtifact?: PublicArtifactView }) {
   return (
     <section className="artifact-grid">
+      {artifacts.length === 0 && (
+        <div className="table-empty-state">
+          <Gavel size={56} strokeWidth={1.5} />
+          <h3>暂无待拍商品</h3>
+          <p>预展阶段后将显示今日拍品</p>
+        </div>
+      )}
       {artifacts.map((artifact) => (
         <article className={`artifact-card ${artifact.id === currentArtifact?.id ? "current" : ""}`} key={artifact.id}>
           <span>{artifact.series ?? "未知系列"}</span>
@@ -1025,21 +1456,32 @@ function ArtifactBoard({ artifacts, currentArtifact }: { artifacts: PublicArtifa
 function TradePanel({ view, call }: { view: PlayerView; call: <T>(event: keyof ClientToServerEvents, payload: unknown) => void }) {
   const otherPlayers = view.players.filter((player) => player.id !== view.selfId);
   const [targetId, setTargetId] = useState("");
-  const [mode, setMode] = useState<"buy" | "sell">("buy");
+  const [mode, setMode] = useState<"buy" | "sell" | "swap">("buy");
   const [price, setPrice] = useState(0);
   const [artifactId, setArtifactId] = useState("");
   const targetPlayerId = targetId || otherPlayers[0]?.id;
   const selectedTarget = view.players.find((player) => player.id === targetPlayerId);
   const artifactOptions = mode === "buy" ? selectedTarget?.artifacts ?? [] : view.self.artifacts;
   const selectedArtifactId = artifactOptions.some((artifact) => artifact.id === artifactId) ? artifactId : artifactOptions[0]?.id ?? "";
+  const targetArtifactOptions = mode === "swap" ? selectedTarget?.artifacts ?? [] : [];
+  const [targetArtifactId, setTargetArtifactId] = useState(targetArtifactOptions[0]?.id ?? "");
+  const selectedTargetArtifactId = targetArtifactOptions.some((artifact) => artifact.id === targetArtifactId) ? targetArtifactId : targetArtifactOptions[0]?.id ?? "";
   const nameOf = (playerId: string) => view.players.find((player) => player.id === playerId)?.nickname ?? "玩家";
 
   useEffect(() => {
     setArtifactId((current) => (artifactOptions.some((artifact) => artifact.id === current) ? current : artifactOptions[0]?.id ?? ""));
   }, [mode, targetPlayerId, artifactOptions]);
 
+  useEffect(() => {
+    setTargetArtifactId((current) => (targetArtifactOptions.some((artifact) => artifact.id === current) ? current : targetArtifactOptions[0]?.id ?? ""));
+  }, [targetPlayerId, targetArtifactOptions]);
+
   return (
     <div className="trade-panel">
+      <div className="trade-header">
+        <strong>自由交易</strong>
+        <span className="trade-count">今日交易：{view.self.tradesToday ?? 0} / 3</span>
+      </div>
       <div className="trade-builder">
         <label className="trade-step-card">
           1. 选择玩家
@@ -1054,10 +1496,11 @@ function TradePanel({ view, call }: { view: PlayerView; call: <T>(event: keyof C
           <div className="segmented-control">
             <button className={mode === "buy" ? "selected" : ""} onClick={() => setMode("buy")}>买入</button>
             <button className={mode === "sell" ? "selected" : ""} onClick={() => setMode("sell")}>卖出</button>
+            <button className={mode === "swap" ? "selected" : ""} onClick={() => setMode("swap")}>换物</button>
           </div>
         </div>
         <label className="trade-step-card">
-          3. 选择商品
+          3. {mode === "buy" ? "选择想买的商品" : mode === "sell" ? "选择想卖的商品" : "选择你要拿出的商品"}
           <select value={selectedArtifactId} onChange={(event) => setArtifactId(event.target.value)}>
             {artifactOptions.length === 0 && <option value="">没有可交易藏品</option>}
             {artifactOptions.map((artifact) => (
@@ -1065,23 +1508,49 @@ function TradePanel({ view, call }: { view: PlayerView; call: <T>(event: keyof C
             ))}
           </select>
         </label>
-        <label className="trade-step-card">
-          4. 输入价格
-          <input type="number" min={0} value={price} onChange={(event) => setPrice(Number(event.target.value))} />
-        </label>
+        {mode === "swap" ? (
+          <label className="trade-step-card">
+            4. 选择对方藏品
+            <select value={selectedTargetArtifactId} onChange={(event) => setTargetArtifactId(event.target.value)}>
+              {targetArtifactOptions.length === 0 && <option value="">对方没有可交换藏品</option>}
+              {targetArtifactOptions.map((artifact) => (
+                <option key={artifact.id} value={artifact.id}>{artifact.name}</option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <label className="trade-step-card">
+            4. 输入价格
+            <input type="number" min={0} value={price} onChange={(event) => setPrice(Number(event.target.value))} />
+          </label>
+        )}
         <button
           className="primary"
-          disabled={!targetPlayerId || !selectedArtifactId || price <= 0}
-          onClick={() =>
+          disabled={
+            (view.self.tradesToday ?? 0) >= 3 ||
+            !targetPlayerId ||
+            !selectedArtifactId ||
+            (mode === "swap" ? !selectedTargetArtifactId : price <= 0)
+          }
+          onClick={() => {
+            if (mode === "swap") {
+              call("trade:offer", {
+                toPlayerId: targetPlayerId,
+                give: { artifactIds: [selectedArtifactId] },
+                receive: { artifactIds: [selectedTargetArtifactId] },
+                message: "swap"
+              });
+              return;
+            }
             call("trade:offer", {
               toPlayerId: targetPlayerId,
               give: mode === "buy" ? { cash: price } : { artifactIds: [selectedArtifactId] },
               receive: mode === "buy" ? { artifactIds: [selectedArtifactId] } : { cash: price },
               message: mode === "buy" ? "buy" : "sell"
-            })
-          }
+            });
+          }}
         >
-          <Handshake size={18} /> 发起交易
+          <Handshake size={18} /> {mode === "swap" ? "发起换物" : "发起交易"}
         </button>
       </div>
       {view.tradeOffers.length > 0 && (
@@ -1106,6 +1575,44 @@ function TradePanel({ view, call }: { view: PlayerView; call: <T>(event: keyof C
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/** 荷兰式拍卖 5 秒倒计时进度条 */
+function DutchTimer({ dutch }: { dutch: { nextDropAt: number; tickMs: number; step: number } }) {
+  const [remaining, setRemaining] = useState(() => Math.max(0, dutch.nextDropAt - Date.now()));
+  const [stalled, setStalled] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const rem = Math.max(0, dutch.nextDropAt - Date.now());
+      setRemaining(rem);
+      // 如果超过 tickMs 都没有收到服务器广播，标记为不同步
+      if (rem <= 0) {
+        const timer = setTimeout(() => setStalled(true), 2000);
+        return () => clearTimeout(timer);
+      }
+      setStalled(false);
+    };
+    update();
+    const timer = setInterval(update, 100);
+    return () => clearInterval(timer);
+  }, [dutch.nextDropAt]);
+
+  const seconds = Math.ceil(remaining / 1000);
+  const progress = Math.min(1, remaining / dutch.tickMs);
+
+  return (
+    <div className="bid-timer">
+      {stalled ? (
+        <span className="urgent">同步中...</span>
+      ) : (
+        <span className={remaining <= 1000 ? "urgent" : ""}>
+          {seconds} 秒后降价
+        </span>
+      )}
+      <progress value={remaining} max={dutch.tickMs} />
     </div>
   );
 }
@@ -1153,14 +1660,27 @@ function TargetModal({
   onClose: () => void;
   onConfirm: (event: keyof ClientToServerEvents, payload: unknown) => void;
 }) {
-  const mode = request.kind === "card" ? targetModeForCard(request.card) : targetModeForRoleSkill(request.skill.id);
+  const mode = request.kind === "card" ? targetModeForCard(request.card) : request.kind === "consignment" ? "ownedArtifact" : targetModeForRoleSkill(request.skill.id);
   const otherPlayers = view.players.filter((player) => player.id !== view.selfId);
   const [targetPlayerId, setTargetPlayerId] = useState(otherPlayers[0]?.id ?? "");
-  const artifactOptions = artifactTargetsFor(view, mode, request.kind === "card" ? request.defaultArtifactId : currentArtifact?.id, targetPlayerId);
+  const artifactOptions =
+    request.kind === "role" && mode === "ownedArtifact"
+      ? uniqueArtifacts(ownedArtifactsEligibleForSkill(view, request.skill.id), currentArtifact?.id)
+      : artifactTargetsFor(view, mode, request.kind === "card" ? request.defaultArtifactId : currentArtifact?.id, targetPlayerId);
   const [targetArtifactId, setTargetArtifactId] = useState(artifactOptions[0]?.id ?? "");
+  const [price, setPrice] = useState(artifactOptions[0]?.purchasePrice ?? artifactOptions[0]?.rumorMin ?? 0);
   const missions = missionTargetsFor(view, targetPlayerId);
   const [targetMissionId, setTargetMissionId] = useState(missions[0]?.id ?? "");
-  const [invalidateMission, setInvalidateMission] = useState(false);
+  // 以物换物：自己的藏品
+  const ownedArtifactOptions = view.self.artifacts;
+  const [mySwapArtifactId, setMySwapArtifactId] = useState(ownedArtifactOptions[0]?.id ?? "");
+  // 对方可供选择的藏品（以物换物用）
+  const theirArtifactOptions = targetPlayerId
+    ? view.players
+        .find((p) => p.id === targetPlayerId)
+        ?.artifacts?.filter((a) => a.ownerId === targetPlayerId) ?? []
+    : [];
+  const [theirSwapArtifactId, setTheirSwapArtifactId] = useState(theirArtifactOptions[0]?.id ?? "");
 
   useEffect(() => {
     setTargetPlayerId((current) => current || otherPlayers[0]?.id || "");
@@ -1168,19 +1688,47 @@ function TargetModal({
 
   useEffect(() => {
     setTargetArtifactId((current) => (artifactOptions.some((artifact) => artifact.id === current) ? current : artifactOptions[0]?.id ?? ""));
+    setPrice((current) => (Number.isFinite(current) && current > 0 ? current : artifactOptions[0]?.purchasePrice ?? artifactOptions[0]?.rumorMin ?? 0));
   }, [artifactOptions]);
 
   useEffect(() => {
     setTargetMissionId((current) => (missions.some((mission) => mission.id === current) ? current : missions[0]?.id ?? ""));
   }, [missions]);
 
-  const title = request.kind === "card" ? request.card.name : request.skill.name;
+  useEffect(() => {
+    if (mode === "playerSwap") setTheirSwapArtifactId((current) => (theirArtifactOptions.some((a) => a.id === current) ? current : theirArtifactOptions[0]?.id ?? ""));
+  }, [theirArtifactOptions]);
+
+  const title = request.kind === "card" ? request.card.name : request.kind === "consignment" ? request.card.name : request.skill.name;
+  const isSwap = mode === "playerSwap" && request.kind === "role";
+  const isConsignment = request.kind === "consignment";
   const needsPlayer = mode === "player" || mode === "playerArtifact" || mode === "playerAuctionArtifact" || mode === "playerMission";
   const needsArtifact = mode === "artifact" || mode === "ownedArtifact" || mode === "playerArtifact" || mode === "playerAuctionArtifact";
   const needsMission = mode === "playerMission";
-  const canConfirm = (!needsPlayer || Boolean(targetPlayerId)) && (!needsArtifact || Boolean(targetArtifactId));
+  const canConfirm = isSwap
+    ? Boolean(targetPlayerId) && Boolean(mySwapArtifactId) && Boolean(theirSwapArtifactId)
+    : isConsignment
+      ? Boolean(targetArtifactId) && price > 0
+      : (!needsPlayer || Boolean(targetPlayerId)) && (!needsArtifact || Boolean(targetArtifactId));
   const confirm = () => {
     if (!canConfirm) return;
+    if (isSwap) {
+      onConfirm("role:skill", {
+        skillId: request.skill.id,
+        targetPlayerId,
+        targetArtifactId: mySwapArtifactId,
+        targetMissionId: theirSwapArtifactId
+      });
+      return;
+    }
+    if (isConsignment) {
+      onConfirm("card:play", {
+        cardId: request.card.id,
+        targetArtifactId,
+        amount: price
+      });
+      return;
+    }
     if (request.kind === "card") {
       onConfirm("card:play", {
         cardId: request.card.id,
@@ -1193,8 +1741,7 @@ function TargetModal({
       skillId: request.skill.id,
       targetPlayerId: needsPlayer ? targetPlayerId : undefined,
       targetArtifactId: needsArtifact ? targetArtifactId : undefined,
-      targetMissionId: needsMission && targetMissionId ? targetMissionId : undefined,
-      invalidateMission: request.skill.id === "role06_skill03" ? invalidateMission : undefined
+      targetMissionId: needsMission && targetMissionId ? targetMissionId : undefined
     });
   };
 
@@ -1238,33 +1785,60 @@ function TargetModal({
             </label>
           )}
 
-          {request.kind === "role" && request.skill.id === "role06_skill03" && (
+          {isSwap && (
+            <>
+              <label>
+                你的藏品
+                <select value={mySwapArtifactId} onChange={(event) => setMySwapArtifactId(event.target.value)}>
+                  {ownedArtifactOptions.map((artifact) => (
+                    <option key={artifact.id} value={artifact.id}>
+                      {artifact.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                目标玩家
+                <select value={targetPlayerId} onChange={(event) => setTargetPlayerId(event.target.value)}>
+                  {otherPlayers.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.nickname}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                对方的藏品
+                <select value={theirSwapArtifactId} onChange={(event) => setTheirSwapArtifactId(event.target.value)}>
+                  {theirArtifactOptions.map((artifact) => (
+                    <option key={artifact.id} value={artifact.id}>
+                      {artifact.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
+
+          {request.kind === "role" && request.skill.id === "role06_skill03" && !isSwap && (
+            <p className="target-hint">将消耗 50 银元查看该对手的两个秘密委托。</p>
+          )}
+
+          {isConsignment && (
             <label>
-              黑料处理
-              <select value={invalidateMission ? "invalidate" : "view"} onChange={(event) => setInvalidateMission(event.target.value === "invalidate")}>
-                <option value="view">只查看</option>
-                <option value="invalidate">公开作废</option>
-              </select>
+              寄售定价
+              <input type="number" min={0} step={10} value={price} onChange={(event) => setPrice(Number(event.target.value))} />
             </label>
           )}
 
-          {needsMission && invalidateMission && (
-            <label>
-              目标委托
-              <select value={targetMissionId} onChange={(event) => setTargetMissionId(event.target.value)}>
-                {missions.map((mission) => (
-                  <option key={mission.id} value={mission.id}>
-                    {mission.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
         </div>
 
         {needsArtifact && artifactOptions.length === 0 && <p className="target-empty">没有可选藏品。</p>}
         {needsPlayer && otherPlayers.length === 0 && <p className="target-empty">没有可选玩家。</p>}
-        {needsMission && invalidateMission && missions.length === 0 && <p className="target-empty">当前没有已知委托可选。</p>}
+        {isSwap && theirArtifactOptions.length === 0 && <p className="target-empty">对方没有可供交换的藏品。</p>}
+        {isSwap && ownedArtifactOptions.length === 0 && <p className="target-empty">你没有可供交换的藏品。</p>}
 
         <footer className="target-actions">
           <button onClick={onClose}>
@@ -1281,22 +1855,15 @@ function TargetModal({
 
 function SelfPanel({
   view,
-  currentArtifact,
   call,
-  openTargetRequest,
-  openConfirmCard
+  openLoanConfirm,
+  openCardVault
 }: {
   view: PlayerView;
-  currentArtifact?: PublicArtifactView;
   call: <T>(event: keyof ClientToServerEvents, payload: unknown) => void;
-  openTargetRequest: (request: TargetRequest) => void;
-  openConfirmCard: (card: PlayableCard) => void;
+  openLoanConfirm: () => void;
+  openCardVault: (kind: CardVaultKind) => void;
 }) {
-  const playCard = (card: PlayableCard) => {
-    if (targetModeForCard(card) === "none") openConfirmCard(card);
-    else openTargetRequest({ kind: "card", card, defaultArtifactId: currentArtifact?.id });
-  };
-
   return (
     <>
       <div className="panel card-command-panel">
@@ -1309,7 +1876,7 @@ function SelfPanel({
           </div>
         </div>
         <div className="button-grid compact-actions">
-          <button onClick={() => call("loan:take", {})}>
+          <button onClick={openLoanConfirm}>
             <Banknote size={18} /> 借 100
           </button>
           <button disabled={view.self.loans <= 0} onClick={() => call("loan:repay", {})}>
@@ -1317,33 +1884,143 @@ function SelfPanel({
           </button>
         </div>
       </div>
-      <div className="panel card-list">
-        <h3>锦囊</h3>
-        {view.self.hand.length === 0 && <p className="empty-text">暂无锦囊。</p>}
-        {view.self.hand.map((card, index) => (
-          <div className="mini-card" key={`${card.id}-${index}`}>
-            <strong>{card.name}</strong>
-            <span>{card.description}</span>
-            <button data-target-mode={targetModeForCard(card)} disabled={!canUseCardFromView(view, card)} onClick={() => playCard(card)}>
-              <Eye size={18} /> 使用
-            </button>
-          </div>
-        ))}
-      </div>
-      <div className="panel card-list">
-        <h3>事件卡</h3>
-        {view.self.events.length === 0 && <p className="empty-text">暂无事件卡。</p>}
-        {view.self.events.map((card, index) => (
-          <div className="mini-card event-card" key={`${card.id}-${index}`}>
-            <strong>{card.name}</strong>
-            <span>{card.description}</span>
-            <button data-target-mode={targetModeForCard(card)} disabled={!canUseCardFromView(view, card)} onClick={() => playCard(card)}>
-              <Eye size={18} /> 使用
-            </button>
-          </div>
-        ))}
+      <div className="panel card-vault-launcher">
+        <h3>卡牌</h3>
+        <div className="card-vault-buttons">
+          <button className="card-vault-button" onClick={() => openCardVault("tricks")}>
+            <ScrollText size={20} />
+            <span>锦囊</span>
+            <strong>{view.self.hand.length}</strong>
+          </button>
+          <button className="card-vault-button event" onClick={() => openCardVault("events")}>
+            <BookOpen size={20} />
+            <span>事件卡</span>
+            <strong>{view.self.events.length}</strong>
+          </button>
+        </div>
       </div>
     </>
+  );
+}
+
+function CardVaultOverlay({
+  view,
+  kind,
+  currentArtifact,
+  onClose,
+  setKind,
+  openTargetRequest,
+  openConfirmCard
+}: {
+  view: PlayerView;
+  kind: CardVaultKind;
+  currentArtifact?: PublicArtifactView;
+  onClose: () => void;
+  setKind: (kind: CardVaultKind) => void;
+  openTargetRequest: (request: TargetRequest) => void;
+  openConfirmCard: (card: PlayableCard) => void;
+}) {
+  const cards: PlayableCard[] = kind === "tricks" ? view.self.hand : view.self.events;
+  const title = kind === "tricks" ? "锦囊" : "事件卡";
+  const playCard = (card: PlayableCard) => {
+    onClose();
+    if (card.id === "C04") {
+      openTargetRequest({ kind: "consignment", card, defaultArtifactId: currentArtifact?.id });
+      return;
+    }
+    if (targetModeForCard(card) === "none") openConfirmCard(card);
+    else openTargetRequest({ kind: "card", card, defaultArtifactId: currentArtifact?.id });
+  };
+
+  return (
+    <div className="card-vault-layer" role="presentation">
+      <section className="card-vault-panel" role="dialog" aria-modal="true" aria-label={`${title}卡牌`}>
+        <header className="target-modal-header card-vault-header">
+          <div>
+            <p className="eyebrow">手牌卡库</p>
+            <h3>{title}</h3>
+          </div>
+          <div className="card-vault-tabs" role="tablist" aria-label="卡牌类型">
+            <button className={kind === "tricks" ? "selected" : ""} onClick={() => setKind("tricks")} role="tab" aria-selected={kind === "tricks"}>
+              <ScrollText size={17} /> 锦囊 <strong>{view.self.hand.length}</strong>
+            </button>
+            <button className={kind === "events" ? "selected" : ""} onClick={() => setKind("events")} role="tab" aria-selected={kind === "events"}>
+              <BookOpen size={17} /> 事件卡 <strong>{view.self.events.length}</strong>
+            </button>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="关闭卡牌库">
+            <X size={18} />
+          </button>
+        </header>
+
+        {cards.length === 0 ? (
+          <div className="card-vault-empty">
+            <strong>暂无{title}</strong>
+            <span>抽到后会出现在这里。</span>
+          </div>
+        ) : (
+          <div className="card-vault-grid">
+            {cards.map((card, index) => (
+              <GameCardFace
+                card={card}
+                disabled={!canUseCardFromView(view, card)}
+                onUse={() => playCard(card)}
+                targetMode={targetModeForCard(card)}
+                key={`${card.id}-${index}`}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function GameCardFace({
+  card,
+  disabled = false,
+  onUse,
+  targetMode,
+  displayOnly = false
+}: {
+  card: PlayableCard;
+  disabled?: boolean;
+  onUse?: () => void;
+  targetMode?: TargetMode;
+  displayOnly?: boolean;
+}) {
+  const face = gameCardFaceFor(card);
+  const timing = card.timings?.join(" / ") ?? phaseLabels[card.timing ?? "cardWindow"] ?? "行动窗口";
+  const target = card.target?.text ?? targetTextFor(card.target?.kind);
+  return (
+    <article className={`mini-card game-card-face game-card-${face.scheme} ${displayOnly ? "display-only" : ""}`}>
+      <div className="game-card-topline">
+        <span>{card.id}</span>
+        <strong>{face.deck}</strong>
+      </div>
+      <div className="game-card-art" aria-hidden="true">
+        <span>{face.mark}</span>
+        <b>{face.seal}</b>
+      </div>
+      <div className="game-card-title">
+        <small>{face.category}</small>
+        <strong>{card.name}</strong>
+      </div>
+      <div className="game-card-facts">
+        <span>{timing}</span>
+        <span>{target}</span>
+      </div>
+      <p>{card.description}</p>
+      <footer>
+        <span>{card.cost ? `${card.cost} 银元` : "无消耗"}</span>
+        <span>{card.counterable === false ? "不可反制" : "可反制"}</span>
+      </footer>
+      {!displayOnly && (
+        <button data-target-mode={targetMode} disabled={disabled} onClick={onUse}>
+          <Eye size={18} /> 使用
+        </button>
+      )}
+    </article>
   );
 }
 
@@ -1372,6 +2049,32 @@ function NoticeModal({ notice, onClose }: { notice: AppNotice; onClose: () => vo
     );
   }
 
+  if (notice.kind === "loanWarning") {
+    return (
+      <div className="modal-backdrop notice-backdrop" role="presentation">
+        <section className="target-modal compact-modal notice-modal commission-modal" role="dialog" aria-modal="true" aria-label="贷款警告">
+          <header className="target-modal-header">
+            <div>
+              <p className="eyebrow">第 10 天</p>
+              <h3>还有贷款未清</h3>
+            </div>
+            <button className="icon-button" onClick={onClose} aria-label="关闭">
+              <X size={18} />
+            </button>
+          </header>
+          <p className="notice-copy">
+            你当前还有 {notice.loans} 笔贷款，终局需偿还 {notice.debt} 银元。还不上会先清空现金，再没收 1 件最低价值藏品；如果没有藏品可交出，每差 10 银元扣 1 声望。
+          </p>
+          <footer className="target-actions">
+            <button className="primary" onClick={onClose}>
+              <Check size={18} /> 知道了
+            </button>
+          </footer>
+        </section>
+      </div>
+    );
+  }
+
   if (notice.kind === "commission") {
     return (
       <div className="modal-backdrop notice-backdrop" role="presentation">
@@ -1386,6 +2089,36 @@ function NoticeModal({ notice, onClose }: { notice: AppNotice; onClose: () => vo
             </button>
           </header>
           <p className="notice-copy">{notice.message}</p>
+          <footer className="target-actions">
+            <button className="primary" onClick={onClose}>
+              <Check size={18} /> 收到
+            </button>
+          </footer>
+        </section>
+      </div>
+    );
+  }
+
+  if (notice.kind === "blackMarketPurchase") {
+    const cardKindLabel = notice.cardKind === "trick" ? "锦囊" : "事件卡";
+    return (
+      <div className="modal-backdrop notice-backdrop" role="presentation">
+        <section className="target-modal compact-modal notice-modal black-market-purchase-modal" role="dialog" aria-modal="true" aria-label="黑市购买结果">
+          <header className="target-modal-header">
+            <div>
+              <p className="eyebrow">黑市</p>
+              <h3>恭喜你用 {notice.cost} 银元买到了《{notice.card.name}》</h3>
+            </div>
+            <button className="icon-button" onClick={onClose} aria-label="关闭">
+              <X size={18} />
+            </button>
+          </header>
+          <p className="notice-copy">
+            这张{cardKindLabel}已经放入你的手牌，当前剩余 {notice.remainingCash} 银元。
+          </p>
+          <div className="black-market-card-result">
+            <GameCardFace card={notice.card} displayOnly />
+          </div>
           <footer className="target-actions">
             <button className="primary" onClick={onClose}>
               <Check size={18} /> 收到
@@ -1426,10 +2159,12 @@ function NoticeModal({ notice, onClose }: { notice: AppNotice; onClose: () => vo
 function BackpackOverlay({
   view,
   call,
+  onSellArtifact,
   onClose
 }: {
   view: PlayerView;
   call: <T>(event: keyof ClientToServerEvents, payload: unknown) => void;
+  onSellArtifact: (artifactId: string) => void;
   onClose: () => void;
 }) {
   return (
@@ -1451,7 +2186,7 @@ function BackpackOverlay({
             {view.self.artifacts.map((artifact) => (
               <div className="backpack-item" key={artifact.id}>
                 <ArtifactDetailCard artifact={artifact} compact />
-                <button onClick={() => call("bank:sell", { artifactId: artifact.id })}>卖银行</button>
+                <button onClick={() => onSellArtifact(artifact.id)}>卖银行</button>
               </div>
             ))}
           </div>
@@ -1488,8 +2223,98 @@ function ArtifactDetailCard({ artifact, compact }: { artifact: PublicArtifactVie
   );
 }
 
+function ownedArtifactsEligibleForSkill(view: PlayerView, skillId: string): PublicArtifactView[] {
+  if (skillId === "role08_skill01") return view.self.artifacts.filter((artifact) => artifact.purchasePrice !== undefined && artifact.rumorMin !== undefined && artifact.purchasePrice < artifact.rumorMin);
+  return view.self.artifacts;
+}
+
+function LoanConfirmModal({
+  view,
+  onClose,
+  onConfirm
+}: {
+  view: PlayerView;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const debtAfterBorrow = [...(view.self.loanRepayments ?? []), 120].reduce((sum, repayment) => sum + repayment, 0);
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="target-modal compact-modal" role="dialog" aria-modal="true" aria-label="确认借款">
+        <header className="target-modal-header">
+          <div>
+            <p className="eyebrow">钱庄</p>
+            <h3>确认借 100 银元？</h3>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="关闭">
+            <X size={18} />
+          </button>
+        </header>
+        <div className="confirm-copy">
+          <p>借款后你立刻获得 100 银元。</p>
+          <p>当前未还总额会变成 <strong>{debtAfterBorrow}</strong> 银元。</p>
+          <p>第 10 天终局前必须还清，否则会触发现金归零、没收藏品，或按差额扣声望。</p>
+        </div>
+        <footer className="target-actions">
+          <button onClick={onClose}>
+            <X size={18} /> 取消
+          </button>
+          <button className="primary" onClick={onConfirm}>
+            <Check size={18} /> 确认借款
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function SellConfirmModal({
+  view,
+  artifactId,
+  onClose,
+  onConfirm
+}: {
+  view: PlayerView;
+  artifactId: string;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const artifact = view.self.artifacts.find((candidate) => candidate.id === artifactId);
+  if (!artifact) return null;
+  const estimatedPrice = estimateBankSellPrice(view, artifact);
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="target-modal compact-modal" role="dialog" aria-modal="true" aria-label="确认出售藏品">
+        <header className="target-modal-header">
+          <div>
+            <p className="eyebrow">银行出售</p>
+            <h3>确认出售《{artifact.name}》？</h3>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="关闭">
+            <X size={18} />
+          </button>
+        </header>
+        <div className="confirm-copy">
+          <p>预计卖出价：<strong>{estimatedPrice} 银元</strong></p>
+          <p>这是基于当前可见规则做的预估，事件、属性、角色或当日效果可能改变最终到账金额。</p>
+        </div>
+        <ArtifactDetailCard artifact={artifact} compact />
+        <footer className="target-actions">
+          <button onClick={onClose}>
+            <X size={18} /> 取消
+          </button>
+          <button className="primary" onClick={onConfirm}>
+            <Check size={18} /> 确认出售
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
 function PublicPool({ view, currentArtifact }: { view: PlayerView; currentArtifact?: PublicArtifactView }) {
   const auctionMode = view.auction ? auctionModeLabel(view.auction.mode, view.auction.bundleInnerMode) : "未生成";
+  const auctionRange = currentArtifact?.rumorMin !== undefined ? `${currentArtifact.rumorMin} - ${currentArtifact.rumorMax} 银元` : "价格区间隐藏";
   return (
     <section className="panel public-pool">
       <div className="public-head">
@@ -1502,15 +2327,20 @@ function PublicPool({ view, currentArtifact }: { view: PlayerView; currentArtifa
           <strong>{currentArtifact?.name ?? "等待预展"}</strong>
         </div>
         <div>
-          <span>公开价格</span>
-          <strong>{currentArtifact?.purchasePrice ? `${currentArtifact.purchasePrice} 银元` : "未成交"}</strong>
+          <span>价格区间</span>
+          <strong>{auctionRange}</strong>
         </div>
       </div>
       <div className="public-log-list">
         {view.log.length === 0 && <p className="empty-text">暂无公开行动。</p>}
-        {view.log.map((item, index) => (
-          <p key={`${item}-${index}`}>{item}</p>
-        ))}
+        {view.log.map((item, index) => {
+          const logType = classifyLogMessage(item);
+          return (
+            <p key={`${item}-${index}`} className={`log-${logType}`}>
+              {highlightNumbers(item)}
+            </p>
+          );
+        })}
       </div>
     </section>
   );
@@ -1519,7 +2349,7 @@ function PublicPool({ view, currentArtifact }: { view: PlayerView; currentArtifa
 function CardConfirmModal({ card, onClose, onConfirm }: { card: PlayableCard; onClose: () => void; onConfirm: () => void }) {
   return (
     <div className="modal-backdrop" role="presentation">
-      <section className="target-modal compact-modal" role="dialog" aria-modal="true" aria-label={`确认使用 ${card.name}`}>
+      <section className="target-modal compact-modal game-card-confirm-modal" role="dialog" aria-modal="true" aria-label={`确认使用 ${card.name}`}>
         <header className="target-modal-header">
           <div>
             <p className="eyebrow">确认使用</p>
@@ -1529,7 +2359,7 @@ function CardConfirmModal({ card, onClose, onConfirm }: { card: PlayableCard; on
             <X size={18} />
           </button>
         </header>
-        <p>{card.description}</p>
+        <GameCardFace card={card} displayOnly />
         <footer className="target-actions">
           <button onClick={onClose}>
             <X size={18} /> 取消
@@ -1543,14 +2373,55 @@ function CardConfirmModal({ card, onClose, onConfirm }: { card: PlayableCard; on
   );
 }
 
+function gameCardFaceFor(card: PlayableCard) {
+  const category = card.category ?? "锦囊";
+  const isEvent = card.id.startsWith("E") || card.id.startsWith("N");
+  if (isEvent) return { deck: "事件", category, scheme: "event", mark: "势", seal: category.slice(0, 1) || "事" };
+  if (category.includes("信息")) return { deck: "锦囊", category, scheme: "trick", mark: "计", seal: "知" };
+  if (category.includes("竞价")) return { deck: "锦囊", category, scheme: "trick", mark: "价", seal: "拍" };
+  if (category.includes("现金")) return { deck: "锦囊", category, scheme: "trick", mark: "财", seal: "银" };
+  if (category.includes("反制")) return { deck: "锦囊", category, scheme: "trick", mark: "破", seal: "止" };
+  return { deck: "锦囊", category, scheme: "trick", mark: "扰", seal: "禁" };
+}
+
+function targetTextFor(kind?: string) {
+  if (kind === "self") return "自己";
+  if (kind === "player") return "玩家";
+  if (kind === "artifact") return "藏品";
+  if (kind === "auction") return "竞拍";
+  if (kind === "global") return "全场";
+  return "无指定目标";
+}
+
+function estimateBankSellPrice(view: PlayerView, artifact: PublicArtifactView): number {
+  const rumorMin = artifact.rumorMin ?? 0;
+  let rate = 0.8;
+  if (view.self.role?.id === "role02") rate = 1;
+  if (artifact.properties?.some((property) => property.id === "prop11")) rate = 1.1;
+
+  const todayEffects = view.activeEffects.filter((effect) => effect.day === undefined || effect.day === view.day);
+  const explicitRate = todayEffects
+    .map((effect) => effect.bankSellRate)
+    .filter((value): value is number => typeof value === "number")
+    .at(-1);
+  if (explicitRate !== undefined) rate = explicitRate;
+
+  if (todayEffects.some((effect) => effect.sourceCardId === "C01" && effect.createdBy === view.selfId)) rate = 1;
+
+  const propertyPenalty = artifact.properties?.some((property) => property.id === "prop25") ? 0.8 : 1;
+  return Math.floor(rumorMin * rate * propertyPenalty);
+}
+
 function SettingsModal({
   view,
   call,
-  onClose
+  onClose,
+  bgm
 }: {
   view: PlayerView;
   call: <T>(event: keyof ClientToServerEvents, payload: unknown) => void;
   onClose: () => void;
+  bgm: { volume: number; enabled: boolean; setVolume: (v: number) => void; toggleEnabled: () => void };
 }) {
   const [confirmCloseRoom, setConfirmCloseRoom] = useState(false);
   return (
@@ -1576,8 +2447,34 @@ function SettingsModal({
           <button className="danger-button" onClick={() => setConfirmCloseRoom(true)}>
             <X size={18} /> 退出房间
           </button>
+          {view.phase === "finalScoring" && (
+            <button className="primary" onClick={() => call("room:rematch", {})}>
+              <RefreshCw size={18} /> 再来一局
+            </button>
+          )}
           <span>所有玩家都可以暂停或恢复；房主额外拥有管理配置。</span>
         </div>
+        <section className="settings-music">
+          <h3><History size={16} /> 背景音乐</h3>
+          <div className="music-controls">
+            <button className={bgm.enabled ? "primary" : ""} onClick={bgm.toggleEnabled}>
+              {bgm.enabled ? <Play size={16} /> : <X size={16} />}
+              {bgm.enabled ? "已开启" : "已关闭"}
+            </button>
+            <div className="volume-slider">
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={bgm.enabled ? bgm.volume : 0}
+                onChange={(e) => bgm.setVolume(Number(e.target.value))}
+                aria-label="音量"
+              />
+              <span>{Math.round((bgm.enabled ? bgm.volume : 0) * 100)}%</span>
+            </div>
+          </div>
+        </section>
         <section className="shortcut-help">
           <div>
             <strong>Tab</strong>
@@ -1631,28 +2528,140 @@ function LogPanel({
     <section className="panel log-panel">
       <h3>{icon}{title}</h3>
       {log.length === 0 && <p className="empty-text">{emptyText}</p>}
-      {log.map((item, index) => (
-        <p key={`${item}-${index}`}>{item}</p>
-      ))}
+      {log.map((item, index) => {
+        const logType = classifyLogMessage(item);
+        return (
+          <p key={`${item}-${index}`} className={`log-${logType}`}>
+            {highlightNumbers(item)}
+          </p>
+        );
+      })}
     </section>
   );
+}
+
+type LogMessageType = 'action' | 'income' | 'auction' | 'trade' | 'card' | 'system';
+
+function classifyLogMessage(message: string): LogMessageType {
+  if (message.includes('出价') || message.includes('竞拍') || message.includes('成交') || message.includes('拍卖')) return 'auction';
+  if (message.includes('收入') || message.includes('掷骰')) return 'income';
+  if (message.includes('使用') || message.includes('打出') || message.includes('锦囊') || message.includes('事件卡')) return 'card';
+  if (message.includes('交易') || message.includes('换')) return 'trade';
+  if (message.includes('推进') || message.includes('阶段') || message.includes('开始')) return 'system';
+  return 'action';
+}
+
+function highlightNumbers(text: string): ReactNode {
+  const parts = text.split(/(\d+\s*银元?|\+\d+|-\d+|第\s*\d+\s*天)/g);
+  return parts.map((part, i) => {
+    if (/(\d+\s*银元?|\+\d+|-\d+|第\s*\d+\s*天)/.test(part)) {
+      return <span key={i} className="log-highlight-number">{part}</span>;
+    }
+    return part;
+  });
 }
 
 function FinalScores({ view }: { view: PlayerView }) {
   const ranked = [...view.players].sort((a, b) => (b.finalScore?.reputation ?? 0) - (a.finalScore?.reputation ?? 0));
   return (
-    <section className="panel final-panel">
-      <h3>终局排名</h3>
-      {ranked.map((player, index) => (
-        <div className="score-row" key={player.id}>
-          <strong>{index + 1}. {player.nickname}</strong>
-          <span>{player.finalScore?.reputation ?? 0} 声望</span>
+    <div className="scoreboard-layer final-score-layer" aria-label="终局结算">
+      <section className="scoreboard-panel final-panel final-scoreboard">
+        <div className="final-panel-head">
+          <div>
+            <p className="eyebrow">终局结算</p>
+            <h3>终局排名</h3>
+          </div>
+          <span>现金声望 + 藏品声望 + 委托 + 事件/属性</span>
         </div>
-      ))}
-    </section>
+        <div className="final-score-grid scrollable">
+          {ranked.map((player, index) => {
+            const score = player.finalScore;
+            return (
+              <article className={`final-score-card ${player.id === view.selfId ? "self" : ""}`} key={player.id}>
+                <header>
+                  <strong>{index + 1}. {player.nickname}{player.id === view.selfId ? " · 你" : ""}</strong>
+                  <span>{score?.reputation ?? 0} 声望</span>
+                </header>
+                <div className="final-score-breakdown">
+                  <p><span>现金声望</span><b>+{score?.cashRep ?? 0}</b></p>
+                  <p><span>藏品声望</span><b>+{score?.artifactRep ?? 0}</b></p>
+                  <p><span>类别/套装</span><b>+{score?.categoryRep ?? 0}</b></p>
+                  <p><span>委托声望</span><b>+{score?.missionRep ?? 0}</b></p>
+                  <p><span>事件卡</span><b>{formatSignedScore(score?.eventRep ?? 0)}</b></p>
+                  <p><span>属性</span><b>{formatSignedScore(score?.propertyRep ?? 0)}</b></p>
+                  <p><span>贷款惩罚</span><b>{formatSignedScore(-(score?.loanPenalty ?? 0))}</b></p>
+                  <p><span>角色惩罚</span><b>{formatSignedScore(-(score?.rolePenalty ?? 0))}</b></p>
+                </div>
+                <div className="final-score-meta">
+                  <small>现金 {score?.cashAfterLoan ?? 0}，按每 {score?.cashDivisor ?? 50} 银元折 1 声望</small>
+                  <small>藏品总价值 {score?.artifactValue ?? 0} 银元</small>
+                  <small>未还贷款 {score?.loanDebt ?? 0} 银元</small>
+                </div>
+                <div className="final-score-missions">
+                  {(score?.missionResults ?? []).length === 0 && <small>无秘密委托</small>}
+                  {(score?.missionResults ?? []).map((result) => {
+                    const mission = view.catalog.missions.find((candidate) => candidate.id === result.missionId);
+                    return (
+                      <small key={`${player.id}-${result.missionId}`}>
+                        {mission?.name ?? result.missionId} · {result.success ? `成功 +${result.reputation}` : "失败 +0"}
+                      </small>
+                    );
+                  })}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
 
+/** `~` 键实时预期声望面板（类似终局结算，只显示自己） */
+function ProjectionPanel({ view }: { view: PlayerView }) {
+  const score = view.projectedScore;
+  if (!score) return null;
+  return (
+    <div className="projection-backdrop" onClick={() => {}} role="presentation">
+      <section className="scoreboard-panel projection-panel" role="dialog" aria-modal="true" aria-label="实时预期声望">
+        <header className="projection-header">
+          <div>
+            <p className="eyebrow">实时预期声望（按 `~` 或 ESC 关闭）</p>
+            <h3>当前实时预期：{score.reputation} 声望</h3>
+          </div>
+        </header>
+        <div className="projection-scroll">
+          <div className="final-score-breakdown">
+            <p><span>现金声望</span><b>+{score.cashRep}</b></p>
+            <p><span>藏品声望</span><b>+{score.artifactRep}</b></p>
+            <p><span>类别/套装</span><b>+{score.categoryRep}</b></p>
+            <p><span>委托声望</span><b>+{score.missionRep}</b></p>
+            <p><span>事件卡</span><b>{formatSignedScore(score.eventRep)}</b></p>
+            <p><span>属性</span><b>{formatSignedScore(score.propertyRep)}</b></p>
+            <p><span>贷款惩罚</span><b>{formatSignedScore(-score.loanPenalty)}</b></p>
+            <p><span>角色惩罚</span><b>{formatSignedScore(-score.rolePenalty)}</b></p>
+          </div>
+          <div className="final-score-meta">
+            <small>现金 {score.cashAfterLoan}，按每 {score.cashDivisor} 银元折 1 声望</small>
+            <small>藏品总价值 {score.artifactValue} 银元</small>
+            <small>未还贷款 {score.loanDebt} 银元</small>
+          </div>
+          <div className="final-score-missions">
+            {score.missionResults.length === 0 && <small>无秘密委托</small>}
+            {score.missionResults.map((result) => {
+              const mission = view.catalog.missions.find((candidate) => candidate.id === result.missionId);
+              return (
+                <small key={result.missionId}>
+                  {mission?.name ?? result.missionId} - {result.success ? `成功 +${result.reputation}` : "失败 +0"}
+                </small>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 function formatTradeAssets(assets: PlayerView["tradeOffers"][number]["give"], view: PlayerView): string {
   const parts: string[] = [];
   if (assets.cash) parts.push(`${assets.cash} 银元`);
@@ -1663,6 +2672,23 @@ function formatTradeAssets(assets: PlayerView["tradeOffers"][number]["give"], vi
   return parts.length ? parts.join("、") : "无";
 }
 
+function formatSignedScore(value: number): string {
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function visibleTableArtifacts(view: PlayerView): PublicArtifactView[] {
+  if (!view.auction) {
+    if (view.phase === "preview" || view.phase === "cardWindow") return view.todayArtifacts.filter((artifact) => !artifact.ownerId);
+    return [];
+  }
+  const activeIds =
+    view.auction.mode === "bundle"
+      ? view.auction.artifactIds
+      : view.auction.artifactIds.slice(view.auction.currentArtifactIndex);
+  const activeIdSet = new Set(activeIds);
+  return view.todayArtifacts.filter((artifact) => activeIdSet.has(artifact.id) && !artifact.ownerId);
+}
+
 function findArtifactName(view: PlayerView, artifactId: string): string {
   const pools = [view.self.artifacts, view.todayArtifacts, ...view.players.map((player) => player.artifacts ?? [])];
   return pools.flat().find((artifact) => artifact.id === artifactId)?.name ?? "藏品";
@@ -1671,6 +2697,7 @@ function findArtifactName(view: PlayerView, artifactId: string): string {
 function targetModeForCard(card: PlayableCard): TargetMode {
   if (card.id === "D02") return "playerArtifact";
   if (card.id === "D07") return "playerAuctionArtifact";
+  if (card.id === "C04") return "ownedArtifact";
   if (["D01", "D03", "D04", "D05", "D06", "B08", "I04", "I05"].includes(card.id)) return "player";
   if (["I08", "I09", "I12"].includes(card.id)) return "none";
   if (card.target?.kind === "player") return "player";
@@ -1680,15 +2707,19 @@ function targetModeForCard(card: PlayableCard): TargetMode {
 }
 
 function targetModeForRoleSkill(skillId: string): TargetMode {
-  if (skillId === "role01_skill02" || skillId === "role03_skill01") return "ownedArtifact";
-  if (skillId === "role01_skill01" || skillId === "role07_skill01" || skillId === "role09_skill02") return "artifact";
+  if (skillId === "role03_skill01" || skillId === "role01_skill02" || skillId === "role08_skill01") return "ownedArtifact";
+  if (skillId === "role01_skill01" || skillId === "role07_skill01") return "artifact";
   if (skillId === "role06_skill01") return "player";
   if (skillId === "role06_skill03") return "playerMission";
+  if (skillId === "role03_skill02") return "playerSwap";
+  // role05_skill02（千术）不需要目标，直接修改自己的暗标
   return "none";
 }
 
 function canUseCardFromView(view: PlayerView, card: PlayableCard): boolean {
   if (isEventCard(view, card) && view.phase !== "eventWindow") return false;
+  if (card.id === "C08" && view.phase !== "freeTrade") return false;
+  if (card.id === "C04" && view.phase !== "freeTrade") return false;
   const mode = targetModeForCard(card);
   if (mode === "none") return true;
   if (mode === "player") return view.players.some((player) => player.id !== view.selfId);
@@ -1704,11 +2735,46 @@ function isEventCard(view: PlayerView, card: PlayableCard): card is EventCard {
 }
 
 function canUseRoleSkillFromView(view: PlayerView, skill: RoleSkill): boolean {
+  const charges = view.self.roleSkillCharges?.[skill.id];
+  if (typeof charges === "number" && charges <= 0) return false;
+  if (skill.id === "role06_skill01" && view.phase !== "blackMarket") return false;
+
+  if (skill.id === "role01_skill01" && !["preview", "cardWindow", "auction"].includes(view.phase)) return false;
+  if (skill.id === "role01_skill02" && view.phase !== "blackMarket") return false;
+  if (skill.id === "role03_skill01" && view.day < view.maxDays && view.phase !== "finalScoring") return false;
+  if (skill.id === "role05_skill01" && view.phase !== "dayIncome") return false;
+  if (skill.id === "role06_skill03" && view.self.cash < 50) return false;
+  if (skill.id === "role07_skill01" && !["preview", "cardWindow", "auction"].includes(view.phase)) return false;
+  if (skill.id === "role03_skill02" && view.phase !== "freeTrade") return false;
+  if (skill.id === "role08_skill01" && view.phase !== "settlement") return false;
+  if (skill.id === "role09_skill03") {
+    if (view.phase !== "auction" || view.currentHostId !== view.selfId || !view.auction) return false;
+    const bidMode = view.auction.mode === "bundle" ? (view.auction.bundleInnerMode ?? "english") : view.auction.mode;
+    if (bidMode !== "english") return false;
+  }
+
+  // 千术：只能在暗标拍卖且已提交暗标后使用
+  if (skill.id === "role05_skill02") {
+    if (view.phase !== "auction" || !view.auction) return false;
+    const bidMode = view.auction.mode === "bundle" ? (view.auction.bundleInnerMode ?? "sealed") : view.auction.mode;
+    if (bidMode !== "sealed") return false;
+    if (view.auction.ownSealedBid === undefined) return false;
+    return true;
+  }
+
   const mode = targetModeForRoleSkill(skill.id);
   if (mode === "none") return true;
   if (mode === "player" || mode === "playerMission") return view.players.some((player) => player.id !== view.selfId);
   if (mode === "ownedArtifact") return view.self.artifacts.length > 0;
   return view.todayArtifacts.length > 0 || view.self.artifacts.length > 0;
+}
+
+function canRespondChoiceEffect(effect: ActiveEffect, view: PlayerView): boolean {
+  if (!effect.pendingChoice) return false;
+  if (effect.day !== undefined && effect.day > view.day) return false;
+  if (effect.choiceType === "C04_listing") return effect.createdBy !== view.selfId;
+  if (effect.choiceType === "role01_skill01_choice") return effect.createdBy === view.selfId;
+  return effect.targetPlayerId === view.selfId;
 }
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -1728,6 +2794,44 @@ function appendedLogItems(previous: string[], current: string[]): string[] {
     }
   }
   return current;
+}
+
+function buildBlackMarketPurchaseNotice(
+  event: keyof ClientToServerEvents,
+  payload: unknown,
+  previousView: PlayerView | undefined,
+  nextView: PlayerView
+): AppNotice | undefined {
+  if (event !== "blackMarket:buy" || !previousView) return undefined;
+  if (previousView.roomId !== nextView.roomId || previousView.selfId !== nextView.selfId) return undefined;
+  const kind = (payload as { kind?: unknown }).kind;
+  if (kind !== "trick" && kind !== "event") return undefined;
+
+  const beforeCards = kind === "trick" ? previousView.self.hand : previousView.self.events;
+  const afterCards = kind === "trick" ? nextView.self.hand : nextView.self.events;
+  const card = firstAddedCard(beforeCards, afterCards);
+  if (!card) return undefined;
+
+  return {
+    kind: "blackMarketPurchase",
+    id: `black-market:${nextView.roomId}:${nextView.selfId}:${nextView.day}:${kind}:${card.id}:${afterCards.length}:${nextView.privateLog.length}`,
+    card,
+    cardKind: kind,
+    cost: Math.max(0, previousView.self.cash - nextView.self.cash),
+    remainingCash: nextView.self.cash
+  };
+}
+
+function firstAddedCard(beforeCards: PlayableCard[], afterCards: PlayableCard[]): PlayableCard | undefined {
+  const remaining = new Map<string, number>();
+  for (const card of beforeCards) remaining.set(card.id, (remaining.get(card.id) ?? 0) + 1);
+  for (const card of afterCards) {
+    const count = remaining.get(card.id) ?? 0;
+    if (count === 0) return card;
+    if (count === 1) remaining.delete(card.id);
+    else remaining.set(card.id, count - 1);
+  }
+  return undefined;
 }
 
 function artifactTargetsFor(view: PlayerView, mode: TargetMode, preferredArtifactId?: string, targetPlayerId?: string): PublicArtifactView[] {

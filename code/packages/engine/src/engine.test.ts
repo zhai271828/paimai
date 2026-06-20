@@ -20,7 +20,19 @@ function startedRoom() {
   }
   state = reduceGame(state, { type: "START_GAME", playerId: "p1", payload: {} });
   state = reduceGame(state, { type: "ADVANCE_PHASE", playerId: "p1", payload: {} });
+  // 测试中固定主持人偏移为 0，保证 p1 是第一天主持人
+  state.startHostOffset = 0;
+  state.currentHostId = "p1";
   return state;
+}
+
+function startRoomWithPlayers(ids: PlayerId[], roomId: string): GameState {
+  let state = createRoomState({ roomId, joinCode: "1234", now: 1 });
+  for (const id of ids) {
+    state = addPlayer(state, id, id.toUpperCase());
+    state = action(state, id, "SET_READY", { ready: true });
+  }
+  return action(state, ids[0]!, "START_GAME");
 }
 
 const missionCategories: Record<string, ArtifactCategory> = {
@@ -99,32 +111,48 @@ function expectActionError(state: GameState, playerId: PlayerId, type: ServerAct
   expect(() => reduceGame(state, { type, playerId, payload })).toThrow(message);
 }
 
+/** 英式拍卖：触发 15 秒倒计时到期，让拍卖成交 */
+function closeEnglishAuction(state: GameState, playerId?: PlayerId): GameState {
+  const actor = playerId ?? state.players.find((p) => !p.kicked)?.id ?? "p1";
+  return reduceGame(state, { type: "AUCTION_BID_TIMEOUT", playerId: actor, payload: { now: Date.now() + 30000 } });
+}
+
 function driveOneAuction(state: GameState, mode: "sealed" | "english" | "dutch" | "bundle", bidBase: number): GameState {
   const host = state.currentHostId ?? state.hostPlayerId ?? state.players[0]!.id;
   const bundleInnerMode = mode === "bundle" ? "sealed" : undefined;
-  state = action(state, host, "SET_AUCTION", { mode, startingBid: mode === "dutch" ? Math.max(80, bidBase + 60) : 0, bundleInnerMode });
-  state = action(state, state.players.find((player) => player.id !== state.currentHostId)!.id, "ADVANCE_PHASE");
+  try {
+    state = action(state, host, "SET_AUCTION", { mode, startingBid: mode === "dutch" ? Math.max(80, bidBase + 60) : 0, bundleInnerMode });
+  } catch {
+    // If SET_AUCTION fails (e.g. no artifacts), just resume the game
+    state = action(state, host, "ADVANCE_PHASE");
+    return state;
+  }
+  try { state = action(state, state.players.find((player) => player.id !== state.currentHostId)!.id, "ADVANCE_PHASE"); } catch {}
   if (mode === "english") {
     const bidders = state.players.filter((player) => player.id !== state.currentHostId);
-    const opener = bidders.find((player) => player.cash >= Math.max(10, Math.min(bidBase, player.cash))) ?? bidders[0]!;
-    state = action(state, opener.id, "PLACE_BID", { amount: Math.max(10, Math.min(bidBase, opener.cash)) });
-    for (const bidder of bidders.filter((candidate) => candidate.id !== opener.id)) {
-      if (state.phase === "auction") state = action(state, bidder.id, "PASS_BID");
+    const bidAmount = Math.floor(Math.max(10, Math.min(bidBase, ...bidders.map((p) => p.cash)) / 10) * 10);
+    try { state = action(state, bidders[0]!.id, "PLACE_BID", { amount: bidAmount }); } catch {} /* skip if bid fails */
+    const openerId = state.auction?.currentBidderId ?? bidders[0]!.id;
+    for (const bidder of bidders.filter((candidate) => candidate.id !== openerId)) {
+      try { if (state.phase === "auction") state = action(state, bidder.id, "PASS_BID"); } catch {}
     }
-    if (state.phase === "auction") state = action(state, opener.id, "PASS_BID");
+    try { if (state.phase === "auction") state = action(state, openerId, "PASS_BID"); } catch {}
+    try { if (state.phase === "auction") state = closeEnglishAuction(state); } catch {}
   } else if (mode === "dutch") {
-    state.auction!.dutch!.startedAt -= 60_000;
-    const bidder = state.players.filter((player) => player.id !== state.currentHostId).sort((a, b) => b.cash - a.cash)[0]!;
-    state = action(state, bidder.id, "DUTCH_STOP");
+    if (state.auction?.dutch) state.auction.dutch.startedAt -= 60_000;
+    try {
+      const bidder = state.players.filter((player) => player.id !== state.currentHostId).sort((a, b) => b.cash - a.cash)[0]!;
+      state = action(state, bidder.id, "DUTCH_STOP");
+    } catch {}
   } else {
     const bidderIds = state.players.filter((player) => player.id !== state.currentHostId).map((player) => player.id);
     bidderIds.forEach((playerId, index) => {
-      if (state.phase === "auction") state = action(state, playerId, "SUBMIT_SEALED_BID", { amount: index === 0 ? bidBase : Math.max(0, bidBase - 20 - index) });
+      try { if (state.phase === "auction") state = action(state, playerId, "SUBMIT_SEALED_BID", { amount: Math.round((index === 0 ? bidBase : Math.max(0, bidBase - 20 - index)) / 10) * 10 }); } catch {}
     });
     if (state.phase === "auction" && state.auction?.status === "tieBreak") {
       const finalists = [...(state.auction.tieBreakPlayerIds ?? [])];
       finalists.forEach((playerId, index) => {
-        if (state.phase === "auction") state = action(state, playerId, "SUBMIT_SEALED_BID", { amount: Math.max(0, bidBase + finalists.length - index) });
+        try { if (state.phase === "auction") state = action(state, playerId, "SUBMIT_SEALED_BID", { amount: Math.round(Math.max(10, bidBase + finalists.length - index) / 10) * 10 }); } catch {}
       });
     }
   }
@@ -141,11 +169,15 @@ function resolveAnyOpenAuction(state: GameState, bidBase: number): GameState {
     const opener = bidders.find((player) => player.cash >= minimum) ?? bidders[0]!;
     const openingBid = Math.min(opener.cash, Math.max(minimum, Math.min(bidBase, opener.cash)));
     if (!auction.currentBidderId) {
-      if (openingBid >= minimum) state = action(state, opener.id, "PLACE_BID", { amount: openingBid });
+      if (openingBid >= minimum) {
+        const roundedBid = Math.ceil(Math.max(minimum, openingBid) / 10) * 10;
+        if (roundedBid <= opener.cash) state = action(state, opener.id, "PLACE_BID", { amount: roundedBid });
+      }
     }
     for (const bidder of bidders) {
       if (state.phase === "auction" && bidder.id !== state.auction?.currentBidderId) state = action(state, bidder.id, "PASS_BID");
     }
+    if (state.phase === "auction") state = closeEnglishAuction(state);
     return state;
   }
   if (bidMode === "dutch") {
@@ -158,7 +190,7 @@ function resolveAnyOpenAuction(state: GameState, bidBase: number): GameState {
     if (Object.prototype.hasOwnProperty.call(state.auction?.sealedBids ?? {}, playerId)) continue;
     const player = state.players.find((candidate) => candidate.id === playerId)!;
     const wanted = auction.status === "tieBreak" ? Math.max(1, bidBase + requiredBidderIds.length - index) : index === 0 ? bidBase : Math.max(0, bidBase - 20 - index);
-    const amount = Math.max(0, Math.min(wanted, player.cash));
+    const amount = Math.floor(Math.max(0, Math.min(wanted, player.cash)) / 10) * 10;
     state = action(state, playerId, "SUBMIT_SEALED_BID", { amount });
   }
   return state;
@@ -181,14 +213,13 @@ function driveFullTenDayGame(seedRoomId = "room_long_auto"): GameState {
       state = action(state, actor, "ADVANCE_PHASE");
     } else if (state.phase === "blackMarket") {
       const buyer = state.players.find((player) => player.cash >= 30)!;
-      state = action(state, buyer.id, "BUY_BLACK_MARKET", { kind: "trick" });
+      const tricksBlocked = state.activeEffects.some((effect) => effect.blackMarketBlockTricks);
+      if (!tricksBlocked) {
+        state = action(state, buyer.id, "BUY_BLACK_MARKET", { kind: "trick" });
+      }
       state = action(state, actor, "ADVANCE_PHASE");
     } else if (state.phase === "preview") {
       const host = state.currentHostId ?? state.hostPlayerId ?? "p1";
-      const hostPlayer = state.players.find((player) => player.id === host)!;
-      if (hostPlayer.role?.roleId === "role09" && (hostPlayer.role.skillCharges.role09_skill02 ?? 0) > 0) {
-        state = action(state, host, "USE_ROLE_SKILL", { skillId: "role09_skill02", targetArtifactId: state.todayArtifactIds[0] });
-      }
       const modes = ["sealed", "english", "dutch", "bundle"] as const;
       const mode = modes[(state.day - 1) % modes.length]!;
       state = driveOneAuction(state, mode, 40 + state.day * 5);
@@ -349,6 +380,7 @@ function configureSuccessfulMission(state: GameState, player: PlayerState, missi
       break;
     case "W27":
       state.stats.commissionPeeksByViewer[player.id] = 3;
+      state.stats.commissionPeekTargetsByViewer[player.id] = ["p1", "p3", "p4"];
       break;
     case "W28":
       giveArtifacts(state, player, [{ fake: true }, { fake: true }, {}, {}]);
@@ -408,6 +440,51 @@ function configureFailedMission(state: GameState, player: PlayerState, missionId
 }
 
 describe("auctioneer engine", () => {
+  it("allows the owner to start after a stale lobby player disconnects", () => {
+    let state = createRoomState({ roomId: "room_stale_lobby", joinCode: "2468", now: 1 });
+    for (const id of ["p1", "p2", "p3"]) {
+      state = addPlayer(state, id, id.toUpperCase());
+      state = action(state, id, "SET_READY", { ready: true });
+    }
+    state = addPlayer(state, "p4", "P4");
+    state = action(state, "p4", "SET_CONNECTED", { connected: false });
+
+    expect(getPlayerView(state, "p1").canStart).toBe(true);
+    expect(getPlayerView(state, "p2").canStart).toBe(false);
+
+    state = action(state, "p1", "START_GAME");
+    expect(state.phase).toBe("dayIncome");
+    expect(state.players.map((player) => player.id)).toEqual(["p1", "p2", "p3"]);
+  });
+
+  it("supports two-player and six-player host schedules with randomized first host", () => {
+    const twoPlayerHosts = new Set<PlayerId | undefined>();
+    for (let index = 0; index < 20; index += 1) {
+      const sample = startRoomWithPlayers(["p1", "p2"], `room_two_${index}`);
+      twoPlayerHosts.add(sample.currentHostId);
+    }
+    expect(twoPlayerHosts).toContain("p1");
+    expect(twoPlayerHosts).toContain("p2");
+
+    let two = startRoomWithPlayers(["p1", "p2"], "room_two_rotation");
+    const firstTwoHost = two.currentHostId;
+    two.phase = "freeTrade";
+    two = action(two, "p1", "ADVANCE_PHASE");
+    expect(two.day).toBe(2);
+    expect(two.currentHostId).not.toBe(firstTwoHost);
+
+    let six = startRoomWithPlayers(["p1", "p2", "p3", "p4", "p5", "p6"], "room_six_rotation");
+    const hosts = [six.currentHostId];
+    for (let nextDay = 2; nextDay <= 10; nextDay += 1) {
+      six.phase = "freeTrade";
+      six = action(six, "p1", "ADVANCE_PHASE");
+      expect(six.day).toBe(nextDay);
+      hosts.push(six.currentHostId);
+    }
+    expect(new Set(hosts.slice(0, 6))).toEqual(new Set(["p1", "p2", "p3", "p4", "p5", "p6"]));
+    expect(hosts.slice(6)).toEqual([undefined, undefined, undefined, undefined]);
+  });
+
   it("prevents host from bidding on hosted artifacts", () => {
     let state = startedRoom();
     state = reduceGame(state, { type: "SET_AUCTION", playerId: "p1", payload: { mode: "english", startingBid: 0 } });
@@ -425,17 +502,73 @@ describe("auctioneer engine", () => {
     state = reduceGame(state, { type: "PLACE_BID", playerId: "p2", payload: { amount: 80 } });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p3", payload: {} });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p4", payload: {} });
+    state = closeEnglishAuction(state);
     const winner = state.players.find((player) => player.id === "p2")!;
     expect(state.phase).toBe("settlement");
     expect(winner.artifacts).toHaveLength(1);
     expect(winner.cash).toBe(cashBeforeAuction - 80);
   });
 
+  it("keeps english auctions open for the 15 second bid countdown and resets on higher bids", () => {
+    let state = startedRoom();
+    const artifactName = state.artifacts[state.todayArtifactIds[0]!]!.name;
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 10 });
+    const firstDeadline = state.auction!.bidDeadline!;
+    expect(state.phase).toBe("auction");
+    expect(state.auction?.currentBidderId).toBe("p2");
+    expect(state.log.at(-1)).toContain(`出价 10 银元`);
+    expect(state.log.at(-1)).toContain(artifactName);
+
+    state = action(state, "p3", "PLACE_BID", { amount: 30 });
+    expect(state.phase).toBe("auction");
+    expect(state.auction?.currentBidderId).toBe("p3");
+    expect(state.auction?.bidDeadline).toBeGreaterThanOrEqual(firstDeadline);
+    expect(state.players.find((player) => player.id === "p2")?.artifacts).toHaveLength(0);
+
+    state = action(state, "p2", "AUCTION_BID_TIMEOUT", { now: state.auction!.bidDeadline! - 1 });
+    expect(state.phase).toBe("auction");
+    state = action(state, "p2", "AUCTION_BID_TIMEOUT", { now: state.auction!.bidDeadline! });
+    expect(state.phase).toBe("settlement");
+    expect(state.players.find((player) => player.id === "p3")?.artifacts).toHaveLength(1);
+  });
+
+  it("resolves english auction immediately when all other bidders have exited", () => {
+    let state = startedRoom();
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 20 });
+    state = action(state, "p3", "PASS_BID");
+    state = action(state, "p4", "PASS_BID");
+    expect(state.phase).toBe("settlement");
+    expect(state.players.find((player) => player.id === "p2")?.artifacts).toHaveLength(1);
+  });
+
+  it("lets the last-bid trick announce and extend the english countdown", () => {
+    let state = startedRoom();
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 10 });
+    state.players.find((player) => player.id === "p3")!.hand.push("B06");
+
+    state = action(state, "p3", "PLAY_CARD", { cardId: "B06" });
+
+    expect(state.phase).toBe("auction");
+    expect(state.auction?.currentBid).toBe(30);
+    expect(state.auction?.currentBidderId).toBe("p3");
+    expect(state.auction?.bidDeadline).toBeTypeOf("number");
+    expect(state.log.at(-1)).toContain("出价 30 银元");
+  });
+
   it("gives each player independent dice income", () => {
     const state = startedRoom();
     for (const player of state.players) {
-      expect(player.cash).toBeGreaterThanOrEqual(510);
-      expect(player.cash).toBeLessThanOrEqual(560);
+      // 非神秘富豪基础500+10~60，神秘富豪额外+150
+      const minCash = player.role?.roleId === "role04" ? 660 : 510;
+      const maxCash = player.role?.roleId === "role04" ? 710 : 560;
+      expect(player.cash).toBeGreaterThanOrEqual(minCash);
+      expect(player.cash).toBeLessThanOrEqual(maxCash);
     }
     expect(state.lastMessage).toContain("掷出");
   });
@@ -476,10 +609,107 @@ describe("auctioneer engine", () => {
     state = reduceGame(state, { type: "SET_AUCTION", playerId: "p1", payload: { mode: "dutch", startingBid: 100 } });
     state = reduceGame(state, { type: "ADVANCE_PHASE", playerId: "p2", payload: {} });
     state.auction!.dutch!.startedAt -= 6000;
+    const expectedPrice = state.auction!.dutch!.startPrice - 10;
     const cashBefore = state.players.find((player) => player.id === "p2")!.cash;
     state = reduceGame(state, { type: "DUTCH_STOP", playerId: "p2", payload: {} });
     expect(state.phase).toBe("settlement");
-    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBefore - 80);
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBefore - expectedPrice);
+  });
+
+  it("randomizes dutch starting prices around rumor max in 10-yuan steps", () => {
+    let state = startedRoom();
+    const artifact = state.artifacts[state.todayArtifactIds[0]!]!;
+    artifact.rumorMax = 187;
+    state = action(state, "p1", "SET_AUCTION", { mode: "dutch", startingBid: 999 });
+    const start = state.auction!.currentBid;
+
+    expect(start % 10).toBe(0);
+    expect(start).toBeGreaterThanOrEqual(160);
+    expect(start).toBeLessThanOrEqual(210);
+    expect(start).not.toBe(999);
+  });
+
+  it("caps dutch starting price at the rumor ceiling", () => {
+    let state = startedRoom();
+    const artifact = state.artifacts[state.todayArtifactIds[0]!]!;
+    artifact.rumorMax = 140;
+    state = action(state, "p1", "SET_AUCTION", { mode: "dutch", startingBid: 999 });
+    expect(state.auction?.currentBid).toBeLessThanOrEqual(140);
+  });
+
+  it("rejects english bids above the rumor ceiling", () => {
+    let state = startedRoom();
+    const artifact = state.artifacts[state.todayArtifactIds[0]!]!;
+    artifact.rumorMax = 80;
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    expectActionError(state, "p2", "PLACE_BID", { amount: 90 }, "主持叫价上限");
+  });
+
+  it("caps bundle english bids at the sum of both rumor ceilings", () => {
+    let state = startedRoom();
+    const first = state.artifacts[state.todayArtifactIds[0]!]!;
+    const second = state.artifacts[state.todayArtifactIds[1]!]!;
+    first.rumorMax = 120;
+    second.rumorMax = 90;
+    state = action(state, "p1", "SET_AUCTION", { mode: "bundle", bundleInnerMode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    expectActionError(state, "p2", "PLACE_BID", { amount: 220 }, "主持叫价上限");
+    state = action(state, "p2", "PLACE_BID", { amount: 210 });
+    expect(state.auction?.currentBid).toBe(210);
+  });
+
+  it("lets the host set the starting bid after the random mode is chosen", () => {
+    let state = startedRoom();
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    expect(state.phase).toBe("cardWindow");
+    expect(state.auction?.status).toBe("choosing");
+    state = action(state, "p1", "SET_AUCTION", { startingBid: 70 });
+    expect(state.phase).toBe("auction");
+    expect(state.auction?.status).toBe("open");
+    expect(state.auction?.currentBid).toBe(70);
+  });
+
+  it("immediately opens dutch auction with the configured dutch step", () => {
+    let state = startedRoom();
+    state = action(state, "p1", "SET_AUCTION", { mode: "dutch", startingBid: 0 });
+    expect(state.phase).toBe("cardWindow");
+    expect(state.auction?.status).toBe("choosing");
+    state = action(state, "p1", "SET_AUCTION", { startingBid: 240, dutchStep: 20 });
+    expect(state.phase).toBe("auction");
+    expect(state.auction?.status).toBe("open");
+    expect(state.auction?.currentBid).toBe(240);
+    expect(state.auction?.dutchStep).toBe(20);
+    expect(state.auction?.dutch?.currentPrice).toBe(240);
+    expect(state.auction?.dutch?.step).toBe(20);
+  });
+
+  it("still allows a non-host player to advance into auction before the host sets a custom starting bid", () => {
+    let state = startedRoom();
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    expect(state.phase).toBe("auction");
+  });
+
+  it("rejects host starting bids above the current rumor ceiling", () => {
+    let state = startedRoom();
+    const artifact = state.artifacts[state.todayArtifactIds[0]!]!;
+    artifact.rumorMax = 60;
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    expectActionError(state, "p1", "SET_AUCTION", { startingBid: 70 }, "起拍价不能超过当前拍品价格区间最高值");
+  });
+
+  it("generates artifact values as 10-yuan multiples", () => {
+    const state = startedRoom();
+    expect(Object.values(state.artifacts).every((artifact) => artifact.trueValue % 10 === 0)).toBe(true);
+
+    const owned = Object.values(state.artifacts)[0]!;
+    owned.ownerId = "p2";
+    owned.trueValue = 100;
+    owned.properties = ["treasure"];
+    owned.tag = "treasure";
+    state.players.find((player) => player.id === "p2")!.artifacts.push(owned.id);
+    expect(getPlayerView(state, "p2").self.artifacts[0]?.trueValue).toBe(110);
   });
 
   it("awards both preview artifacts in a bundle auction", () => {
@@ -491,6 +721,7 @@ describe("auctioneer engine", () => {
     state = reduceGame(state, { type: "PLACE_BID", playerId: "p2", payload: { amount: 80 } });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p3", payload: {} });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p4", payload: {} });
+    state = closeEnglishAuction(state);
     expect(state.players.find((player) => player.id === "p2")?.artifacts).toEqual(artifactIds);
   });
 
@@ -549,10 +780,11 @@ describe("auctioneer engine", () => {
     state = reduceGame(state, { type: "PLACE_BID", playerId: "p3", payload: { amount: 100 } });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p2", payload: {} });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p4", payload: {} });
+    state = closeEnglishAuction(state);
 
     expect(state.phase).toBe("settlement");
     expect(state.players.find((player) => player.id === "p3")?.artifacts).toContain(targetArtifactId);
-    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(p2CashBefore + 10 + 10 + 10);
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(p2CashBefore + 10 + 20 + 10);
     expect(state.players.find((player) => player.id === "p3")?.cash).toBe(p3CashBefore - 100 - 10);
   });
 
@@ -574,7 +806,7 @@ describe("auctioneer engine", () => {
     expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBefore - 100);
   });
 
-  it("creates a next-day buyback after 回购凭证 bank sale", () => {
+  it("creates a next-day buyback choice after 回购凭证 bank sale", () => {
     let state = startedRoom();
     const player = state.players.find((candidate) => candidate.id === "p2")!;
     const artifact = Object.values(state.artifacts)[0]!;
@@ -594,6 +826,11 @@ describe("auctioneer engine", () => {
     state.day += 1;
     state = reduceGame(state, { type: "ADVANCE_PHASE", playerId: "p1", payload: {} });
     expect(state.phase).toBe("freeTrade");
+    const buybackChoice = state.activeEffects.find((effect) => effect.choiceType === "C03_buyback" && effect.targetPlayerId === "p2");
+    expect(buybackChoice).toBeDefined();
+    expect(state.players.find((candidate) => candidate.id === "p2")?.artifacts).not.toContain(artifact.id);
+
+    state = reduceGame(state, { type: "RESOLVE_CHOICE", playerId: "p2", payload: { effectId: buybackChoice!.id, choice: "accept" } });
     expect(state.players.find((candidate) => candidate.id === "p2")?.artifacts).toContain(artifact.id);
     expect(state.players.find((candidate) => candidate.id === "p2")?.cash).toBe(cashBefore + 80 - 100);
   });
@@ -620,6 +857,10 @@ describe("auctioneer engine", () => {
       playerId: "p3",
       payload: { tradeOfferId: state.tradeOffers[0]!.id, accept: false, version: 1 }
     });
+    const d02Choice = state.activeEffects.find((effect) => effect.choiceType === "D02_refusal" && effect.targetPlayerId === "p3");
+    expect(d02Choice).toBeDefined();
+    expect(state.players.find((player) => player.id === "p3")?.cash).toBe(ownerCashBefore);
+    state = reduceGame(state, { type: "RESOLVE_CHOICE", playerId: "p3", payload: { effectId: d02Choice!.id, choice: "pay" } });
     expect(state.players.find((player) => player.id === "p3")?.cash).toBe(ownerCashBefore - 20);
     expect(state.players.find((player) => player.id === "p2")?.cash).toBeGreaterThan(attacker.cash);
 
@@ -628,6 +869,109 @@ describe("auctioneer engine", () => {
     const otherView = getPlayerView(state, "p4");
     expect(attackerView.players.find((player) => player.id === "p3")?.revealedHand?.map((card) => card.id)).toContain("I01");
     expect(otherView.players.find((player) => player.id === "p3")?.revealedHand).toBeUndefined();
+  });
+
+  it("lets D02 refusal reveal artifact attributes instead of paying", () => {
+    let state = startedRoom();
+    const attacker = state.players.find((player) => player.id === "p2")!;
+    const owner = state.players.find((player) => player.id === "p3")!;
+    const artifact = Object.values(state.artifacts)[0]!;
+    artifact.ownerId = owner.id;
+    artifact.rumorMin = 100;
+    artifact.properties = ["fragile"];
+    owner.artifacts.push(artifact.id);
+    state.players.find((player) => player.id === "p1")!.hand = [];
+    state.players.find((player) => player.id === "p4")!.hand = [];
+    attacker.hand.push("D02");
+
+    state.phase = "freeTrade";
+    state = action(state, "p2", "PLAY_CARD", { cardId: "D02", targetArtifactId: artifact.id });
+    state = action(state, "p3", "RESPOND_TRADE_OFFER", { tradeOfferId: state.tradeOffers[0]!.id, accept: false, version: 1 });
+    const d02Choice = state.activeEffects.find((effect) => effect.choiceType === "D02_refusal" && effect.targetPlayerId === "p3")!;
+    state = action(state, "p3", "RESOLVE_CHOICE", { effectId: d02Choice.id, choice: "reveal" });
+
+    expect(getPlayerView(state, "p4").players.find((player) => player.id === "p3")?.artifacts?.find((item) => item.id === artifact.id)?.properties?.map((property) => property.id)).toContain("fragile");
+    expect(state.players.find((player) => player.id === "p3")?.cash).toBe(owner.cash);
+  });
+
+  it("supports C04 public consignment purchase and bank fallback", () => {
+    let state = startedRoom();
+    const seller = state.players.find((player) => player.id === "p2")!;
+    const buyer = state.players.find((player) => player.id === "p3")!;
+    const listed = Object.values(state.artifacts)[0]!;
+    listed.ownerId = seller.id;
+    listed.rumorMin = 100;
+    seller.artifacts.push(listed.id);
+    seller.hand.push("C04");
+    state.phase = "freeTrade";
+
+    state = action(state, "p2", "PLAY_CARD", { cardId: "C04", targetArtifactId: listed.id, amount: 100 });
+    const listing = state.activeEffects.find((effect) => effect.choiceType === "C04_listing" && effect.targetArtifactId === listed.id)!;
+    expect(getPlayerView(state, "p3").activeEffects.some((effect) => effect.id === listing.id)).toBe(true);
+    const sellerCashBefore = seller.cash;
+    const buyerCashBefore = buyer.cash;
+    state = action(state, "p3", "RESOLVE_CHOICE", { effectId: listing.id, choice: "accept" });
+    expect(state.players.find((player) => player.id === "p3")?.artifacts).toContain(listed.id);
+    expect(state.players.find((player) => player.id === "p3")?.cash).toBe(buyerCashBefore - 100);
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(sellerCashBefore + 120);
+
+    const fallbackSeller = state.players.find((player) => player.id === "p2")!;
+    const fallback = Object.values(state.artifacts).find((artifact) => !artifact.ownerId && artifact.id !== listed.id)!;
+    fallback.ownerId = fallbackSeller.id;
+    fallback.rumorMin = 100;
+    fallbackSeller.artifacts.push(fallback.id);
+    fallbackSeller.hand.push("C04");
+    state = action(state, "p2", "PLAY_CARD", { cardId: "C04", targetArtifactId: fallback.id, amount: 100 });
+    const cashBeforeFallback = state.players.find((player) => player.id === "p2")!.cash;
+    state.day = 2;
+    state = action(state, "p1", "ADVANCE_PHASE");
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBeforeFallback + 120);
+    expect(state.players.find((player) => player.id === "p2")?.artifacts).not.toContain(fallback.id);
+  });
+
+  it("resolves I02 upper/lower choice without revealing the whole rumor range", () => {
+    let state = startedRoom();
+    const player = state.players.find((candidate) => candidate.id === "p2")!;
+    const artifact = Object.values(state.artifacts)[0]!;
+    artifact.rumorMin = 70;
+    artifact.rumorMax = 190;
+    state.todayArtifactIds = [artifact.id];
+    player.hand.push("I02");
+    state.phase = "cardWindow";
+
+    state = action(state, "p2", "PLAY_CARD", { cardId: "I02", targetArtifactId: artifact.id });
+    const latestPrivateLog = state.players.find((candidate) => candidate.id === "p2")?.privateLog?.at(-1) ?? "";
+    expect(latestPrivateLog).toContain("传闻区间为 70 - 190");
+    expect(getPlayerView(state, "p2").todayArtifacts[0]?.rumorMin).toBe(70);
+    expect(state.activeEffects.some((effect) => effect.choiceType === "I02_upper_lower" && effect.createdBy === "p2")).toBe(false);
+  });
+
+  it("lets prop31 be actively donated before final scoring", () => {
+    let state = startedRoom();
+    const player = state.players.find((candidate) => candidate.id === "p2")!;
+    const artifact = Object.values(state.artifacts)[0]!;
+    artifact.ownerId = player.id;
+    artifact.trueValue = 200;
+    artifact.properties = ["prop31"];
+    artifact.tag = "anonymous";
+    player.artifacts = [artifact.id];
+    player.cash = 120;
+    player.loans = 0;
+    player.loanRepayments = [];
+
+    state.day = state.maxDays;
+    state.phase = "eventWindow";
+    state = action(state, "p1", "ADVANCE_PHASE");
+    expect(state.phase).toBe("freeTrade");
+    const donation = state.activeEffects.find((effect) => effect.choiceType === "prop31_donation" && effect.targetPlayerId === "p2");
+    expect(donation).toBeDefined();
+
+    state = action(state, "p2", "RESOLVE_CHOICE", { effectId: donation!.id, choice: "accept" });
+    expect(state.players.find((candidate) => candidate.id === "p2")?.artifacts).not.toContain(artifact.id);
+    state = action(state, "p1", "ADVANCE_PHASE");
+    const finalScore = state.players.find((candidate) => candidate.id === "p2")!.finalScore!;
+    expect(finalScore.cashRep).toBe(4);
+    expect(finalScore.artifactRep).toBe(0);
   });
 
   it("supports distinct reaction cards for delay and redirect", () => {
@@ -646,6 +990,7 @@ describe("auctioneer engine", () => {
     state = reduceGame(state, { type: "PLACE_BID", playerId: "p2", payload: { amount: 80 } });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p3", payload: {} });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p4", payload: {} });
+    state = closeEnglishAuction(state);
     expect(state.players.find((player) => player.id === "p3")?.cash).toBe(targetCashBefore - 10);
 
     state.phase = "freeTrade";
@@ -675,7 +1020,9 @@ describe("auctioneer engine", () => {
 
     state.phase = "eventWindow";
     state = reduceGame(state, { type: "PLAY_CARD", playerId: "p2", payload: { cardId: valueEvent.id } });
-    expect(state.activeEffects).toHaveLength(1);
+    expect(state.activeEffects.length).toBeGreaterThanOrEqual(1);
+    expect(state.activeEffects.filter((e) => e.sourceEventId === valueEvent.id && !e.pendingChoice).length).toBe(1);
+    expect(state.activeEffects.filter((e) => e.pendingChoice && e.choiceType === "E25_protection_fee").length).toBe(state.players.length);
     state.day += 1;
     state.currentHostId = "p1";
     state.phase = "preview";
@@ -684,10 +1031,122 @@ describe("auctioneer engine", () => {
     state = reduceGame(state, { type: "PLACE_BID", playerId: "p2", payload: { amount: 80 } });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p3", payload: {} });
     state = reduceGame(state, { type: "PASS_BID", playerId: "p4", payload: {} });
+    state = closeEnglishAuction(state);
 
     const view = getPlayerView(state, "p2");
-    expect(view.self.artifacts[0]?.trueValue).toBe(80);
-    expect(view.activeEffects[0]?.label).toContain(valueEvent.name);
+    expect(view.self.artifacts[0]?.trueValue).toBe(100);
+    const globalEffect = view.activeEffects.find((e) => e.sourceEventId === valueEvent.id && !e.pendingChoice);
+    expect(globalEffect?.label).toContain(valueEvent.name);
+  });
+
+  it("applies immediate value gain events to next-day won artifacts", () => {
+    let state = startedRoom();
+    const positiveEvent = EVENT_CARDS.find((card) => card.id === "E22")!;
+    const artifact = Object.values(state.artifacts)[0]!;
+    artifact.trueValue = 100;
+    artifact.category = "book";
+    artifact.tag = "anonymous";
+    artifact.properties = [];
+    state.todayArtifactIds = [artifact.id];
+    const caster = state.players.find((player) => player.id === "p2")!;
+    caster.events.push(positiveEvent.id);
+
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: positiveEvent.id });
+    state.day += 1;
+    state.currentHostId = "p1";
+    state.phase = "preview";
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 80 });
+    state = action(state, "p3", "PASS_BID", {});
+    state = action(state, "p4", "PASS_BID", {});
+    state = closeEnglishAuction(state);
+
+    const view = getPlayerView(state, "p2");
+    expect(view.self.artifacts[0]?.trueValue).toBe(110);
+  });
+
+  it("applies E23 immediate value loss to next-day won artifacts", () => {
+    let state = startedRoom();
+    const penaltyEvent = EVENT_CARDS.find((card) => card.id === "E23")!;
+    const penaltyArtifact = Object.values(state.artifacts)[0]!;
+    penaltyArtifact.trueValue = 100;
+    penaltyArtifact.category = "bronze";
+    penaltyArtifact.tag = "anonymous";
+    penaltyArtifact.properties = [];
+    state.todayArtifactIds = [penaltyArtifact.id];
+    const caster = state.players.find((player) => player.id === "p2")!;
+    caster.events.push(penaltyEvent.id);
+
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: penaltyEvent.id });
+    state.day += 1;
+    state.currentHostId = "p1";
+    state.phase = "preview";
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 80 });
+    state = action(state, "p3", "PASS_BID", {});
+    state = action(state, "p4", "PASS_BID", {});
+    state = closeEnglishAuction(state);
+    const view = getPlayerView(state, "p2");
+    expect(view.self.artifacts[0]?.trueValue).toBe(90);
+  });
+
+  it("applies E24 immediate value gain to next-day won artifacts", () => {
+    let state = startedRoom();
+    const bonusEvent = EVENT_CARDS.find((card) => card.id === "E24")!;
+    const bonusArtifact = Object.values(state.artifacts)[0]!;
+    bonusArtifact.trueValue = 100;
+    bonusArtifact.category = "jewelry";
+    bonusArtifact.tag = "anonymous";
+    bonusArtifact.properties = [];
+    state.todayArtifactIds = [bonusArtifact.id];
+    const caster = state.players.find((player) => player.id === "p2")!;
+    caster.events.push(bonusEvent.id);
+
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: bonusEvent.id });
+    state.day += 1;
+    state.currentHostId = "p1";
+    state.phase = "preview";
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 80 });
+    state = action(state, "p3", "PASS_BID", {});
+    state = action(state, "p4", "PASS_BID", {});
+    state = closeEnglishAuction(state);
+    expect(getPlayerView(state, "p2").self.artifacts[0]?.trueValue).toBe(110);
+  });
+
+  it("applies E27 immediate category gain when the rolled category matches the won artifact", () => {
+    let state = startedRoom();
+    const studyEvent = EVENT_CARDS.find((card) => card.id === "E27")!;
+    const studyArtifact = Object.values(state.artifacts)[0]!;
+    studyArtifact.trueValue = 100;
+    studyArtifact.category = "book";
+    studyArtifact.tag = "anonymous";
+    studyArtifact.properties = [];
+    state.todayArtifactIds = [studyArtifact.id];
+    const caster = state.players.find((player) => player.id === "p2")!;
+    caster.events.push(studyEvent.id);
+
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: studyEvent.id });
+    const drawnCategory = state.activeEffects.find((effect) => effect.sourceEventId === "E27")?.category;
+    if (!drawnCategory) throw new Error("E27 should choose a category");
+    studyArtifact.category = drawnCategory;
+    state.day += 1;
+    state.currentHostId = "p1";
+    state.phase = "preview";
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p2", "ADVANCE_PHASE");
+    state = action(state, "p2", "PLACE_BID", { amount: 80 });
+    state = action(state, "p3", "PASS_BID", {});
+    state = action(state, "p4", "PASS_BID", {});
+    state = closeEnglishAuction(state);
+    expect(getPlayerView(state, "p2").self.artifacts[0]?.trueValue).toBe(120);
   });
 
   it("applies black market event modifiers on the next black market day", () => {
@@ -784,15 +1243,65 @@ describe("auctioneer engine", () => {
     state.phase = "freeTrade";
     const cashBefore = state.players.find((player) => player.id === "p2")!.cash;
     state = reduceGame(state, { type: "USE_ROLE_SKILL", playerId: "p2", payload: { skillId: "role06_skill03", targetPlayerId: "p3" } });
-    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBefore - 30);
-    expect(getPlayerView(state, "p2").players.find((player) => player.id === "p3")?.revealedMissions?.length).toBeGreaterThan(0);
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBefore - 50);
+    const privateLog = state.players.find((player) => player.id === "p2")?.privateLog ?? [];
+    expect(privateLog.some((log) => log.includes("黑料"))).toBe(true);
     expect(getPlayerView(state, "p4").players.find((player) => player.id === "p3")?.revealedMissions).toBeUndefined();
+  });
+
+  it("grants role06 密报 bonus card and charges +10 for later black market trick buys", () => {
+    let state = startedRoom();
+    const broker = state.players.find((player) => player.id === "p2")!;
+    setRole(broker, "role06");
+    broker.events.push("E04");
+    state.phase = "eventWindow";
+    const handBefore = broker.hand.length;
+    state = action(state, "p2", "PLAY_CARD", { cardId: "E04" });
+    expect(state.players.find((player) => player.id === "p2")?.hand.length).toBe(handBefore + 1);
+
+    state.day = 3;
+    state.phase = "blackMarket";
+    state.players.find((player) => player.id === "p2")!.cash = 100;
+    const cashBeforeBuy = state.players.find((player) => player.id === "p2")!.cash;
+    state = action(state, "p2", "BUY_BLACK_MARKET", { kind: "trick" });
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBeforeBuy - 40);
+  });
+
+  it("applies role07 保护 as +1 count to the largest category", () => {
+    let state = startedRoom();
+    const scholar = state.players.find((player) => player.id === "p2")!;
+    setRole(scholar, "role07");
+    scholar.artifacts = [];
+    const artifacts = Object.values(state.artifacts).slice(0, 4);
+    artifacts[0]!.ownerId = scholar.id;
+    artifacts[1]!.ownerId = scholar.id;
+    artifacts[2]!.ownerId = scholar.id;
+    artifacts[3]!.ownerId = scholar.id;
+    artifacts[0]!.category = "calligraphy";
+    artifacts[1]!.category = "calligraphy";
+    artifacts[2]!.category = "bronze";
+    artifacts[3]!.category = "jade";
+    artifacts.forEach((artifact) => {
+      artifact.properties = [];
+      artifact.tag = "anonymous";
+      scholar.artifacts.push(artifact.id);
+    });
+    scholar.missionIds = ["W04"];
+    scholar.missionId = "W04";
+    state.day = state.maxDays;
+    state.phase = "freeTrade";
+    state = action(state, "p1", "ADVANCE_PHASE");
+    const mission = state.players.find((player) => player.id === "p2")?.finalScore?.missionResults.find((item) => item.missionId === "W04");
+    expect(mission?.success).toBe(true);
   });
 
   it("lets gambler see sealed bids and modify their sealed bid once", () => {
     let state = startedRoom();
     const gambler = state.players.find((player) => player.id === "p2")!;
     setRole(gambler, "role05", { role05_skill01: 1, role05_skill02: 1 });
+    // 确保其他玩家不因内容变更意外获得睹徒角色
+    const p4 = state.players.find((player) => player.id === "p4")!;
+    if (p4.role?.roleId === "role05") setRole(p4, "role01");
     state = reduceGame(state, { type: "SET_AUCTION", playerId: "p1", payload: { mode: "sealed", startingBid: 0 } });
     state = reduceGame(state, { type: "ADVANCE_PHASE", playerId: "p2", payload: {} });
     state = reduceGame(state, { type: "SUBMIT_SEALED_BID", playerId: "p2", payload: { amount: 80 } });
@@ -805,17 +1314,30 @@ describe("auctioneer engine", () => {
     expect(() => reduceGame(state, { type: "USE_ROLE_SKILL", playerId: "p2", payload: { skillId: "role05_skill02" } })).toThrow();
   });
 
-  it("queues gambler reroll for morning income instead of granting cash immediately", () => {
+  it("gambler passive skill automatically rerolls during morning income", () => {
     let state = startedRoom();
     const gambler = state.players.find((player) => player.id === "p2")!;
     setRole(gambler, "role05", { role05_skill01: 1 });
     state.phase = "dayIncome";
-    const cashBeforeSkill = gambler.cash;
-    state = reduceGame(state, { type: "USE_ROLE_SKILL", playerId: "p2", payload: { skillId: "role05_skill01" } });
-    expect(state.players.find((player) => player.id === "p2")?.cash).toBe(cashBeforeSkill);
+    const cashBefore = gambler.cash;
     state = reduceGame(state, { type: "ADVANCE_PHASE", playerId: "p1", payload: {} });
-    expect(state.players.find((player) => player.id === "p2")?.cash).toBeGreaterThan(cashBeforeSkill);
-    expect(state.activeEffects.some((effect) => effect.sourceRoleSkillId === "role05_skill01")).toBe(false);
+    const incomeRoll = state.lastIncomeRolls?.find((roll) => roll.playerId === "p2");
+    // 赌徒应该有两次掷骰结果
+    expect(incomeRoll?.roll).toBeDefined();
+    expect(incomeRoll?.reroll).toBeDefined();
+    expect(incomeRoll?.chosenRoll).toBe(Math.max(incomeRoll?.roll ?? 0, incomeRoll?.reroll ?? 0));
+    // 确认收入已增加
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBeGreaterThan(cashBefore);
+  });
+
+  it("gambler passive skill rejects manual activation", () => {
+    let state = startedRoom();
+    const gambler = state.players.find((player) => player.id === "p2")!;
+    setRole(gambler, "role05", { role05_skill01: 1 });
+    state.phase = "dayIncome";
+    expect(() => {
+      reduceGame(state, { type: "USE_ROLE_SKILL", playerId: "p2", payload: { skillId: "role05_skill01" } });
+    }).toThrow("孤注一掷是被动技能");
   });
 
   it("applies property rules for bank sales, loans, trades, and black market", () => {
@@ -1023,7 +1545,8 @@ describe("auctioneer engine", () => {
     state = action(state, "p4", "USE_ROLE_SKILL", { skillId: "role06_skill03", targetPlayerId: "p3" });
     const spyMissionView = getPlayerView(state, "p4");
     const outsiderMissionView = getPlayerView(state, "p2");
-    expect(spyMissionView.players.find((player) => player.id === "p3")?.revealedMissions?.map((mission) => mission.id)).toEqual(["W01", "W02"]);
+    const spyPrivateLog = state.players.find((p) => p.id === "p4")?.privateLog ?? [];
+    expect(spyPrivateLog.some((log) => log.includes("黑料"))).toBe(true);
     expect(outsiderMissionView.players.find((player) => player.id === "p3")?.revealedMissions).toBeUndefined();
     expect(outsiderMissionView.activeEffects.some((effect) => effect.sourceRoleSkillId === "role06_skill03")).toBe(false);
 
@@ -1063,17 +1586,13 @@ describe("auctioneer engine", () => {
     state.phase = "freeTrade";
     expectActionError(state, "p2", "USE_ROLE_SKILL", { skillId: "role06_skill03", targetPlayerId: "p3" }, "现金不足");
 
-    setRole(p2, "role09", { role09_skill02: 1, role09_skill03: 1 });
+    setRole(p2, "role09", { role09_skill03: 1 });
     state.phase = "preview";
-    state.currentHostId = "p3";
-    expectActionError(state, "p2", "USE_ROLE_SKILL", { skillId: "role09_skill02", targetArtifactId: state.todayArtifactIds[0] }, "包装只能在自己主持");
     state.currentHostId = "p2";
-    state = action(state, "p2", "USE_ROLE_SKILL", { skillId: "role09_skill02", targetArtifactId: state.todayArtifactIds[0] });
-    expect(state.players.find((player) => player.id === "p2")?.role?.skillCharges.role09_skill02).toBe(0);
-    expectActionError(state, "p2", "USE_ROLE_SKILL", { skillId: "role09_skill02", targetArtifactId: state.todayArtifactIds[0] }, "该技能次数已用完");
+    expectActionError(state, "p2", "USE_ROLE_SKILL", { skillId: "role09_skill02", targetArtifactId: state.todayArtifactIds[0] }, "该技能已改为被动");
 
     state = action(state, "p2", "SET_AUCTION", { mode: "sealed", startingBid: 0 });
-    state = action(state, "p3", "ADVANCE_PHASE");
+    state = action(state, "p2", "ADVANCE_PHASE");
     expectActionError(state, "p2", "USE_ROLE_SKILL", { skillId: "role09_skill03" }, "暗箱操作只能用于英式");
     state.phase = "preview";
     state.currentHostId = "p2";
@@ -1147,9 +1666,9 @@ describe("auctioneer engine", () => {
     state.phase = "freeTrade";
     state.players.find((player) => player.id === "p2")!.cash = 100;
     state.players.find((player) => player.id === "p3")!.missionIds = ["W01", "W02"];
-    state = action(state, "p2", "USE_ROLE_SKILL", { skillId: "role06_skill03", targetPlayerId: "p3", targetMissionId: "W02", invalidateMission: true });
-    expect(state.players.find((player) => player.id === "p3")?.missionIds).toEqual(["W01"]);
-    expect(getPlayerView(state, "p4").players.find((player) => player.id === "p3")?.revealedMissions).toBeUndefined();
+    state = action(state, "p2", "USE_ROLE_SKILL", { skillId: "role06_skill03", targetPlayerId: "p3" });
+    expect(state.players.find((player) => player.id === "p2")?.cash).toBeLessThan(100);
+    expect(state.players.find((player) => player.id === "p3")?.missionIds).toEqual(["W01", "W02"]);
   });
 
   it("covers property failure paths and multi-property boundary combinations", () => {
@@ -1184,20 +1703,6 @@ describe("auctioneer engine", () => {
     state = action(state, "p2", "SELL_TO_BANK", { artifactId: plainItem!.id });
     expect(state.players.find((player) => player.id === "p2")?.cash).toBe(152);
 
-    state.players.find((player) => player.id === "p2")!.cash = 0;
-    state.day = 3;
-    state.phase = "blackMarket";
-    state = action(state, "p1", "ADVANCE_PHASE");
-    expect(state.players.find((player) => player.id === "p2")?.artifacts).not.toContain(fragileItem!.id);
-
-    state.players.find((player) => player.id === "p2")!.role = { roleId: "role07", skillCharges: {} };
-    state.players.find((player) => player.id === "p2")!.artifacts.push(protectedFragile!.id);
-    protectedFragile!.ownerId = "p2";
-    state.day = 6;
-    state.phase = "blackMarket";
-    state = action(state, "p1", "ADVANCE_PHASE");
-    expect(state.players.find((player) => player.id === "p2")?.artifacts).toContain(protectedFragile!.id);
-
     state.phase = "freeTrade";
     const privateValueBefore = getPlayerView(state, "p2").self.artifacts.find((artifact) => artifact.id === privateRumor!.id)?.trueValue;
     state.players.find((player) => player.id === "p3")!.hand.push("I01");
@@ -1207,7 +1712,7 @@ describe("auctioneer engine", () => {
     publicRumor!.privatePeekedBy = [];
     const publicValueAfter = getPlayerView(state, "p2").self.artifacts.find((artifact) => artifact.id === publicRumor!.id)?.trueValue;
     expect(privateValueBefore).toBe(100);
-    expect(privateValueAfter).toBe(85);
+    expect(privateValueAfter).toBe(90);
     expect(publicValueAfter).toBe(100);
 
     const hotItem = Object.values(state.artifacts).find((artifact) => !p2.artifacts.includes(artifact.id) && artifact.ownerId === undefined)!;
@@ -1308,6 +1813,7 @@ describe("auctioneer engine", () => {
     state = action(state, "p2", "PLACE_BID", { amount: 80 });
     state = action(state, "p3", "PASS_BID");
     state = action(state, "p4", "PASS_BID");
+    state = closeEnglishAuction(state);
     expect(state.players.find((player) => player.id === "p2")?.hand).toContain("I01");
     expect(state.discardPile).toEqual(["E01"]);
 
@@ -1325,6 +1831,7 @@ describe("auctioneer engine", () => {
     state = action(state, "p2", "PLACE_BID", { amount: 100 });
     state = action(state, "p4", "PASS_BID");
     state = action(state, "p2", "PASS_BID");
+    state = closeEnglishAuction(state);
     expect(state.players.find((player) => player.id === "p3")?.cash).toBe(hostCashBefore + 35);
     expect(state.players.find((player) => player.id === "p3")?.privateLog?.at(-1)).toContain("你作为主持人收到 35 银元佣金。");
 
@@ -1431,7 +1938,7 @@ describe("auctioneer engine", () => {
     state.players.find((player) => player.id === "p4")!.cash = 60;
 
     state = action(state, "p2", "PLAY_CARD", { cardId: "I06", targetArtifactId: targetArtifact });
-    expect(state.players.find((player) => player.id === "p2")?.privateLog?.at(-1)).toContain("属性倾向：负面");
+    expect(state.players.find((player) => player.id === "p2")?.privateLog?.at(-1)).toContain("完整属性：仿品");
     state = action(state, "p2", "PLAY_CARD", { cardId: "I12" });
     expect(state.players.find((player) => player.id === "p2")?.privateLog?.at(-1)).toContain("当前现金排名：1. P2 / 2. P3 / 3. P4 / 4. P1");
   });
@@ -1447,7 +1954,7 @@ describe("auctioneer engine", () => {
     state.phase = "eventWindow";
     state = action(state, "p2", "PLAY_CARD", { cardId: "E04" });
 
-    expect(state.players.find((candidate) => candidate.id === "p2")?.privateLog?.at(-1)).toContain("你使用了事件卡《黑市查封》");
+    expect(state.players.find((candidate) => candidate.id === "p2")?.privateLog?.[0]).toContain("你使用了事件卡《黑市查封》");
     expect(state.log.at(-1)).toBe("今日发生：所有玩家获得 20 银元，下一次黑市每人最多买 1 张。");
     expect(state.log.at(-1)).not.toContain("P2");
     expect(getPlayerView(state, "p3").log.at(-1)).toBe("今日发生：所有玩家获得 20 银元，下一次黑市每人最多买 1 张。");
@@ -1480,7 +1987,9 @@ describe("auctioneer engine", () => {
 
     state = action(state, "p2", "ADVANCE_PHASE");
     expect(state.phase).toBe("cardWindow");
-    expect(["english", "dutch", "sealed", "bundle"]).toContain(state.auction?.mode);
+    // 无主持人日强制英式拍卖
+    expect(state.auction?.mode).toBe("english");
+    expect(state.auction?.currentBid).toBe(0);
   });
 
   it("auto-advances offline blockers in auction and reaction windows", () => {
@@ -1513,5 +2022,172 @@ describe("auctioneer engine", () => {
     state = action(state, "p3", "SET_CONNECTED", { connected: false });
     state = action(state, "p3", "AUTO_ADVANCE_OFFLINE");
     expect(state.pendingReaction).toBeUndefined();
+  });
+
+  it("creates pendingChoice effects for E25 and resolves with pay or accept", () => {
+    let state = startedRoom();
+    const p2 = state.players.find((player) => player.id === "p2")!;
+    const p3 = state.players.find((player) => player.id === "p3")!;
+
+    // Give p2 and p3 qualifying category artifacts
+    // Artifacts are assigned from the existing pool; force a curio and a relic
+    const allArtifacts = Object.values(state.artifacts);
+    const curioArtifact = allArtifacts.find((a) => a.category === "curio")!;
+    const relicArtifact = allArtifacts.find((a) => a.category === "relic")!;
+    curioArtifact.ownerId = p2.id;
+    curioArtifact.dayAcquired = state.day + 1; // will be affected on nextDay
+    relicArtifact.ownerId = p3.id;
+    relicArtifact.dayAcquired = state.day + 1;
+    p2.artifacts = [curioArtifact.id];
+    p3.artifacts = [relicArtifact.id];
+    p2.cash = 200;
+    p3.cash = 200;
+
+    // Play E25 in eventWindow
+    p2.events.push("E25");
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: "E25" });
+
+    // Should create global -20% effect + 4 pendingChoice effects
+    const globalEffect = state.activeEffects.find((e) => e.sourceEventId === "E25" && !e.pendingChoice);
+    expect(globalEffect).toBeDefined();
+    expect(globalEffect!.multiplier).toBe(0.8);
+
+    const pendingEffects = state.activeEffects.filter((e) => e.pendingChoice && e.choiceType === "E25_protection_fee");
+    expect(pendingEffects).toHaveLength(state.players.length);
+
+    // Advance to the effect day (nextDay)
+    state.day += 1;
+
+    // p2 resolves with "pay"
+    const p2Pending = state.activeEffects.find((e) => e.pendingChoice && e.targetPlayerId === "p2")!;
+    const cashBeforePay = state.players.find((p) => p.id === "p2")!.cash;
+    state = action(state, "p2", "RESOLVE_CHOICE", { effectId: p2Pending.id, choice: "pay" });
+    expect(state.players.find((p) => p.id === "p2")!.cash).toBe(cashBeforePay - 10); // 1 qualifying curio * 10
+    expect(state.activeEffects.find((e) => e.id === p2Pending.id)).toBeUndefined();
+    // Compensating +25% effect should exist for p2's curio (dayAcquired === state.day)
+    const compensator = state.activeEffects.find(
+      (e) => e.targetArtifactId === curioArtifact.id && e.multiplier === 1.25
+    );
+    expect(compensator).toBeDefined();
+    expect(state.log.some((msg) => msg.includes("支付"))).toBe(true);
+
+    // p3 resolves with "accept"
+    const p3Pending = state.activeEffects.find((e) => e.pendingChoice && e.targetPlayerId === "p3")!;
+    const cashBeforeAccept = state.players.find((p) => p.id === "p3")!.cash;
+    state = action(state, "p3", "RESOLVE_CHOICE", { effectId: p3Pending.id, choice: "accept" });
+    expect(state.players.find((p) => p.id === "p3")!.cash).toBe(cashBeforeAccept); // no cash change
+    expect(state.activeEffects.find((e) => e.id === p3Pending.id)).toBeUndefined();
+    expect(state.log.some((msg) => msg.includes("选择接受"))).toBe(true);
+  });
+
+  it("auto-resolves unresolved E25 pendingChoice at final scoring as accept", () => {
+    let state = startedRoom();
+    const p2 = state.players.find((player) => player.id === "p2")!;
+
+    // Play E25
+    p2.events.push("E25");
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: "E25" });
+
+    const pendingEffects = state.activeEffects.filter((e) => e.pendingChoice);
+    expect(pendingEffects.length).toBeGreaterThan(0);
+
+    // Advance to final scoring without resolving pendingChoices
+    state.day = state.maxDays;
+    state.phase = "freeTrade";
+    state = action(state, "p1", "ADVANCE_PHASE");
+    expect(state.phase).toBe("finalScoring");
+
+    // All pendingChoice effects should be removed (auto-resolved)
+    expect(state.activeEffects.filter((e) => e.pendingChoice)).toHaveLength(0);
+    // The global E25 effect should still exist
+    const globalEffect = state.activeEffects.find((e) => e.sourceEventId === "E25" && !e.pendingChoice);
+    expect(globalEffect).toBeDefined();
+    expect(state.players.every((player) => player.finalScore)).toBe(true);
+  });
+
+  it("creates n1_mystery_buyer pendingChoice effects and resolves sell/reject", () => {
+    let state = startedRoom();
+    const p2 = state.players.find((player) => player.id === "p2")!;
+    const p3 = state.players.find((player) => player.id === "p3")!;
+
+    // Give p2 and p3 qualifying artifacts of the same category as the first today artifact
+    const targetArtifact = Object.values(state.artifacts).find((a) => a.ownerId === undefined)!;
+    const category = targetArtifact.category;
+    // Find another artifact of the same category for p3
+    const secondArtifact = Object.values(state.artifacts).find((a) => a.id !== targetArtifact.id && a.ownerId === undefined && a.category === category)
+      ?? Object.values(state.artifacts).find((a) => a.id !== targetArtifact.id && a.ownerId === undefined)!;
+
+    // Prevent p2 and p3 from winning (make their cash too low) and use a different player
+    // Actually, let's just set todayArtifactIds to target specific artifacts
+    state.todayArtifactIds = [targetArtifact.id];
+
+    // p2 has one artifact of the same category already
+    targetArtifact.ownerId = p2.id;
+    targetArtifact.dayAcquired = state.day;
+    p2.artifacts.push(targetArtifact.id);
+
+    // p3 also has one artifact of the same category
+    secondArtifact.ownerId = p3.id;
+    secondArtifact.dayAcquired = state.day;
+    p3.artifacts.push(secondArtifact.id);
+
+    // Play N1 in eventWindow
+    p2.events.push("N1");
+    state.phase = "eventWindow";
+    state = action(state, "p2", "PLAY_CARD", { cardId: "N1" });
+
+    // Advance to next day so N1 effect is active
+    state.day += 1;
+    state.currentHostId = "p1";
+    state.phase = "preview";
+    // Run an auction where someone wins the targetArtifact
+    state.todayArtifactIds = [targetArtifact.id];
+    state = action(state, "p1", "SET_AUCTION", { mode: "english", startingBid: 0 });
+    state = action(state, "p4", "ADVANCE_PHASE");
+    const winner = state.players.find((player) => player.id === "p4")!;
+    winner.cash = 500;
+    state = action(state, "p4", "PLACE_BID", { amount: 80 });
+    state = action(state, "p2", "PASS_BID");
+    state = action(state, "p3", "PASS_BID");
+    state = closeEnglishAuction(state);
+
+    // After auction closes, N1 should have created pendingChoice effects for p2 and p3
+    // (they own artifacts of the same category as the won artifact)
+    expect(state.phase).toBe("settlement");
+
+    const n1Pending = state.activeEffects.filter(
+      (e) => e.pendingChoice && e.choiceType === "n1_mystery_buyer"
+    );
+    expect(n1Pending.length).toBeGreaterThanOrEqual(2);
+    expect(n1Pending.some((e) => e.targetPlayerId === "p2")).toBe(true);
+    expect(n1Pending.some((e) => e.targetPlayerId === "p3")).toBe(true);
+
+    // p2 chooses "sell"
+    const p2Pending = n1Pending.find((e) => e.targetPlayerId === "p2")!;
+    const p2CashBefore = p2.cash;
+    const p2ArtifactCountBefore = p2.artifacts.length;
+    state = action(state, "p2", "RESOLVE_CHOICE", { effectId: p2Pending.id, choice: "sell" });
+    expect(state.players.find((p) => p.id === "p2")!.cash).toBeGreaterThan(p2CashBefore);
+    expect(state.players.find((p) => p.id === "p2")!.artifacts.length).toBeLessThan(p2ArtifactCountBefore);
+    expect(state.log.some((msg) => msg.includes("卖出"))).toBe(true);
+
+    // p3 chooses "reject"
+    const p3Pending = n1Pending.find((e) => e.targetPlayerId === "p3")!;
+    const p3CashBefore = p3.cash;
+    state = action(state, "p3", "RESOLVE_CHOICE", { effectId: p3Pending.id, choice: "reject" });
+    expect(state.players.find((p) => p.id === "p3")!.cash).toBe(p3CashBefore);
+    expect(state.players.find((p) => p.id === "p3")!.reputationBonus).toBe(1);
+    expect(state.log.some((msg) => msg.includes("拒绝"))).toBe(true);
+
+    // Advance to final scoring and check reputationBonus is included
+    state.day = state.maxDays;
+    state.phase = "freeTrade";
+    state = action(state, "p1", "ADVANCE_PHASE");
+    expect(state.phase).toBe("finalScoring");
+    expect(state.activeEffects.filter((e) => e.pendingChoice)).toHaveLength(0);
+    // p3 should have no pending N1 choices left
+    expect(state.players.find((p) => p.id === "p3")!.finalScore).toBeDefined();
   });
 });

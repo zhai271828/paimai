@@ -38,10 +38,16 @@ export async function createApp(repository?: RoomRepository): Promise<AppBundle>
     await app.register(fastifyStatic, {
       root: staticRoot,
       prefix: "/",
-      wildcard: false
+      setHeaders: (res, filePath) => {
+        if (path.basename(filePath) === "index.html") {
+          res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+          res.setHeader("Pragma", "no-cache");
+          res.setHeader("Expires", "0");
+        }
+      }
     });
     app.setNotFoundHandler((request, reply) => {
-      if (request.method !== "GET" || request.url.startsWith("/socket.io/") || request.url.startsWith("/health")) {
+      if (!shouldServeSpaFallback(request)) {
         return reply.code(404).send({ ok: false, error: "Not found" });
       }
       return reply.sendFile("index.html");
@@ -58,6 +64,16 @@ export async function createApp(repository?: RoomRepository): Promise<AppBundle>
   registerRoomHandlers(io, store, { allowedOrigins, rateLimiter });
   for (const room of restorePersistedRoomsIntoStore(store)) scheduleRecoveredRoomTimers(io, store, room.roomId);
   return { app, io, store };
+}
+
+function shouldServeSpaFallback(request: { method: string; url: string; headers: { accept?: string } }): boolean {
+  if (request.method !== "GET") return false;
+
+  const pathname = request.url.split("?")[0] ?? request.url;
+  if (pathname.startsWith("/socket.io/") || pathname.startsWith("/health")) return false;
+  if (path.extname(pathname)) return false;
+
+  return request.headers.accept?.includes("text/html") ?? false;
 }
 
 function resolveStaticRoot(): string | undefined {
